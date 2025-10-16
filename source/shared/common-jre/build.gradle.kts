@@ -65,24 +65,28 @@ val jacocoClasses by configurations.creating {
     isVisible = false
 }
 
-val sourceDirs = jacocoSources.files.filter {
-    it.isDirectory && it.absolutePath.endsWith("src/main/java")
-}
-
-val classes = jacocoClasses.files.filter {
-    it.path.replace("\\","/").contains(Regex("source/(shared|jvm)/.*/build/libs"))
-}.map {
-    zipTree(it).matching {
-        exclude("org/apache/**", "edu/**",
-                "org/geogebra/common/kernel/barycentric/**")
-    }
-}.reduce(FileCollection::plus)
-
 tasks.jacocoTestReport {
     reports {
         xml.required = true
         html.required = false
     }
-    additionalSourceDirs(*sourceDirs.toTypedArray())
-    additionalClassDirs(classes)
+    
+    // Move file resolution to execution time to avoid configuration-time resolution
+    doFirst {
+        val sourceDirs = jacocoSources.files.filter {
+            it.isDirectory && it.absolutePath.endsWith("src/main/java")
+        }
+        
+        val classes = jacocoClasses.files.filter {
+            it.path.replace("\\","/").contains(Regex("source/(shared|jvm)/.*/build/libs"))
+        }.map {
+            zipTree(it).matching {
+                exclude("org/apache/**", "edu/**",
+                        "org/geogebra/common/kernel/barycentric/**")
+            }
+        }.reduce(FileCollection::plus)
+        
+        additionalSourceDirs(*sourceDirs.toTypedArray())
+        additionalClassDirs(classes)
+    }
 }

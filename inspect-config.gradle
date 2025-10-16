@@ -1,0 +1,65 @@
+// Gradle init script for inspecting configuration
+// Usage: ./gradlew --init-script inspect-config.gradle inspectWorkspace
+
+gradle.projectsLoaded {
+    rootProject {
+        task("inspectWorkspace") {
+            group = "help"
+            description = "Inspect Gradle workspace configuration (doesn't trigger subproject configuration)"
+            
+            doLast {
+                println("\n" + "=".repeat(60))
+                println(" Gradle Workspace Configuration Inspector")
+                println("=".repeat(60))
+                
+                println("\n=== Workspace Information ===")
+                println("Root Project: ${rootProject.name}")
+                println("Project Directory: ${rootProject.projectDir}")
+                println("Gradle Version: ${gradle.gradleVersion}")
+                println("Gradle Home: ${gradle.gradleHomeDir}")
+                
+                println("\n=== Included Builds ===")
+                if (gradle.includedBuilds.isEmpty()) {
+                    println("No composite builds")
+                } else {
+                    gradle.includedBuilds.each { build ->
+                        println("- ${build.name}")
+                        println("  Location: ${build.projectDir}")
+                    }
+                }
+                
+                println("\n=== Root Project Properties ===")
+                rootProject.properties.sort().each { key, value ->
+                    if (!key.startsWith("org.gradle") && 
+                        !key.startsWith("systemProp") && 
+                        !key.startsWith("ant") &&
+                        !key.contains("class")) {
+                        println("${key} = ${value}")
+                    }
+                }
+                
+                println("\n=== Applied Plugins (Root) ===")
+                rootProject.plugins.each { plugin ->
+                    println("- ${plugin.class.simpleName}")
+                }
+                
+                println("\n=== Repositories (Root) ===")
+                rootProject.repositories.each { repo ->
+                    println("- ${repo.name}")
+                }
+                
+                println("\n=== Configuration Files ===")
+                println("Root settings: ${rootProject.rootDir}/settings.gradle.kts")
+                println("Root build: ${rootProject.rootDir}/build.gradle.kts")
+                
+                println("\n=== Inspection Tips ===")
+                println("• To see tasks: ./gradlew tasks")
+                println("• To see properties: ./gradlew properties")
+                println("• To see dependencies: ./gradlew :project:dependencies")
+                println("• To list projects: ./gradlew projects")
+                
+                println("\n" + "=".repeat(60))
+            }
+        }
+    }
+}

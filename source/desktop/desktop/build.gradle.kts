@@ -68,28 +68,40 @@ application {
     mainClass = "org.geogebra.desktop.GeoGebra3D"
 }
 
-run {
-    // Copying JOGL related native JARs into the same directory where the non-native JAR takes place.
-    // JOGL is simply dumb, it cannot work neither with java.library.path nor classpath or anything. Arrgh.
-    val joglVersion = libs.versions.jogl.get()
-    val gluegen = project.configurations.runtimeClasspath.get().find { it.name == "gluegen-rt-${joglVersion}.jar" }
-    val gluegenNatives = project.configurations.runtimeClasspath.get().filter { it.name.startsWith("gluegen-rt-$joglVersion-natives") }
-    val gluegenDir = gluegen!!.parent
-    for (gluegenNative in gluegenNatives) {
-        copy {
-            from(gluegenNative.path)
-            into(gluegenDir)
+// Task to copy JOGL native JARs - moved from configuration time to execution time
+val copyJoglNatives by tasks.registering {
+    description = "Copies JOGL related native JARs into the same directory where the non-native JAR is located"
+    
+    doLast {
+        // JOGL is simply dumb, it cannot work neither with java.library.path nor classpath or anything. Arrgh.
+        val joglVersion = libs.versions.jogl.get()
+        val runtimeClasspath = project.configurations.runtimeClasspath.get()
+        
+        val gluegen = runtimeClasspath.find { it.name == "gluegen-rt-${joglVersion}.jar" }
+        val gluegenNatives = runtimeClasspath.filter { it.name.startsWith("gluegen-rt-$joglVersion-natives") }
+        val gluegenDir = gluegen!!.parent
+        for (gluegenNative in gluegenNatives) {
+            copy {
+                from(gluegenNative.path)
+                into(gluegenDir)
+            }
+        }
+        
+        val jogl = runtimeClasspath.find { it.name == "jogl-all-${joglVersion}.jar" }
+        val joglNatives = runtimeClasspath.filter { it.name.startsWith("jogl-all-$joglVersion-natives") }
+        val joglDir = jogl!!.parent
+        for (joglNative in joglNatives) {
+            copy {
+                from(joglNative.path)
+                into(joglDir)
+            }
         }
     }
-    val jogl = project.configurations.runtimeClasspath.get().find { it.name == "jogl-all-${joglVersion}.jar" }
-    val joglNatives = project.configurations.runtimeClasspath.get().filter { it.name.startsWith("jogl-all-$joglVersion-natives") }
-    val joglDir = jogl!!.parent
-    for (joglNative in joglNatives) {
-        copy {
-            from(joglNative.path)
-            into(joglDir)
-        }
-    }
+}
+
+// Make run task depend on copying natives
+tasks.named("run") {
+    dependsOn(copyJoglNatives)
 }
 
 tasks {

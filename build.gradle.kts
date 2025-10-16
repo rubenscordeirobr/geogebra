@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.geogebra.idea)
+    id("inspect-gradle-config")
 }
 
 description = "GeoGebra"
