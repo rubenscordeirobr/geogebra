@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.geogebra.spotbugs)
     alias(libs.plugins.geogebra.checkstyle)
     alias(libs.plugins.geogebra.gwt)
+    alias(libs.plugins.geogebra.gwt.dist)
 }
 
 dependencies {
@@ -33,4 +34,9 @@ gwt {
     devModules(module)
 
     logLevel = LogLevel.INFO
+}
+
+gwtDistribution {
+    distributionName.set("mathkeyboard")
+    distributionFolder.set(layout.buildDirectory.dir("dist"))
 }

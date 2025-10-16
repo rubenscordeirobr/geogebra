@@ -25,6 +25,21 @@ where `A.B.C.D` is your IP address.
 Then you can access the dev server through `http://A.B.C.D:8888`.
 You can also run `./gradlew :web:tasks` to list other options.
 
+## Building the math keyboard bundle
+
+The standalone math keyboard used by the web apps lives in the `keyboard-web`
+module. To generate the JavaScript payload run:
+
+```
+./gradlew :keyboard-web:dist
+```
+
+The compiled files are written to
+`source/web/keyboard-web/build/dist/mathkeyboard/`. See
+[`doc/dev/BuildKeyboardWeb.md`](doc/dev/BuildKeyboardWeb.md) for detailed
+instructions and troubleshooting tips, including how to obtain
+`mathkeyboard.nocache.js` for development builds.
+
 ## Running the desktop version (Classic 5)
 To start the desktop version from command line, run
 
@@ -35,7 +50,7 @@ You can also run `./gradlew :desktop:tasks` to list other options.
 
 ## Setup the development environment
 
-* Open IntelliJ. If you don't have IntelliJ on your computer yet 
+* Open IntelliJ. If you don't have IntelliJ on your computer yet
 then you can download and install it from [here](https://www.jetbrains.com/idea/download)
 * In the menu select File / New / Project from Version Control / Git
 * In the new window add the following path: `https://git.geogebra.org/ggb/geogebra.git`
@@ -47,5 +62,12 @@ open the Run Anything tool (Double ^ on Mac) and run the following command:
 * After a minute or two the GWT UI will appear
 * After the Startup URLs are loaded on the UI, select the app that you wish start. For example, 
 if you select `graphing.html` and click on Launch Default Browser 
-then the Graphing Calculator app with the newest features 
-will load and start in your default browser 
+then the Graphing Calculator app with the newest features
+will load and start in your default browser
+
+## Using a containerized build environment
+
+If you prefer to keep your host system clean, you can run GeoGebra's Gradle tasks inside a Docker
+container that bundles all required tooling (Java 8, Node.js, Python utilities and the Gradle
+wrapper). See [`docker/README.md`](docker/README.md) for detailed instructions on building the image
+and running tasks such as `:web:run` or `:desktop:run` from within the container.
