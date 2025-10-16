@@ -1,0 +1,11 @@
+# Gradle build artifacts
+.gradle/
+build/
+**/build/
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/

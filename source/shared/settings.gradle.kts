@@ -24,4 +24,4 @@ include("renderer-base")
 include("editor-base")
 include("keyboard-base")
 include("keyboard-scientific")
-includeBuild("../openrewrite")
+// includeBuild("../openrewrite") // Temporarily disabled - directory not present

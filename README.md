@@ -33,6 +33,25 @@ To start the desktop version from command line, run
 ```
 You can also run `./gradlew :desktop:tasks` to list other options.
 
+## Inspecting Gradle Configuration
+
+To understand the Gradle build structure and configuration:
+
+```
+./inspect-gradle.sh config    # Show workspace configuration
+./inspect-gradle.sh projects  # List all projects
+./inspect-gradle.sh help      # Show all inspection options
+```
+
+Or use Gradle directly:
+```
+./gradlew inspectConfig       # Show comprehensive configuration info
+./gradlew projects            # List all projects
+./gradlew tasks               # Show available tasks
+```
+
+For more details, see [doc/GRADLE_INSPECTION.md](doc/GRADLE_INSPECTION.md)
+
 ## Setup the development environment
 
 * Open IntelliJ. If you don't have IntelliJ on your computer yet 
