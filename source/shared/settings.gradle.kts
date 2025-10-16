@@ -24,4 +24,9 @@ include("renderer-base")
 include("editor-base")
 include("keyboard-base")
 include("keyboard-scientific")
-includeBuild("../openrewrite")
+val openrewriteDir = file("../openrewrite")
+if (openrewriteDir.exists()) {
+    includeBuild(openrewriteDir)
+} else {
+    println("Skipping includeBuild(\"../openrewrite\") because ${openrewriteDir.absolutePath} was not found")
+}
