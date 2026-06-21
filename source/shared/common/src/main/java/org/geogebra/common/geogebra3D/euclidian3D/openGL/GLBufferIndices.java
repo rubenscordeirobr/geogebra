@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.openGL;
 
 /**
@@ -14,7 +30,7 @@ public interface GLBufferIndices {
 	 * @param length
 	 *            length
 	 */
-	public void allocate(int length);
+	void allocate(int length);
 
 	/**
 	 * set limit to which we use the buffer
@@ -22,7 +38,7 @@ public interface GLBufferIndices {
 	 * @param length
 	 *            limit
 	 */
-	public void setLimit(int length);
+	void setLimit(int length);
 
 	/**
 	 * put value at current buffer position
@@ -30,7 +46,7 @@ public interface GLBufferIndices {
 	 * @param value
 	 *            value
 	 */
-	public void put(short value);
+	void put(short value);
 
 	/**
 	 * put value at current buffer position
@@ -40,24 +56,24 @@ public interface GLBufferIndices {
 	 * @param value
 	 *            value
 	 */
-	public void put(int index, short value);
+	void put(int index, short value);
 
 	/**
 	 * 
 	 * @return value at current buffer position
 	 */
-	public short get();
+	short get();
 
 	/**
 	 * rewind the buffer
 	 */
-	public void rewind();
+	void rewind();
 
 	/**
 	 * 
 	 * @return capacity
 	 */
-	public int capacity();
+	int capacity();
 
 	/**
 	 * set float array
@@ -65,18 +81,18 @@ public interface GLBufferIndices {
 	 * @param ret
 	 *            float array
 	 */
-	public void array(short[] ret);
+	void array(short[] ret);
 
 	/**
 	 * 
 	 * @return true if empty
 	 */
-	public boolean isEmpty();
+	boolean isEmpty();
 
 	/**
 	 * says it's an empty buffer
 	 */
-	public void setEmpty();
+	void setEmpty();
 
 	/**
 	 * reallocate to a bigger size and keep the values
@@ -84,7 +100,7 @@ public interface GLBufferIndices {
 	 * @param size
 	 *            new size
 	 */
-	public void reallocate(int size);
+	void reallocate(int size);
 
 	/**
 	 * set position where to read
@@ -92,5 +108,5 @@ public interface GLBufferIndices {
 	 * @param newPosition
 	 *            new position
 	 */
-	public void position(int newPosition);
+	void position(int newPosition);
 }

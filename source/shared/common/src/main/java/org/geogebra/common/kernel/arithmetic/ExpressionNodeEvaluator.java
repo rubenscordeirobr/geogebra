@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.arithmetic;
 
 import org.geogebra.common.kernel.Kernel;
@@ -74,10 +90,7 @@ public class ExpressionNodeEvaluator implements ExpressionNodeConstants {
 		Operation operation = expressionNode.getOperation();
 
 		boolean holdsLaTeXtext = expressionNode.holdsLaTeXtext;
-
-		ExpressionValue lt, rt;
-
-		lt = left.evaluate(tpl); // left tree
+		ExpressionValue lt = left.evaluate(tpl); // left tree
 		// TODO Evaluation of equations is expensive, but better soln needed
 		// #4816
 		if (left instanceof Equation) {
@@ -86,7 +99,7 @@ public class ExpressionNodeEvaluator implements ExpressionNodeConstants {
 		if (operation.equals(Operation.NO_OPERATION)) {
 			return lt;
 		}
-		rt = right.evaluate(tpl); // right tree
+		ExpressionValue rt = right.evaluate(tpl); // right tree
 
 		// handle list operations first
 		ExpressionValue special = handleSpecial(lt, rt, left, right, operation,
@@ -1008,9 +1021,8 @@ public class ExpressionNodeEvaluator implements ExpressionNodeConstants {
 	public ExpressionValue handleFunction(ExpressionValue lt,
 			ExpressionValue rt, ExpressionValue left) {
 		// function(number)
-		if (rt instanceof NumberValue) {
+		if (rt instanceof NumberValue arg) {
 			if (lt instanceof Evaluatable) {
-				NumberValue arg = (NumberValue) rt;
 				if ((lt instanceof GeoFunction)
 						&& ((GeoFunction) lt).isGeoFunctionBoolean()) {
 					return new MyBoolean(kernel, ((GeoFunction) lt)
@@ -1038,28 +1050,28 @@ public class ExpressionNodeEvaluator implements ExpressionNodeConstants {
 				return geo;
 			} else if (left instanceof GeoCasCell
 					&& ((GeoCasCell) left).getTwinGeo() instanceof GeoLine) {
-				return ((NumberValue) rt).getNumber()
+				return arg.getNumber()
 						.apply((Evaluatable) ((GeoCasCell) left).getTwinGeo());
 			} else {
 				Log.debug(lt);
 			}
-		} else if (rt instanceof VectorNDValue) {
-			if (lt instanceof Evaluatable) {
-				VectorNDValue pt = (VectorNDValue) rt;
-				if (lt instanceof GeoFunction) {
-					Function fun = ((GeoFunction) lt).getFunction();
-					if (pt.getToStringMode() == Kernel.COORD_COMPLEX
-							&& rt instanceof VectorValue) {
-						return fun.evalComplex(((VectorValue) rt).getVector());
-					}
-					return evaluateFunctionNvar(fun, pt, lt);
-				} else if (lt instanceof GeoFunctionable) {
-					// eg GeoLine
-					return evaluateFunctionNvar(((GeoFunctionable) lt)
-							.getFunction(), pt, lt);
-				} else {
-					Log.warn("missing case in ExpressionNodeEvaluator");
+		} else if (rt instanceof VectorNDValue pt && lt instanceof Evaluatable) {
+			if (lt instanceof GeoFunction) {
+				Function fun = ((GeoFunction) lt).getFunction();
+				if (fun == null) {
+					return new MyDouble(kernel, Double.NaN);
 				}
+				if (pt.getToStringMode() == Kernel.COORD_COMPLEX
+						&& rt instanceof VectorValue) {
+					return fun.evalComplex(((VectorValue) rt).getVector());
+				}
+				return evaluateFunctionNvar(fun, pt, lt);
+			} else if (lt instanceof GeoFunctionable) {
+				// eg GeoLine
+				return evaluateFunctionNvar(((GeoFunctionable) lt)
+						.getFunction(), pt, lt);
+			} else {
+				Log.warn("missing case in ExpressionNodeEvaluator");
 			}
 		}
 		throw new MyError(loc, Errors.IllegalArgument, MyError.toErrorString(rt));
@@ -1415,7 +1427,7 @@ public class ExpressionNodeEvaluator implements ExpressionNodeConstants {
 	private ExpressionValue functionNvarOrUndefined(GeoElement nextSublist) {
 		return nextSublist.isDefined() ? nextSublist
 				: new FunctionNVar(new ExpressionNode(getKernel(), Double.NaN),
-						new FunctionVariable[] {});
+						new FunctionVariable[0]);
 	}
 
 	/**

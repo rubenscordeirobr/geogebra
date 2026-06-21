@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.view.consprotocol;
 
 import java.util.ArrayList;
@@ -12,8 +28,7 @@ import org.geogebra.common.cas.view.CASTable;
 import org.geogebra.common.cas.view.CASView;
 import org.geogebra.common.euclidian.EuclidianConstants;
 import org.geogebra.common.gui.SetLabels;
-import org.geogebra.common.gui.view.spreadsheet.MyTableInterface;
-import org.geogebra.common.gui.view.spreadsheet.SpreadsheetViewInterface;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.javax.swing.GImageIcon;
 import org.geogebra.common.javax.swing.SwingConstants;
 import org.geogebra.common.kernel.Construction;
@@ -737,8 +752,7 @@ public class ConstructionProtocolView implements ConstructionStepper {
 				int index = geo.getConstructionIndex();
 				// use index of geo instead of corresponding geoCasCell
 				// needed for GGB-810
-				if (geo.getParentAlgorithm() != null && geo
-						.getParentAlgorithm() instanceof AlgoDependentCasCell) {
+				if (geo.getParentAlgorithm() instanceof AlgoDependentCasCell) {
 					int geoIndex = geo.getAlgoDepCasCellGeoConstIndex();
 					if (index < geoIndex) {
 						index = geoIndex;
@@ -990,27 +1004,20 @@ public class ConstructionProtocolView implements ConstructionStepper {
 	 * @param sb
 	 *            XML builder
 	 */
-	public final void getXML(StringBuilder sb) {
+	public final void getXML(XMLStringBuilder sb) {
 		// COLUMNS
-		sb.append("\t<consProtColumns ");
+		sb.startTag("consProtColumns");
 		for (int i = 0; i < data.columns.length; i++) {
-			sb.append(" col");
-			sb.append(i);
-			sb.append("=\"");
-			sb.append(data.columns[i].isVisible());
-			sb.append("\"");
+			sb.attr("col" + i, data.columns[i].isVisible());
 		}
-		sb.append("/>\n");
+		sb.endTag();
 
 		// consProtocol
-		sb.append("\t<consProtocol ");
-		sb.append("useColors=\"");
-		sb.append(useColors);
-		sb.append("\" addIcons=\"");
-		sb.append(addIcons);
-		sb.append("\" showOnlyBreakpoints=\"");
-		sb.append(kernel.getConstruction().showOnlyBreakpoints());
-		sb.append("\"/>\n");
+		sb.startTag("consProtocol");
+		sb.attr("useColors", useColors);
+		sb.attr("addIcons", addIcons);
+		sb.attr("showOnlyBreakpoints", kernel.getConstruction().showOnlyBreakpoints());
+		sb.endTag();
 	}
 
 	/**
@@ -1283,59 +1290,28 @@ public class ConstructionProtocolView implements ConstructionStepper {
 
 	private static void addSpreadsheet(StringBuilder sb,
 			Kernel kernel2) {
-		
-		GuiManagerInterface gm = kernel2.getApplication().getGuiManager();
+
+		App app = kernel2.getApplication();
+		GuiManagerInterface gm = app.getGuiManager();
 
 		if (gm == null || !gm.hasSpreadsheetView()) {
 			return;
 		}
-
-		SpreadsheetViewInterface spreadsheet = gm.getSpreadsheetView();
-		
-		MyTableInterface table = spreadsheet.getSpreadsheetTable();
-		
-		int rows = table.getRowCount();
-		int cols = table.getColumnCount();
-		
 		// work out actual number of used rows/columns
-		int maxCol = -1;
-		int maxRow = -1;
-		for (int col = 0; col < cols; col++) {
-			for (int row = 0; row < rows; row++) {
-
-				if (col > maxCol || row > maxRow) {
-					String label = GeoElementSpreadsheet
-							.getSpreadsheetCellName(col, row);
-
-					GeoElement geo = kernel2.lookupLabel(label);
-
-					if (geo != null) {
-						if (row > maxRow) {
-							maxRow = row;
-						}
-						if (col > maxCol) {
-							maxCol = col;
-						}
-					}
-				}
-			}
-		}
+		int maxCol = app.getSpreadsheetTableModel().getHighestUsedColumn();
+		int maxRow = app.getSpreadsheetTableModel().getHighestUsedRow();
 
 		if (maxRow == -1 || maxCol == -1) {
 			return;
 		}
-
-		rows = maxRow + 1;
-		cols = maxCol + 1;
+		int cols = maxCol + 1;
 
 		sb.append("<table border=\"1\">\n");
 		
 		String widthPercent = (100d / (cols + 1)) + "";
 
 		// headers
-		sb.append("<tr>\n");
-		sb.append("<th>&nbsp;");
-		sb.append("</th>");
+		sb.append("<tr>\n<th>&nbsp;</th>");
 
 		for (int col = 0; col < cols; col++) {
 			sb.append("<th>");
@@ -1346,17 +1322,18 @@ public class ConstructionProtocolView implements ConstructionStepper {
 		// end headers
 		sb.append("</tr>\n");
 		IndexHTMLBuilder ib = new IndexHTMLBuilder(false);
+		int rows = maxRow + 1;
 		for (int row = 0 ; row < rows ; row++) {
 			
 			sb.append("<tr>\n");
 
 			sb.append("<td>");
-			sb.append("" + (row + 1));
+			sb.append(row + 1);
 			sb.append("</td>\n");
 
 			for (int col = 0 ; col < cols ; col++) {
 				
-				String label = GeoElementSpreadsheet.getSpreadsheetCellName(col,  row);
+				String label = GeoElementSpreadsheet.getSpreadsheetCellName(col, row);
 
 				String cellText = "&nbsp;";
 

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.keyboard;
 
 import java.util.ArrayList;
@@ -13,7 +29,7 @@ import org.geogebra.common.gui.inputfield.HasLastItem;
 import org.geogebra.common.kernel.geos.GeoInputBox;
 import org.geogebra.common.main.App;
 import org.geogebra.common.main.App.InputPosition;
-import org.geogebra.common.main.settings.AbstractSettings;
+import org.geogebra.common.main.settings.GeneralSettings;
 import org.geogebra.common.main.settings.SettingListener;
 import org.geogebra.gwtutil.NavigatorUtil;
 import org.geogebra.keyboard.base.KeyboardType;
@@ -47,7 +63,7 @@ import org.gwtproject.user.client.ui.RootPanel;
  * Handles creating, showing and updating the keyboard
  */
 public final class KeyboardManager
-		implements RequiresResize, KeyboardManagerInterface, SettingListener {
+		implements RequiresResize, KeyboardManagerInterface, SettingListener<GeneralSettings> {
 
 	private final AppW app;
 	private @CheckForNull VirtualKeyboardGUI keyboard;
@@ -359,7 +375,7 @@ public final class KeyboardManager
 	}
 
 	@Override
-	public void settingsChanged(AbstractSettings settings) {
+	public void settingsChanged(GeneralSettings settings) {
 		if (keyboard != null) {
 			keyboard.checkLanguage();
 		}

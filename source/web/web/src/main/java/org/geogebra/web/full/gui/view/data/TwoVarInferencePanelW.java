@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.view.data;
 
 import org.geogebra.common.gui.view.data.TwoVarInferenceModel;
@@ -39,7 +55,7 @@ public class TwoVarInferencePanelW extends FlowPanel implements StatPanelInterfa
 	private FlowPanel mainPanel;
 	private FlowPanel samplePanel;
 	private TwoVarStatPanelW twoStatPanel;
-	private TwoVarInferenceModel model;
+	private final TwoVarInferenceModel model;
 	private boolean enablePooled;
 	private ComponentCheckbox ckPooled;
 	private Localization loc;
@@ -83,7 +99,7 @@ public class TwoVarInferencePanelW extends FlowPanel implements StatPanelInterfa
 		lblTitle2 = new Label();
 
 		ckPooled = new ComponentCheckbox(loc, false, "Pooled",
-				(selected) -> model.setPooled(selected));
+				model::setPooled);
 		ckPooled.addStyleName("ckPooled");
 
 		lbAltHyp = new ListBox();
@@ -96,24 +112,14 @@ public class TwoVarInferencePanelW extends FlowPanel implements StatPanelInterfa
 
 		fldNullHyp = new AutoCompleteTextFieldW(4, app);
 		fldNullHyp.setText("" + 0);
-		fldNullHyp.addKeyHandler(e -> {
-			if (e.isEnterKey()) {
-				doTextFieldActionPerformed(fldNullHyp);
-			}
-		});
 
-		fldNullHyp.addBlurHandler(event -> doTextFieldActionPerformed(fldNullHyp));
+		fldNullHyp.addEnterPressHandler(() -> doTextFieldActionPerformed(fldNullHyp));
 
 		lblConfLevel = new Label();
 		fldConfLevel = new AutoCompleteTextFieldW(4, app);
 		fldConfLevel.setWidthInEm(4);
-		fldConfLevel.addKeyHandler(e -> {
-			if (e.isEnterKey()) {
-				doTextFieldActionPerformed(fldConfLevel);
-			}
-		});
 
-		fldConfLevel.addBlurHandler(event -> doTextFieldActionPerformed(fldConfLevel));
+		fldConfLevel.addEnterPressHandler(() -> doTextFieldActionPerformed(fldConfLevel));
 
 		lblResultHeader = new Label();
 

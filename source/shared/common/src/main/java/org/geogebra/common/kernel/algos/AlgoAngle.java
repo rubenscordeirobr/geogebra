@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.algos;
 
 import org.geogebra.common.euclidian.EuclidianConstants;
@@ -107,7 +123,7 @@ public abstract class AlgoAngle extends AlgoElement {
 	 *            start point
 	 * @return true if vertex is not correct center for drawing the angle
 	 */
-	static final protected boolean centerIsNotDrawable(GeoPointND vertex) {
+	static protected boolean centerIsNotDrawable(GeoPointND vertex) {
 		return vertex == null || !vertex.isDefined() || vertex.isInfinite();
 	}
 
@@ -123,7 +139,7 @@ public abstract class AlgoAngle extends AlgoElement {
 	 * @param reverse
 	 *            reverse check
 	 */
-	protected final static void checkOrientation(Coords vn,
+	protected static void checkOrientation(Coords vn,
 			GeoDirectionND orientation, GeoAngle a, boolean reverse) {
 		if ((vn.dotproduct(orientation.getDirectionInD3()) < 0) ^ reverse) {
 			double v = 2 * Math.PI - a.getValue();

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.properties.impl.general;
 
 import static java.util.Map.entry;
@@ -23,16 +39,16 @@ public class AbstractNamedEnumeratedPropertyTests extends BaseUnitTest {
 		namedEnumeratedProperty = new TestNamedEnumeratedProperty(
 				getLocalization(),
 				"Test property",
-				List.of(entry("value1", "Value One"),
-						entry("value2", "Value Two"),
-						entry("value3", "Value Three")));
+				List.of(entry("value1", "_Value One"),
+						entry("value2", "_Value Two"),
+						entry("value3", "_Value Three")));
 	}
 
 	@Test
 	public void testInitialNamedValues() {
 		assertEquals(List.of("value1", "value2", "value3"),
 				namedEnumeratedProperty.getValues());
-		assertArrayEquals(new String[]{ "Value One", "Value Two", "Value Three" },
+		assertArrayEquals(new String[]{ "_Value One", "_Value Two", "_Value Three" },
 				namedEnumeratedProperty.getValueNames());
 	}
 
@@ -44,30 +60,30 @@ public class AbstractNamedEnumeratedPropertyTests extends BaseUnitTest {
 
 		namedEnumeratedProperty.addValueFilter(valueFilter1);
 		assertEquals(List.of("value1", "value3"), namedEnumeratedProperty.getValues());
-		assertArrayEquals(new String[]{ "Value One", "Value Three" },
+		assertArrayEquals(new String[]{ "_Value One", "_Value Three" },
 				namedEnumeratedProperty.getValueNames());
 
 		namedEnumeratedProperty.addValueFilter(valueFilter2);
 		assertEquals(List.of("value1"), namedEnumeratedProperty.getValues());
-		assertArrayEquals(new String[]{ "Value One" }, namedEnumeratedProperty.getValueNames());
+		assertArrayEquals(new String[]{ "_Value One" }, namedEnumeratedProperty.getValueNames());
 
 		namedEnumeratedProperty.addValueFilter(valueFilter3);
 		assertEquals(List.of("value1"), namedEnumeratedProperty.getValues());
-		assertArrayEquals(new String[]{ "Value One" }, namedEnumeratedProperty.getValueNames());
+		assertArrayEquals(new String[]{ "_Value One" }, namedEnumeratedProperty.getValueNames());
 
 		namedEnumeratedProperty.removeValueFilter(valueFilter1);
 		assertEquals(List.of("value1"), namedEnumeratedProperty.getValues());
-		assertArrayEquals(new String[]{ "Value One" }, namedEnumeratedProperty.getValueNames());
+		assertArrayEquals(new String[]{ "_Value One" }, namedEnumeratedProperty.getValueNames());
 
 		namedEnumeratedProperty.removeValueFilter(valueFilter2);
 		assertEquals(List.of("value1", "value3"), namedEnumeratedProperty.getValues());
-		assertArrayEquals(new String[]{ "Value One", "Value Three" },
+		assertArrayEquals(new String[]{ "_Value One", "_Value Three" },
 				namedEnumeratedProperty.getValueNames());
 
 		namedEnumeratedProperty.removeValueFilter(valueFilter3);
 		assertEquals(List.of("value1", "value2", "value3"),
 				namedEnumeratedProperty.getValues());
-		assertArrayEquals(new String[]{ "Value One", "Value Two", "Value Three" },
+		assertArrayEquals(new String[]{ "_Value One", "_Value Two", "_Value Three" },
 				namedEnumeratedProperty.getValueNames());
 	}
 

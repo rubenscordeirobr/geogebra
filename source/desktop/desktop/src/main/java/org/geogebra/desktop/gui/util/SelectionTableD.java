@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.util;
 
 import java.awt.Color;
@@ -7,7 +23,7 @@ import java.awt.Font;
 import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -196,11 +212,11 @@ public class SelectionTableD extends JTable {
 		setModel(model);
 	}
 
-	private ImageIcon[] createLatexIconArray(String[] symbols) {
-		ImageIcon[] iconArray = new ImageIcon[symbols.length];
+	private Icon[] createLatexIconArray(String[] symbols) {
+		Icon[] iconArray = new Icon[symbols.length];
 		for (int i = 0; i < symbols.length; i++) {
-			iconArray[i] = GeoGebraIconD.createLatexIcon(app, symbols[i],
-					app.getPlainFont(), Color.BLACK, null);
+			iconArray[i] = GeoGebraIconD.createScaledLatexIcon(app, symbols[i],
+					app.getPlainFont(), Color.BLACK);
 		}
 		return iconArray;
 	}
@@ -333,16 +349,12 @@ public class SelectionTableD extends JTable {
 		this.sliderValue = sliderValue;
 	}
 
-	public Object[] getData() {
-		return data;
-	}
-
 	/**
 	 * @param value value
 	 * @return icon value as icon or null
 	 */
-	public ImageIcon getDataIcon(Object value) {
-		ImageIcon icon = null;
+	public Icon getDataIcon(Object value) {
+		Icon icon = null;
 		if (value == null) {
 			return GeoGebraIconD.createEmptyIcon(1, 1);
 		}
@@ -354,7 +366,7 @@ public class SelectionTableD extends JTable {
 			break;
 		case MODE_ICON:
 		case MODE_LATEX:
-			icon = (ImageIcon) value;
+			icon = (Icon) value;
 			break;
 
 		}
@@ -413,7 +425,8 @@ public class SelectionTableD extends JTable {
 				this.setHorizontalAlignment(horizontalAlignment);
 				this.setVerticalAlignment(SwingConstants.CENTER);
 				setText((String) value);
-				setFont(app.getFontCanDisplayAwt((String) value, Font.PLAIN));
+				setFont(app.getFontCanDisplayAwt((String) value, Font.PLAIN)
+						.deriveFont(SelectionTableD.this.getFont().getSize2D()));
 				setBorder(paddingBorder);
 
 			} else {
@@ -457,11 +470,12 @@ public class SelectionTableD extends JTable {
 		int colPrefWidth = 0;
 		for (int row = 0; row < table.getRowCount(); row++) {
 			if (table.getValueAt(row, column) != null) {
-				colPrefWidth = (int) table.getCellRenderer(row, column)
+				Component component = table.getCellRenderer(row, column)
 						.getTableCellRendererComponent(table,
 								table.getValueAt(row, column), false, false,
-								row, column)
-						.getPreferredSize().getWidth();
+								row, column);
+				colPrefWidth = (int) Math.ceil(component
+						.getPreferredSize().getWidth() * app.getImageManager().getPixelRatio());
 				maxPrefWidth = Math.max(maxPrefWidth, colPrefWidth);
 			}
 		}

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.util.clipper;
 
 import java.util.ArrayList;
@@ -127,8 +143,6 @@ public abstract class ClipperBase implements Clipper {
 			edges1.add(new Edge());
 		}
 
-		boolean IsFlat = true;
-
 		// 1. Basic (first) edge initialization ...
 
 		// edges.get( 1 ).setCurrent( new LongPoint( pg.get( 1 ) ) );
@@ -204,11 +218,12 @@ public abstract class ClipperBase implements Clipper {
 		// 3. Do second stage of edge initialization ...
 
 		e = eStart;
+		boolean isFlat = true;
 		do {
 			initEdge2(e, polyType);
 			e = e.next;
-			if (IsFlat && e.getCurrent().getY() != eStart.getCurrent().getY()) {
-				IsFlat = false;
+			if (isFlat && e.getCurrent().getY() != eStart.getCurrent().getY()) {
+				isFlat = false;
 			}
 		} while (e != eStart);
 
@@ -216,7 +231,7 @@ public abstract class ClipperBase implements Clipper {
 
 		// Totally flat paths must be handled differently when adding them
 		// to LocalMinima list to avoid endless loops etc ...
-		if (IsFlat) {
+		if (isFlat) {
 			if (Closed) {
 				return false;
 			}
@@ -428,17 +443,7 @@ public abstract class ClipperBase implements Clipper {
 				EStart = e.next;
 			}
 			if (EStart.outIdx != Edge.SKIP) {
-				if (equalsEdgeHorizontal(EStart.deltaX)) // ie an adjoining
-															// horizontal skip
-															// edge
-				{
-					if (EStart.getBot().getX() != e.getBot().getX()
-							&& EStart.getTop().getX() != e.getBot().getX()) {
-						e.reverseHorizontal();
-					}
-				} else if (EStart.getBot().getX() != e.getBot().getX()) {
-					e.reverseHorizontal();
-				}
+				checkReverseHorizontal(EStart, e);
 			}
 		}
 
@@ -459,13 +464,8 @@ public abstract class ClipperBase implements Clipper {
 				while (equalsEdgeHorizontal(Horz.prev.deltaX)) {
 					Horz = Horz.prev;
 				}
-				if (Horz.prev.getTop().getX() == result.next.getTop().getX()) {
-					// removed, condition never satisfied
-					// TODO: check if something else was intended
-					// if (!LeftBoundIsForward) {
-					// result = Horz.prev;
-					// }
-				} else if (Horz.prev.getTop().getX() > result.next.getTop()
+				// TODO handle equality?
+				if (Horz.prev.getTop().getX() > result.next.getTop()
 						.getX()) {
 					result = Horz.prev;
 				}
@@ -517,6 +517,20 @@ public abstract class ClipperBase implements Clipper {
 			result = result.prev; // move to the edge just beyond current bound
 		}
 		return result;
+	}
+
+	private void checkReverseHorizontal(Edge EStart, Edge e) {
+		if (equalsEdgeHorizontal(EStart.deltaX)) // ie an adjoining
+		// horizontal skip
+		// edge
+		{
+			if (EStart.getBot().getX() != e.getBot().getX()
+					&& EStart.getTop().getX() != e.getBot().getX()) {
+				e.reverseHorizontal();
+			}
+		} else if (EStart.getBot().getX() != e.getBot().getX()) {
+			e.reverseHorizontal();
+		}
 	}
 
 	private static boolean equalsEdgeHorizontal(double d) {

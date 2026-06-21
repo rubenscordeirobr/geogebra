@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+ 
 package org.geogebra.common.gui.view.algebra;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,8 +35,19 @@ public class SuggestionIntersectExtremumTest {
 	private AppCommon app = AppCommonFactory.create3D();
 
 	@Test
-	void intersectRange() {
+	void intersectRangeRational() {
 		GeoElement function = add("1/x");
+		SuggestionIntersectExtremum.get(function).execute(function);
+		List<String> definitions = Arrays.stream(app.getGgbApi().getAllObjectNames())
+				.map(n -> lookup(n).getDefinition(StringTemplate.algebraTemplate))
+				.collect(Collectors.toList());
+		assertEquals(List.of("", "Intersect(f, xAxis, -4.3, 11.7)",
+				"Extremum(f, -4.3, 11.7)", "Intersect(f, yAxis)"), definitions);
+	}
+
+	@Test
+	void intersectRange() {
+		GeoElement function = add("1/x + 0.000001 * sin(x)");
 		SuggestionIntersectExtremum.get(function).execute(function);
 		List<String> definitions = Arrays.stream(app.getGgbApi().getAllObjectNames())
 				.map(n -> lookup(n).getDefinition(StringTemplate.algebraTemplate))

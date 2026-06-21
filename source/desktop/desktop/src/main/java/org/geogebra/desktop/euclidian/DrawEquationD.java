@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.euclidian;
 
 import java.awt.Color;
@@ -17,13 +33,10 @@ import org.geogebra.common.main.App;
 import org.geogebra.desktop.awt.GColorD;
 import org.geogebra.desktop.awt.GFontD;
 import org.geogebra.desktop.awt.GGraphics2DD;
-import org.geogebra.desktop.export.epsgraphics.EpsGraphicsD;
-import org.geogebra.desktop.export.epsgraphics.EpsGraphicsWrapper;
 import org.geogebra.desktop.main.AppD;
 import org.geogebra.desktop.main.ScaledIcon;
 
 import com.himamis.retex.renderer.desktop.FactoryProviderDesktop;
-import com.himamis.retex.renderer.desktop.graphics.ColorD;
 import com.himamis.retex.renderer.desktop.graphics.Graphics2DD;
 import com.himamis.retex.renderer.share.TeXConstants;
 import com.himamis.retex.renderer.share.cache.JLaTeXMathCache;
@@ -79,20 +92,10 @@ public class DrawEquationD extends DrawEquation {
 			final GFont font, final boolean serif, final GColor fgColor,
 			final GColor bgColor, final boolean useCache, boolean updateAgain,
 			Runnable callback) {
-
-		// EpsGraphicsD eps = null;
-		//
-		// new Graphics2DD(eps);
-
-		Graphics2DInterface g;
-		if (g2 instanceof EpsGraphicsD) {
-			g = new EpsGraphicsWrapper((EpsGraphicsD) g2);
-		} else {
-			g = new Graphics2DD(GGraphics2DD.getAwtGraphics(g2));
-		}
+		Graphics2DInterface g = new Graphics2DD(GGraphics2DD.getAwtGraphics(g2));
 		GDimension d = drawEquation(app, geo, g, x, y, text, font, serif,
-				ColorD.get(GColorD.getAwtColor(fgColor)),
-				ColorD.get(GColorD.getAwtColor(bgColor)), useCache, null, null);
+				fgColor,
+				bgColor, useCache, null, null);
 		if (callback != null) {
 			callback.run();
 		}
@@ -133,8 +136,8 @@ public class DrawEquationD extends DrawEquation {
 
 		GDimension d = drawEquation(app, null, new Graphics2DD(g2image), 0, 0,
 				latex,
-				new GFontD(font), serif, ColorD.get(fgColor),
-				ColorD.get(bgColor), true, null, null);
+				new GFontD(font), serif, toAwtColor(fgColor),
+				toAwtColor(bgColor), true, null, null);
 
 		// Now use this size and draw again to get the final image
 		image = new BufferedImage((int) (d.getWidth() * getPixelRatio()),
@@ -147,11 +150,22 @@ public class DrawEquationD extends DrawEquation {
 		GGraphics2DD.setAntialiasing(g2image);
 
 		drawEquation(app, null, new Graphics2DD(g2image), 0, 0, latex,
-				new GFontD(font), serif, ColorD.get(fgColor),
-				ColorD.get(bgColor), true, null, null);
+				new GFontD(font), serif, toAwtColor(fgColor),
+				toAwtColor(bgColor), true, null, null);
 
 		latexIcon.setImage(image);
 		latexIcon.setRatio(getPixelRatio());
+	}
+
+	/**
+	 * @param fgColor JDK color
+	 * @return canvas color
+	 */
+	public static GColor toAwtColor(Color fgColor) {
+		if (fgColor == null) {
+			return null;
+		}
+		return GColor.newColorRGB(fgColor.getRGB()).deriveWithAlpha(fgColor.getAlpha());
 	}
 
 	@Override
@@ -163,14 +177,8 @@ public class DrawEquationD extends DrawEquation {
 	}
 
 	@Override
-	public com.himamis.retex.renderer.share.platform.graphics.Color convertColor(
-			GColor color) {
-		return ColorD.get(GColorD.getAwtColor(color));
-	}
-
-	@Override
 	public Image getCachedDimensions(String text, GeoElementND geo,
-			com.himamis.retex.renderer.share.platform.graphics.Color fgColor,
+			GColor fgColor,
 			GFont font, int style, int[] ret) {
 		Object key;
 		// if geoText != null then keep track of which key goes with the

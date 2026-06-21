@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.properties;
 
 import java.awt.Component;
@@ -336,9 +352,11 @@ public class SliderPropertiesPanelD extends JPanel
 	}
 
 	private void doLineColorActionPerformed() {
-		model.applyLineColor(
-				GColorD.newColor(((GuiManagerD) app.getGuiManager())
-						.showColorChooser(model.getLineColor())));
+		GColor color = GColorD.newColor(((GuiManagerD) app.getGuiManager())
+				.showColorChooser(model.getLineColor()));
+		model.applyLineColor(color);
+		btnLineColor.setForeground(GColorD.getAwtColor(getColorWithOpacity(color)));
+		btnLineColor.repaint();
 	}
 
 	/**
@@ -503,13 +521,21 @@ public class SliderPropertiesPanelD extends JPanel
 
 	@Override
 	public void setLineColor(GColor color) {
-		btnLineColor.setForeground(GColorD.getAwtColor(color));
+		btnLineColor.setForeground(GColorD.getAwtColor(getColorWithOpacity(color)));
 		btnLineColor.repaint();
 	}
 
 	@Override
 	public void setLineThicknessSizeText(String text) {
 		tfLineThickness.setText(text);
+	}
+
+	@Override
+	public void setLineOpacity(int value) {
+		sliderLineOpacity.setValue(value);
+		btnLineColor.setForeground(
+				GColorD.getAwtColor(getColorWithOpacity(model.getLineColor())));
+		sliderLineOpacity.repaint();
 	}
 
 	/**

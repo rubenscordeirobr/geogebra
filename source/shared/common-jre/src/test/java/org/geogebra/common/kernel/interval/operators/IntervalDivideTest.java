@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.interval.operators;
 
 import static org.geogebra.common.kernel.interval.IntervalConstants.negativeInfinity;
@@ -6,8 +22,8 @@ import static org.geogebra.common.kernel.interval.IntervalConstants.positiveInfi
 import static org.geogebra.common.kernel.interval.IntervalConstants.undefined;
 import static org.geogebra.common.kernel.interval.IntervalConstants.whole;
 import static org.geogebra.common.kernel.interval.IntervalConstants.zero;
+import static org.geogebra.common.kernel.interval.IntervalSetOps.legacyInverted;
 import static org.geogebra.common.kernel.interval.IntervalTest.interval;
-import static org.geogebra.common.kernel.interval.IntervalTest.invertedInterval;
 import static org.geogebra.common.kernel.interval.operators.IntervalDivide.next;
 import static org.geogebra.common.kernel.interval.operators.IntervalDivide.prev;
 import static org.junit.Assert.assertEquals;
@@ -25,14 +41,20 @@ public class IntervalDivideTest {
 	@Test
 	public void hasZeroByHasZeroShouldBeWhole() {
 		// Table 1 Case 1.
-		assertEquals(zero(), divide(interval(0), interval(-1, 0)));
-		assertEquals(zero(), divide(interval(0), interval(-1, 1)));
+		assertEquals(whole(), divide(interval(0), zero()));
+		assertEquals(whole(), divide(interval(0), interval(-1, 0)));
+		assertEquals(whole(), divide(interval(0), interval(-1, 1)));
 		assertEquals(whole(), div(-2, 0, -1, 0));
 		assertEquals(whole(), div(-2, 0, -1, 1));
 		assertEquals(whole(), div(0, 2, -1, 0));
 		assertEquals(whole(), div(0, 2, -1, 1));
 		assertEquals(whole(), div(-2, 2, -1, 0));
 		assertEquals(whole(), div(-2, 2, -1, 1));
+	}
+
+	@Test
+	public void divOfWholeByUndefinedShouldBeWhole() {
+		assertEquals(whole(), divide(whole(), undefined()));
 	}
 
 	private Interval divide(Interval numerator, Interval divisor) {
@@ -58,7 +80,7 @@ public class IntervalDivideTest {
 	@Test
 	public void negativeByMixed() {
 		//  Table 1 Case 4.
-		assertEquals(invertedInterval(RMath.next(-2.0 / 2), RMath.next(-2.0 / -2)),
+		assertEquals(legacyInverted(RMath.next(-2.0 / 2), RMath.next(-2.0 / -2)),
 				div(-3, -2, -2, 2));
 	}
 
@@ -84,7 +106,7 @@ public class IntervalDivideTest {
 	@Test
 	public void positiveByMixed() {
 		// Table 1 Case 7
-		assertEquals(invertedInterval(2.0 / -1.0, 1.0),
+		assertEquals(legacyInverted(2.0 / -1.0, 1.0),
 				div(2, 4, -1, 2));
 	}
 
@@ -504,7 +526,8 @@ public class IntervalDivideTest {
 				interval(12.34, 56.78)));
 		assertEquals(negativeInfinity(), divide(positiveInfinity(),
 				interval(-985.654, -12.34)));
-		assertEquals(whole(), divide(positiveInfinity(),
+		assertEquals(legacyInverted(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY),
+				divide(positiveInfinity(),
 				interval(-985.654, 12.34)));
 	}
 
@@ -564,7 +587,7 @@ public class IntervalDivideTest {
 		Interval u2 = interval(b2, Double.POSITIVE_INFINITY);
 		Interval res1 = divide(interval(a1, a2), u1);
 		Interval res2 = divide(interval(a1, a2), u2);
-		Interval actual = divide(interval(a1, a2), invertedInterval(b1, b2));
+		Interval actual = divide(interval(a1, a2), legacyInverted(b1, b2));
 		assertEquals(evaluator.union(res1, res2), actual);
 	}
 
@@ -572,8 +595,8 @@ public class IntervalDivideTest {
 	public void divByZeroSingletonShouldBeUndefined() {
 		assertEquals(undefined(), divByZeroSingleton(Double.NEGATIVE_INFINITY, -2));
 		assertEquals(undefined(), divByZeroSingleton(-2.1, -2));
-		assertEquals(undefined(), divByZeroSingleton(-2.1, 0));
-		assertEquals(undefined(), divByZeroSingleton(0, 42.567));
+		assertEquals(whole(), divByZeroSingleton(-2.1, 0));
+		assertEquals(whole(), divByZeroSingleton(0, 42.567));
 		assertEquals(undefined(), divByZeroSingleton(12.34, 42.567));
 		assertEquals(undefined(), divByZeroSingleton(12.34, Double.POSITIVE_INFINITY));
 	}

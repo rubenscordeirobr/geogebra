@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.commands;
 
 import org.geogebra.common.kernel.Kernel;
@@ -75,17 +91,16 @@ public class CmdTake extends CommandProcessor {
 	/**
 	 * First[string,n] Michael Borcherds
 	 */
-	final private GeoText take(String label, GeoText list, GeoNumeric m,
+	private GeoText take(String label, GeoText list, GeoNumeric m,
 			GeoNumeric n) {
 		AlgoTakeString algo = new AlgoTakeString(cons, label, list, m, n);
-		GeoText list2 = algo.getResult();
-		return list2;
+		return algo.getResult();
 	}
 
 	/**
 	 * Take[list,m,n] Michael Borcherds
 	 */
-	final private GeoList take(String label, GeoList list, GeoNumeric m,
+	private GeoList take(String label, GeoList list, GeoNumeric m,
 			GeoNumeric n) {
 		AlgoTake algo = new AlgoTake(cons, list, m, n);
 		GeoList list2 = algo.getResult();

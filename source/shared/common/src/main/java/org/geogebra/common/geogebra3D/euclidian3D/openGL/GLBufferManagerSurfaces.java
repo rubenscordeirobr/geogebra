@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.openGL;
 
 import org.geogebra.common.geogebra3D.euclidian3D.openGL.ManagerShaders.TypeElement;
@@ -12,8 +28,6 @@ public class GLBufferManagerSurfaces extends GLBufferManager {
 	// use 1.5 empirical factor observed from materials
 	static final private int INDICES_SIZE_START = ELEMENTS_SIZE_START * 3 / 2;
 
-	private ManagerShaders manager;
-
 	/**
 	 * constructor
 	 * 
@@ -21,27 +35,19 @@ public class GLBufferManagerSurfaces extends GLBufferManager {
 	 *            geometries manager
 	 */
 	public GLBufferManagerSurfaces(ManagerShaders manager) {
-		this.manager = manager;
+		super(manager);
 	}
 
 	@Override
 	protected int calculateIndicesLength(int size, TypeElement type) {
-		switch (type) {
-		case FAN_DIRECT:
-		case FAN_INDIRECT:
-			return 3 * (size - 2);
-		case SURFACE:
-			return size;
-		case TRIANGLE_FAN:
-			return 3 * size;
-		case TRIANGLE_STRIP:
-			return 3 * size;
-		case TRIANGLES:
-			return 3 * size;
-		default:
-			// should not happen
-			return 0;
-		}
+		return switch (type) {
+			case FAN_DIRECT, FAN_INDIRECT -> 3 * (size - 2);
+			case SURFACE -> size;
+			case TRIANGLE_FAN,
+				TRIANGLE_STRIP,
+				TRIANGLES -> 3 * size;
+			default -> 0; // should not happen
+		};
 	}
 
 	@Override

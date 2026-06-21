@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D;
 
 import java.util.ArrayList;
@@ -43,18 +59,17 @@ public class Hits3D extends Hits {
 	private int quadCount;
 
 	/**
-	 * class for tree set of drawable 3D
-	 * 
+	 * Tree set of 3D drawables.
 	 */
-	private static class TreeSetOfDrawable3D extends TreeSet<Drawable3D> {
+	private static final class TreeSetOfDrawable3D extends TreeSet<Drawable3D> {
 
 		private static final long serialVersionUID = 1L;
 
-		public TreeSetOfDrawable3D(DrawableComparator drawableComparator) {
+		private TreeSetOfDrawable3D(DrawableComparator drawableComparator) {
 			super(drawableComparator);
 		}
 
-		public void add(Drawable3D d, double zNear, double zFar) {
+		private void add(Drawable3D d, double zNear, double zFar) {
 
 			// if already contained and not nearer, do nothing
 			if (contains(d)) {
@@ -74,7 +89,7 @@ public class Hits3D extends Hits {
 	}
 
 	/**
-	 * common constructor
+	 * Common constructor.
 	 */
 	public Hits3D() {
 		super();

@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.gui.view.properties;
@@ -15,7 +19,6 @@ package org.geogebra.common.gui.view.properties;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.geogebra.common.gui.dialog.options.OptionsObject;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.View;
@@ -41,7 +44,6 @@ public abstract class PropertiesView implements View {
 	protected final Localization loc;
 	protected OptionType selectedOptionType = OptionType.EUCLIDIAN;
 
-	private OptionsObject objectPanel;
 	protected int selectedTab = 0;
 	final private static HashMap<Integer, OptionType> viewMap = new HashMap<>();
 
@@ -138,16 +140,15 @@ public abstract class PropertiesView implements View {
 		ArrayList<GeoElement> geos = new ArrayList<>();
 
 		for (GeoElement geo : geosList) {
-			Construction.Constants constant = kernel.getConstruction()
-					.isConstantElement(geo);
-			if (constant == Construction.Constants.NOT) {
+			Construction.Constants constant = kernel.getConstruction().getConstantElement(geo);
+			if (!kernel.getConstruction().isConstantElement(geo)) {
 				// add if not constant
-				geos.add(geo);
-			} else {
-				// remember type
-				if (firstConstant == Construction.Constants.NOT) {
-					firstConstant = constant;
+				if (!geo.isMeasurementTool() && !geo.isSpotlight()) {
+					geos.add(geo);
 				}
+			} else if (firstConstant == Construction.Constants.NOT) {
+				// remember type
+				firstConstant = constant;
 			}
 		}
 
@@ -186,56 +187,13 @@ public abstract class PropertiesView implements View {
 	public abstract void attachView();
 
 	/**
-	 * @param type
-	 *            tab type
-	 * @return tab name
-	 */
-	public String getTypeString(OptionType type) {
-		switch (type) {
-		case DEFAULTS:
-			return app.isUnbundledOrWhiteboard()
-					? loc.getMenu("Defaults")
-					: loc.getPlain("PreferencesOfA", loc.getMenu("Defaults"));
-		case SPREADSHEET:
-			return loc.getPlain("PreferencesOfA", loc.getMenu("Spreadsheet"));
-		case EUCLIDIAN:
-			return app.isUnbundledOrWhiteboard()
-					? loc.getMenu("DrawingPad")
-					: loc.getPlain("PreferencesOfA", loc.getMenu("DrawingPad"));
-		case EUCLIDIAN2:
-			return loc.getPlain("PreferencesOfA", loc.getMenu("DrawingPad2"));
-		case EUCLIDIAN_FOR_PLANE:
-			return loc.getPlain("PreferencesOfA", loc.getMenu("ExtraViews"));
-		case EUCLIDIAN3D:
-			return loc.getPlain("PreferencesOfA",
-					loc.getMenu("GraphicsView3D"));
-		case CAS:
-			return loc.getPlain("PreferencesOfA", loc.getMenu("CAS"));
-		case GLOBAL:
-			return app.isUnbundledOrWhiteboard()
-					? loc.getMenu("Advanced")
-					: loc.getPlain("PreferencesOfA", loc.getMenu("Advanced"));
-		case ALGEBRA:
-			return app.isUnbundledOrWhiteboard()
-					? loc.getMenu("Algebra")
-					: loc.getPlain("PreferencesOfA", loc.getMenu("Algebra"));
-		case OBJECTS:
-			return objectPanel == null ? loc.getMenu("Objects") : objectPanel
-					.getSelectionDescription(loc);
-		case LAYOUT:
-			return loc.getPlain("PreferencesOfA", loc.getMenu("Layout"));
-		}
-		return null;
-	}
-
-	/**
 	 * @param loc
 	 *            localization
 	 * @param type
 	 *            tab type
 	 * @return short version of Option type string
 	 */
-	final public static String getTypeStringSimple(Localization loc,
+	public static String getTypeStringSimple(Localization loc,
 			OptionType type) {
 		switch (type) {
 		case DEFAULTS:
@@ -325,14 +283,7 @@ public abstract class PropertiesView implements View {
 	 *            says if euclidian view is in creator mode (ie not move mode)
 	 */
 	public void mouseReleasedForPropertiesView(boolean creatorMode) {
-
-		GeoElement geo;
-		if (objectPanel == null) {
-			geo = null;
-		} else {
-			geo = objectPanel.consumeGeoAdded();
-		}
-
+		GeoElement geo = getConsumedGeo();
 		if (app.getSelectionManager().selectedGeosSize() > 0) {
 			// selected geo is the most important
 			updatePropertiesViewCheckConstants(
@@ -352,6 +303,10 @@ public abstract class PropertiesView implements View {
 			setOptionPanelRegardingFocus(true);
 			// updatePropertiesView();
 		}
+	}
+
+	protected GeoElement getConsumedGeo() {
+		return null;
 	}
 
 	/**
@@ -503,14 +458,6 @@ public abstract class PropertiesView implements View {
 	@Override
 	public void updatePreviewFromInputBar(GeoElement[] geos) {
 		// TODO
-	}
-
-	protected OptionsObject getObjectPanel() {
-		return objectPanel;
-	}
-
-	protected void setObjectPanel(OptionsObject objectPanel) {
-		this.objectPanel = objectPanel;
 	}
 
 	protected boolean isAttached() {

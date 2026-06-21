@@ -1,15 +1,4 @@
-/* 
- GeoGebra - Dynamic Mathematics for Everyone
- http://www.geogebra.org
-
- This file is part of GeoGebra.
-
- This program is free software; you can redistribute it and/or modify it 
- under the terms of the GNU General Public License as published by 
- the Free Software Foundation.
- 
- */
-
+// vendored
 /*
  * Quick and dirty XML parser. Java Tip 128
  * http://www.javaworld.com/javaworld/javatips/jw-javatip128.html
@@ -75,7 +64,7 @@ public class QDParser {
 
 	private static int popMode(Stack<Integer> st) {
 		if (!st.empty()) {
-			return st.pop().intValue();
+			return st.pop();
 		}
 		return PRE;
 	}
@@ -92,25 +81,17 @@ public class QDParser {
 	final public void parse(DocHandler doc, Reader r) throws IOException, XMLParseException {
 		// Stack stack = new Stack();
 		stack.clear();
-
-		int mode = PRE;
+		sb.setLength(0);
+		etag.setLength(0);
+		attrs.clear();
+		doc.startDocument();
 		int c;
 		int quotec = '"';
 		int depth = 0;
-		// StringBuilder sb = new StringBuilder();
-		// StringBuilder etag = new StringBuilder();
-		sb.setLength(0);
-		etag.setLength(0);
-		String tagName = null;
-		String lvalue = null;
-		String rvalue = null;
-
-		// attrs = new LinkedHashMap();
-		attrs.clear();
-
-		doc.startDocument();
+		String tagName = null, lvalue = null;
 		int line = 1, col = 0;
 		boolean eol = false;
+		int mode = PRE;
 		while ((c = r.read()) != -1) {
 
 			// We need to map \r, \r\n, and \n to \n
@@ -141,7 +122,7 @@ public class QDParser {
 			case TEXT:
 				switch (c) {
 				case '<':
-					stack.push(Integer.valueOf(mode));
+					stack.push(mode);
 					mode = START_TAG;
 					if (sb.length() > 0) {
 						doc.text(sb.toString());
@@ -149,7 +130,7 @@ public class QDParser {
 					}
 					break;
 				case '&':
-					stack.push(Integer.valueOf(mode));
+					stack.push(mode);
 					mode = ENTITY;
 					etag.setLength(0);
 					break;
@@ -160,8 +141,7 @@ public class QDParser {
 
 			// we are processing a closing tag: e.g. </foo>
 			case CLOSE_TAG:
-				switch (c) {
-				case '>':
+				if (c == '>') {
 					mode = popMode(stack);
 					tagName = sb.toString();
 					sb.setLength(0);
@@ -170,8 +150,7 @@ public class QDParser {
 						mode = DONE;
 					}
 					doc.endElement(tagName);
-					break;
-				default:
+				} else {
 					sb.append((char) c);
 				}
 				break;
@@ -203,7 +182,7 @@ public class QDParser {
 			case PRE:
 				if (c == '<') {
 					mode = TEXT;
-					stack.push(Integer.valueOf(mode));
+					stack.push(mode);
 					mode = START_TAG;
 				}
 				break;
@@ -226,14 +205,14 @@ public class QDParser {
 				mode = popMode(stack);
 				switch (c) {
 				case '/':
-					stack.push(Integer.valueOf(mode));
+					stack.push(mode);
 					mode = CLOSE_TAG;
 					break;
 				case '?':
 					mode = DOCTYPE;
 					break;
 				default:
-					stack.push(Integer.valueOf(mode));
+					stack.push(mode);
 					mode = OPEN_TAG;
 					tagName = null;
 					// attrs = new LinkedHashMap();
@@ -356,7 +335,7 @@ public class QDParser {
 			// of an element's attribute.
 			case QUOTE:
 				if (c == quotec) {
-					rvalue = sb.toString();
+					String rvalue = sb.toString();
 					sb.setLength(0);
 					attrs.put(lvalue, rvalue);
 					mode = IN_TAG;
@@ -373,7 +352,7 @@ public class QDParser {
 				// Markus Hohenwarter, end
 
 				else if (c == '&') {
-					stack.push(Integer.valueOf(mode));
+					stack.push(mode);
 					mode = ENTITY;
 					etag.setLength(0);
 				} else {

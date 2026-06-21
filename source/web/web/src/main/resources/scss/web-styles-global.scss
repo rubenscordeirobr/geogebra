@@ -57,25 +57,11 @@ body.application[dir=rtl] .Dialog-messagePanel img {
 	margin-right: 0;
 }
 
-body.application[dir=rtl] .DialogRbPanel td {
-	padding-right: 0;
-	padding-left: 20px;
-}
-
 body.application[dir=rtl] .dialogContent .sliderIntervalPanel div,
 body.application[dir=rtl] .dialogContent .sliderWidthPanel div {
 	margin-right: 0;
 	margin-left: 10px;
 	float: right;
-}
-
-body.application[dir=rtl] .GeoGebraFileChooser .titlePanel input {
-	float: left;
-}
-
-body.application[dir=rtl] .GeoGebraFileChooser .titlePanel .gwt-Label {
-	padding-right: 0;
-	padding-left: 10px;
 }
 
 body.application[dir=rtl] .GeoGebraMenuBar table {

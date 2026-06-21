@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.kernel3D.algos;
 
 import java.util.TreeMap;
@@ -77,30 +93,24 @@ public class AlgoIntersectLinePolygon3D extends AlgoElement3D {
 	}
 
 	protected OutputHandler<GeoElement> createOutputPoints() {
-		return new OutputHandler<>(new ElementFactory<GeoElement>() {
-			@Override
-			public GeoPoint3D newElement() {
-				GeoPoint3D p1 = new GeoPoint3D(cons);
-				p1.setCoords(0, 0, 0, 1);
-				p1.setParentAlgorithm(AlgoIntersectLinePolygon3D.this);
-				return p1;
-			}
+		return new OutputHandler<>(() -> {
+			GeoPoint3D p1 = new GeoPoint3D(cons);
+			p1.setCoords(0, 0, 0, 1);
+			p1.setParentAlgorithm(this);
+			return p1;
 		});
 	}
 
 	protected OutputHandler<GeoElement> createOutputSegments() {
-		return new OutputHandler<>(new ElementFactory<GeoElement>() {
-			@Override
-			public GeoSegment3D newElement() {
+		return new OutputHandler<>(() -> {
 
-				GeoPoint3D aS = new GeoPoint3D(cons);
-				aS.setCoords(0, 0, 0, 1);
-				GeoPoint3D aE = new GeoPoint3D(cons);
-				aE.setCoords(0, 0, 0, 1);
-				GeoSegment3D a = new GeoSegment3D(cons, aS, aE);
-				a.setParentAlgorithm(AlgoIntersectLinePolygon3D.this);
-				return a;
-			}
+			GeoPoint3D aS = new GeoPoint3D(cons);
+			aS.setCoords(0, 0, 0, 1);
+			GeoPoint3D aE = new GeoPoint3D(cons);
+			aE.setCoords(0, 0, 0, 1);
+			GeoSegment3D a = new GeoSegment3D(cons, aS, aE);
+			a.setParentAlgorithm(this);
+			return a;
 		});
 	}
 

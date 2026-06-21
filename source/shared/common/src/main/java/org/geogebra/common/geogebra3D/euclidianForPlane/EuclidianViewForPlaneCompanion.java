@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidianForPlane;
 
 import java.util.ArrayList;
@@ -17,6 +33,7 @@ import org.geogebra.common.geogebra3D.euclidianFor3D.EuclidianViewFor3DCompanion
 import org.geogebra.common.geogebra3D.main.App3DCompanion;
 import org.geogebra.common.geogebra3D.main.settings.EuclidianSettingsForPlane;
 import org.geogebra.common.gui.layout.DockPanel;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.algos.AlgoElement;
 import org.geogebra.common.kernel.geos.GeoAngle;
@@ -31,7 +48,6 @@ import org.geogebra.common.kernel.matrix.CoordMatrix;
 import org.geogebra.common.kernel.matrix.CoordMatrix4x4;
 import org.geogebra.common.kernel.matrix.CoordSys;
 import org.geogebra.common.kernel.matrix.Coords;
-import org.geogebra.common.main.settings.AbstractSettings;
 import org.geogebra.common.main.settings.EuclidianSettings;
 import org.geogebra.common.util.debug.Log;
 
@@ -48,7 +64,7 @@ public class EuclidianViewForPlaneCompanion extends EuclidianViewFor3DCompanion
 	private CoordMatrix4x4 transform;
 
 	private boolean initViewJustCreated = false;
-	private Coords tmpCoords = new Coords(4);
+	private final Coords tmpCoords = new Coords(4);
 
 	private CoordMatrix4x4 planeMatrix;
 	private CoordMatrix4x4 transformedMatrix;
@@ -203,7 +219,7 @@ public class EuclidianViewForPlaneCompanion extends EuclidianViewFor3DCompanion
 		updateOtherMatrices();
 	}
 
-	private final void updateOtherMatrices() {
+	private void updateOtherMatrices() {
 		// // use continuity
 		// Coords vx1 = Coords.UNDEFINED;
 		// if (transformedMatrix!=null){
@@ -297,7 +313,7 @@ public class EuclidianViewForPlaneCompanion extends EuclidianViewFor3DCompanion
 	}
 
 	@Override
-	public void getXML(StringBuilder sbxml, boolean asPreference) {
+	public void getXML(XMLStringBuilder sbxml, boolean asPreference) {
 
 		if (!view.isShowing()) {
 			// we don't want to store view for plane that is not showing
@@ -308,20 +324,18 @@ public class EuclidianViewForPlaneCompanion extends EuclidianViewFor3DCompanion
 		view.startXML(sbxml, asPreference);
 
 		// transform
-		sbxml.append("\t<transformForPlane mirror=\"");
-		sbxml.append(transformMirror == -1);
-		sbxml.append("\" rotate=\"");
-		sbxml.append(transformRotate);
-		sbxml.append("\"/>\n");
+		sbxml.startTag("transformForPlane")
+				.attr("mirror", transformMirror == -1)
+				.attr("rotate", transformRotate)
+				.endTag();
 
 		view.endXML(sbxml);
 	}
 
 	@Override
-	public void settingsChanged(AbstractSettings settings) {
-
+	public void settingsChanged(EuclidianSettings settings) {
 		super.settingsChanged(settings);
-
+		assert settings instanceof EuclidianSettingsForPlane;
 		EuclidianSettingsForPlane evs = (EuclidianSettingsForPlane) settings;
 
 		// transform
@@ -503,14 +517,8 @@ public class EuclidianViewForPlaneCompanion extends EuclidianViewFor3DCompanion
 	}
 
 	@Override
-	public void getXMLid(StringBuilder sbxml) {
-
-		sbxml.append("\t<viewId ");
-		sbxml.append("plane=\"");
-		sbxml.append(plane.getLabelSimple());
-		sbxml.append("\"");
-		sbxml.append("/>\n");
-
+	public void getXMLid(XMLStringBuilder sbxml) {
+		sbxml.startTag("viewId").attr("plane", plane.getLabelSimple()).endTag();
 	}
 
 	@Override

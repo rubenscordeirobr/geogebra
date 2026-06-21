@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.html5.gui.util;
 
 import org.geogebra.gwtutil.NavigatorUtil;
@@ -54,7 +70,7 @@ public class AriaHelper {
 	 * @param label localized string
 	 */
 	public static void setLabel(UIObject uiObject, String label) {
-		uiObject.getElement().setAttribute("aria-label", label);
+		setNullableAttribute(uiObject, "label", label);
 	}
 
 	/**
@@ -72,6 +88,28 @@ public class AriaHelper {
 	 */
 	public static void setRole(UIObject uiObject, String role) {
 		uiObject.getElement().setAttribute("role", role);
+	}
+
+	/**
+	 * Sets the accessibility role description for an HTML element.
+	 *
+	 * <p>The role description is assigned to the <code>aria-roledescription</code>
+	 * attribute to override the default semantic announcement
+	 * (e.g. button, canvas, group, etc.) for assistive technologies.</p>
+	 *
+	 * @param uiObject the element whose role description should be set
+	 * @param roleDescription the custom role description to announce
+	 */
+	public static void setRoleDescription(UIObject uiObject, String roleDescription) {
+		uiObject.getElement().setAttribute("aria-roledescription", roleDescription);
+	}
+
+	/**
+	 * @param uiObject UI element
+	 * @param autocomplete autocomplete
+	 */
+	public static void setAutocomplete(UIObject uiObject, String autocomplete) {
+		uiObject.getElement().setAttribute("aria-autocomplete", autocomplete);
 	}
 
 	/**
@@ -181,5 +219,60 @@ public class AriaHelper {
 	 */
 	public static void setAriaHidden(UIObject uiObject) {
 		uiObject.getElement().setAttribute("aria-hidden", "true");
+	}
+
+	/**
+	 * @param uiObject UI element
+	 * @param controlsID ID of related controls
+	 */
+	public static void setControls(UIObject uiObject, String controlsID) {
+		uiObject.getElement().setAttribute("aria-controls", controlsID);
+	}
+
+	/**
+	 * @param uiObject UI element
+	 * @param id id of active descendant, null to reset
+	 */
+	public static void setActiveDescendant(UIObject uiObject, String id) {
+		setNullableAttribute(uiObject, "activedescendant", id);
+	}
+
+	/**
+	 * @param uiObject UI element
+	 * @param message error message (null to reset)
+	 */
+	public static void setErrorMessage(UIObject uiObject, String message) {
+		setNullableAttribute(uiObject, "errormessage", message);
+		uiObject.getElement().setAttribute("aria-invalid", String.valueOf(message != null));
+	}
+
+	private static void setNullableAttribute(UIObject uiObject, String name, String value) {
+		if (value == null) {
+			uiObject.getElement().removeAttribute("aria-" + name);
+		} else {
+			uiObject.getElement().setAttribute("aria-" + name, value);
+		}
+	}
+
+	/**
+	 * Toggle the button between enabled and disabled
+	 * Changes "disabled" property in DOM, so use :disabled in css
+	 * @param uiObject UI element
+	 * @param disabled whether to remove or add the "disabled" property
+	 */
+	public static void setDisabled(UIObject uiObject, boolean disabled) {
+		if (disabled) {
+			uiObject.getElement().setAttribute("disabled", "disabled");
+		} else {
+			uiObject.getElement().removeAttribute("disabled");
+		}
+	}
+
+	/**
+	 * @param uiObject UI element
+	 * @param isModal whether is modal or not
+	 */
+	public static void setModal(UIObject uiObject, boolean isModal) {
+		setNullableAttribute(uiObject, "modal", String.valueOf(isModal));
 	}
 }

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.algos;
 
 import java.util.ArrayList;
@@ -588,7 +604,7 @@ public class AlgoDispatcher {
 	 * @return segment
 	 */
 	final public GeoSegment segment(String label, GeoPoint P, GeoPoint Q) {
-		AlgoJoinPointsSegment algo = new AlgoJoinPointsSegment(cons,  P, Q);
+		AlgoJoinPointsSegment algo = new AlgoJoinPointsSegment(cons, P, Q);
 		GeoSegment s = algo.getSegment();
 		s.setLabel(label);
 		return s;
@@ -1703,7 +1719,7 @@ public class AlgoDispatcher {
 	 *            moving point
 	 * @return whether Locus(P,Q) is possible
 	 */
-	final public static boolean locusCheck(GeoPointND P, GeoPointND Q) {
+	public static boolean locusCheck(GeoPointND P, GeoPointND Q) {
 		return P.getPath() != null && Q.getPath() == null
 				&& P.isParentOf(Q);
 	}
@@ -2089,7 +2105,7 @@ public class AlgoDispatcher {
 			return g;
 		}
 		// TODO decide polynomial when CAS not loaded
-		if (!a.isPolynomialFunction(false) || !b.isPolynomialFunction(false)) {
+		if (!a.hasPolynomialNumerator(false) || !b.hasPolynomialNumerator(false)) {
 
 			// dummy point
 			GeoPoint A = createDummyPoint();
@@ -2198,7 +2214,7 @@ public class AlgoDispatcher {
 			return ret;
 		}
 
-		if (!f.isPolynomialFunction(false)) {
+		if (!f.hasPolynomialNumerator(false)) {
 
 			// dummy point
 			GeoPoint A = initPoint;
@@ -3124,12 +3140,9 @@ public class AlgoDispatcher {
 			}
 
 			return newPoint;
-		} catch (Exception e1) {
+		} catch (Exception | Error e1) {
+			// for Error e.g. try to attach dependent point of regular polygon
 			Log.error(e1.getMessage());
-			return null;
-		} catch (Error e2) {
-			// eg try to attach dependent point of regular polygon
-			Log.error(e2.getMessage());
 			return null;
 		}
 	}

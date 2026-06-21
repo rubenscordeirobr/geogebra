@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.util;
 
 import java.util.ArrayList;
@@ -8,21 +24,19 @@ import org.geogebra.common.awt.GColor;
 import org.geogebra.common.euclidian.EuclidianConstants;
 import org.geogebra.common.euclidian.EuclidianStyleBarStatic;
 import org.geogebra.common.euclidian.EuclidianView;
+import org.geogebra.common.kernel.geos.GProperty;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.geos.GeoImage;
 import org.geogebra.common.kernel.geos.GeoLocusStroke;
 import org.geogebra.common.kernel.geos.GeoPolyLine;
 import org.geogebra.common.kernel.geos.GeoWidget;
 import org.geogebra.common.kernel.geos.TextStyle;
-import org.geogebra.common.main.App;
 import org.geogebra.common.main.Localization;
-import org.geogebra.common.main.OptionType;
 import org.geogebra.common.main.undo.UpdateStyleActionStore;
 import org.geogebra.common.util.debug.Log;
 import org.geogebra.web.full.euclidian.EuclidianLineStylePopup;
-import org.geogebra.web.full.gui.GuiManagerW;
 import org.geogebra.web.full.gui.color.ColorPopupMenuButton;
-import org.geogebra.web.full.gui.dialog.options.OptionsTab.ColorPanel;
+import org.geogebra.web.full.gui.dialog.DialogManagerW;
 import org.geogebra.web.html5.main.AppW;
 
 /**
@@ -81,8 +95,8 @@ public abstract class StyleBarW2 extends StyleBarW {
 	/**
 	 * Opens color chooser dialog in MOW or properties view elsewhere.
 	 */
-	protected void openColorChooser(boolean background) {
-		openPropertiesForColor(background);
+	protected void openColorChooser(boolean background, List<GeoElement> targetGeos) {
+		openPropertiesForColor(background, targetGeos);
 	}
 
 	private boolean processPointStyle(List<GeoElement> targetGeos) {
@@ -109,26 +123,26 @@ public abstract class StyleBarW2 extends StyleBarW {
 	private boolean processColor(List<GeoElement> targetGeos) {
 		GColor color = btnColor.getSelectedColor();
 		if (color == null && !(targetGeos.get(0) instanceof GeoImage)) {
-			openColorChooser(false);
+			openColorChooser(false, targetGeos);
 		} else {
 			double alpha = btnColor.getSliderValue() / 100.0;
-			return EuclidianStyleBarStatic.applyColor(color,
-					alpha, app, targetGeos);
+			return EuclidianStyleBarStatic.applyColor(color, alpha, targetGeos);
 		}
 		return false;
 	}
 
-	protected void openPropertiesForColor(boolean background) {
-		((GuiManagerW) app.getGuiManager())
-				.getPropertiesView(OptionType.OBJECTS)
-				.setOptionPanel(OptionType.OBJECTS, 3);
-		app.getGuiManager().setShowView(true, App.VIEW_PROPERTIES);
-
-		ColorPanel colorPanel = ((GuiManagerW) app.getGuiManager())
-				.getColorPanel();
-		if (colorPanel != null) {
-			colorPanel.setBackground(background);
-		}
+	protected void openPropertiesForColor(boolean background, List<GeoElement> targetGeos) {
+		((DialogManagerW) app.getDialogManager()).showColorChooserDialog(
+				targetGeos.get(0).getObjectColor(), color -> {
+					if (background) {
+						targetGeos.forEach(geo -> geo.setBackgroundColor(color));
+					} else {
+						targetGeos.forEach(geo -> geo.setObjColor(color));
+					}
+					targetGeos.forEach(
+							geo -> geo.updateVisualStyleRepaint(GProperty.COLOR));
+					app.storeUndoInfo();
+				});
 	}
 
 	/**
@@ -157,10 +171,8 @@ public abstract class StyleBarW2 extends StyleBarW {
 
 	protected abstract ArrayList<GeoElement> getTargetGeos();
 
-	protected boolean applyColor(List<GeoElement> targetGeos, GColor color,
-			double alpha) {
-		return EuclidianStyleBarStatic.applyColor(color,
-				alpha, app, targetGeos);
+	protected boolean applyColor(List<GeoElement> targetGeos, GColor color, double alpha) {
+		return EuclidianStyleBarStatic.applyColor(color, alpha, targetGeos);
 	}
 
 	protected void createColorBtn() {
@@ -217,19 +229,7 @@ public abstract class StyleBarW2 extends StyleBarW {
 							}
 						}
 
-						if (hasFillable) {
-							if (geos.get(0) instanceof GeoImage) {
-								if (hasOpacity) {
-									setTitle(loc.getMenu("Opacity"));
-								} else {
-									super.setVisible(false);
-								}
-							} else {
-								setTitle(loc.getMenu("stylebar.ColorTransparency"));
-							}
-						} else {
-							setTitle(loc.getMenu("stylebar.Color"));
-						}
+						updateColorTitleAndVisibility(hasFillable, hasOpacity, geos, loc);
 
 						setSliderVisible(hasFillable && hasOpacity);
 
@@ -258,6 +258,23 @@ public abstract class StyleBarW2 extends StyleBarW {
 			}
 		};
 		setPopupHandlerWithUndoAction(btnColor, this::processColor);
+	}
+
+	private void updateColorTitleAndVisibility(boolean hasFillable, boolean hasOpacity,
+			List<GeoElement> geos, Localization loc) {
+		if (hasFillable) {
+			if (geos.get(0) instanceof GeoImage) {
+				if (hasOpacity) {
+					setTitle(loc.getMenu("Opacity"));
+				} else {
+					btnColor.setVisible(false);
+				}
+			} else {
+				setTitle(loc.getMenu("stylebar.ColorTransparency"));
+			}
+		} else {
+			setTitle(loc.getMenu("stylebar.Color"));
+		}
 	}
 
 	/**

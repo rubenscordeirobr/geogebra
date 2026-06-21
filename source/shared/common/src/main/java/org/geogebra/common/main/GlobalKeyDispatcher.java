@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.main;
 
 import java.util.ArrayList;
@@ -5,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.awt.GPoint;
 import org.geogebra.common.awt.GRectangle2D;
@@ -15,7 +32,6 @@ import org.geogebra.common.euclidian.EuclidianViewInterfaceCommon;
 import org.geogebra.common.euclidian.draw.DrawInputBox;
 import org.geogebra.common.euclidian.draw.dropdown.DrawDropDownList;
 import org.geogebra.common.euclidian3D.EuclidianView3DInterface;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.io.layout.Perspective;
 import org.geogebra.common.kernel.ConstructionDefaults;
 import org.geogebra.common.kernel.Kernel;
@@ -42,9 +58,9 @@ import org.geogebra.common.plugin.EuclidianStyleConstants;
 import org.geogebra.common.util.DoubleUtil;
 import org.geogebra.common.util.MyMath;
 import org.geogebra.common.util.debug.Log;
+import org.geogebra.editor.share.util.KeyCodes;
 
 import com.google.j2objc.annotations.Weak;
-import com.himamis.retex.editor.share.util.KeyCodes;
 
 /**
  * Handles keyboard events. This class only dispatches
@@ -117,58 +133,62 @@ public abstract class GlobalKeyDispatcher {
 	}
 
 	/**
-	 * Open rename dialog when first letter is typed
-	 * @param ch letter typed
-	 * @return whether we show the dialog
+	 * Handles when a char pressed on the selected or last created GeoElement.
+	 *
+	 * @param ch the character pressed.
+	 *
+	 *  @return true if the char is handled; false otherwise.
 	 */
-	protected boolean renameStarted(char ch) {
-		GeoElement geo;
-		if (selection.selectedGeosSize() == 1) {
-			// selected geo
-			geo = selection.getSelectedGeos().get(0);
-		} else {
-			// last created geo
-			geo = app.getLastCreatedGeoElement();
+	protected boolean keyPressedOnGeo(char ch) {
+		GeoElement geo = selection.selectedGeosSize() == 1
+				? selection.getSelectedGeos().get(0)
+				: app.getLastCreatedGeoElement();
+		return geo != null && keyPressedOnGeo(geo, ch);
+	}
+
+	/**
+	 * Handles when a char pressed on a GeoElement.
+	 *
+	 * @param geo that is the target of the key press.
+	 * @param ch the character pressed.
+	 *
+	 * @return true if the char is handled; false otherwise.
+	 */
+	protected boolean keyPressedOnGeo(GeoElement geo, char ch) {
+		EuclidianView view = app.getActiveEuclidianView();
+		if (view == null) {
+			return false;
 		}
 
-		// show RENAME dialog when a letter is typed
-		// or edit Textfield for any keypress
-
-		if (Character.isLetter(ch) || geo instanceof GeoInputBox) {
-
-			// open rename dialog
-			if (geo != null && geo.isRenameable()) {
-
-				if (geo instanceof GeoInputBox) {
-					DrawInputBox dt = (DrawInputBox) app
-							.getActiveEuclidianView().getDrawableFor(geo);
-					if (dt != null) {
-						dt.setFocus(ch + "");
-					}
-				} else {
-					if (app.getDialogManager() != null) {
-						app.getDialogManager().showRenameDialog(geo, true,
-								Character.toString(ch), false);
-					}
-				}
-				return true;
+		if (geo instanceof GeoInputBox) {
+			DrawInputBox drawInputBox = (DrawInputBox) view.getDrawableFor(geo);
+			if (drawInputBox != null) {
+				drawInputBox.setFocus(Character.toString(ch));
 			}
+			return true;
 		}
-		if (ch == '/') {
+
+		switch (ch) {
+		case '/':
 			toggleSelectionVisibility();
-		}
+			return true;
 
-		if (app.getGuiManager() != null) {
-			if (ch == '\n' || ch == '\r') {
-				startEdit(geo);
-			} else if (ch == '.') {
-				openSettingsInAV(geo);
-			}
+		case '\n':
+		case '\r':
+			startEdit(geo);
+			return true;
+
+		case '.':
+			openSettingsInAV(geo);
+			return true;
+		default:
+			// No action for other keys
+			break;
 		}
 
 		// don't instantiate: could steal focus
-		if (app.getActiveEuclidianView().hasDynamicStyleBar()) {
-			app.getActiveEuclidianView().getDynamicStyleBar().setVisible(false);
+		if (view.hasDynamicStyleBar()) {
+			view.getDynamicStyleBar().setVisible(false);
 		}
 		return false;
 	}
@@ -190,8 +210,6 @@ public abstract class GlobalKeyDispatcher {
 	protected void openSettingsInAV(GeoElement geo) {
 		if (app.getGuiManager() != null) {
 			app.getGuiManager().openMenuInAVFor(geo);
-			Log.debug(
-					"[lac] open settings for " + geo.getDefinitionForEditor());
 		}
 	}
 
@@ -416,9 +434,11 @@ public abstract class GlobalKeyDispatcher {
 			break;
 
 		case ENTER:
+			if (app.getAccessibilityManager().handlesEnterInComposite()) {
+				return false;
+			}
 			// check not spreadsheet
 			if (!fromSpreadsheet) {
-
 				// ENTER: set focus to input field
 				consumed = handleEnter();
 
@@ -645,12 +665,13 @@ public abstract class GlobalKeyDispatcher {
 		case P:
 			if (isShiftDown) {
 				if (initialViewState.hasProbability()) {
-					toggleView(App.VIEW_PROBABILITY_CALCULATOR);
+					toggleDistributionView();
+					consumed = true;
 				}
 			} else {
 				showPrintPreview(app);
+				consumed = true;
 			}
-			consumed = true;
 
 			break;
 		case W: // File -> Export -> Webpage
@@ -950,7 +971,7 @@ public abstract class GlobalKeyDispatcher {
 		}
 	}
 
-	private void toggleAlgebraView() {
+	protected void toggleAlgebraView() {
 		// if there is no EV we cannot really close the side panel
 		if (app.getConfig().hasEuclidianView()) {
 			toggleView(App.VIEW_ALGEBRA);
@@ -967,6 +988,10 @@ public abstract class GlobalKeyDispatcher {
 
 	protected void toggleSpreadsheetView() {
 		// web only
+	}
+
+	protected void toggleDistributionView() {
+		toggleView(App.VIEW_PROBABILITY_CALCULATOR);
 	}
 
 	private boolean isUndoRedoEnabled() {
@@ -1218,9 +1243,6 @@ public abstract class GlobalKeyDispatcher {
 			List<GeoElement> geos, boolean isShiftDown,
 			boolean isControlDown, boolean isAltDown, boolean fromSpreadsheet) {
 		// SPECIAL KEYS
-		double changeValX = 0; // later: changeVal = base or -base
-		double changeValY = 0; // later: changeVal = base or -base
-		double changeValZ = 0; // later: changeVal = base or -base
 		// Shift : base = 0.1
 		// Default : base = 1
 		// Ctrl : base = 10
@@ -1233,11 +1255,8 @@ public abstract class GlobalKeyDispatcher {
 				base = 0.1;
 			}
 		}
-		if (isControlDown) {
-			base = 10;
-		}
 		if (isAltDown) {
-			base = 100;
+			base = 10;
 		}
 
 		if (geos == null || geos.isEmpty()) {
@@ -1308,13 +1327,16 @@ public abstract class GlobalKeyDispatcher {
 		// ignore key events coming from tables like the spreadsheet to
 		// allow start editing, moving etc
 		if (fromSpreadsheet || isSpreadsheetFocused()) {
-			return false;
+				return false;
 		}
 
 		// check for arrow keys: try to move objects accordingly
 		boolean moved = false;
 		boolean isometric = app.getActiveEuclidianView().getGridType()
 				== EuclidianView.GRID_ISOMETRIC;
+		double changeValX = 0; // later: changeVal = base or -base
+		double changeValY = 0; // later: changeVal = base or -base
+		double changeValZ = 0; // later: changeVal = base or -base
 		switch (key) {
 		default:
 			// do nothing
@@ -1325,6 +1347,7 @@ public abstract class GlobalKeyDispatcher {
 					&& !app.getGuiManager().noMenusOpen()) {
 				return false;
 			}
+
 			if (handleUpDownArrowsForDropdown(geos, false)) {
 				return true;
 			}
@@ -1338,6 +1361,7 @@ public abstract class GlobalKeyDispatcher {
 					&& !app.getGuiManager().noMenusOpen()) {
 				return false;
 			}
+
 			if (handleUpDownArrowsForDropdown(geos, true)) {
 				return true;
 			}
@@ -1351,6 +1375,7 @@ public abstract class GlobalKeyDispatcher {
 					&& !app.getGuiManager().noMenusOpen()) {
 				return false;
 			}
+
 			if (handleLeftRightArrowsForDropdown(geos, true)) {
 				return true;
 			}
@@ -1367,6 +1392,7 @@ public abstract class GlobalKeyDispatcher {
 					&& !app.getGuiManager().noMenusOpen()) {
 				return false;
 			}
+
 			if (handleLeftRightArrowsForDropdown(geos, false)) {
 				return true;
 			}
@@ -1403,13 +1429,14 @@ public abstract class GlobalKeyDispatcher {
 			break;
 		}
 
-		if (changeValX != 0 || changeValY != 0 || changeValZ != 0) {
+		boolean arrowsUsed = changeValX != 0 || changeValY != 0 || changeValZ != 0;
+		if (arrowsUsed) {
 			double[] diff = getIncrement(geos);
 			diff[0] *= changeValX;
 			diff[1] *= changeValY;
 			diff[2] *= changeValZ;
 			moved = handleArrowKeyMovement(geos, diff);
-			hasUnsavedGeoChanges = true;
+			hasUnsavedGeoChanges = moved;
 		}
 
 		if (moved) {
@@ -1486,23 +1513,24 @@ public abstract class GlobalKeyDispatcher {
 		if (changeVal != 0) {
 
 			// exactly 2 or 3 sliders selected
-			boolean multipleSliders = geos.size() > 1
-					&& geos.get(0).isGeoNumeric()
-					&& geos.get(1).isGeoNumeric()
-					&& (geos.size() == 2 || (geos.size() == 3
-							&& geos.get(2).isGeoNumeric()));
-
+			boolean multipleSliders = hasMultipleSlidersSelected(geos);
+			boolean changed = false;
 			for (int i = geos.size() - 1; i >= 0; i--) {
 				GeoElement geo = geos.get(i);
-				moveSliderPointOrRandomGeo(geo, changeVal, !multipleSliders || index == i);
+				if (geo.isPointOnPath() && arrowsUsed) {
+					continue;
+				}
+				changed = moveSliderPointOrRandomGeo(geo, changeVal, !multipleSliders || index == i)
+						|| changed;
 			}
 
 			// update all geos together
-			GeoElement.updateCascade(geos, getTempSet(), true);
-			readMovedPoints(geos);
-			app.getKernel().notifyRepaint();
-
-			return true;
+			if (changed) {
+				GeoElement.updateCascade(geos, getTempSet(), true);
+				readMovedPoints(geos);
+				app.getKernel().notifyRepaint();
+			}
+			return changed;
 		}
 
 		return false;
@@ -1510,8 +1538,27 @@ public abstract class GlobalKeyDispatcher {
 
 	private boolean isSpreadsheetFocused() {
 		return app.getGuiManager() != null
-				&& app.getGuiManager().hasSpreadsheetView()
-				&& app.getGuiManager().getSpreadsheetView().hasFocus();
+				&& app.getGuiManager().isSpreadsheetFocused();
+	}
+
+	/**
+	 * @param geos List of GeoElements
+	 * @return Whether there are exactly 2 or 3 sliders
+	 * (or GeoNumerics whose value can be changed using arrow / plus / minus / ... keys) selected.
+	 */
+	private boolean hasMultipleSlidersSelected(List<GeoElement> geos) {
+		return geos.size() > 1 && geos.size() < 4
+				&& geos.stream().allMatch(this::canChangeValueUsingKeys);
+	}
+
+	/**
+	 * @param geo GeoElement
+	 * @return Whether the value of this element can be changed using arrow keys or
+	 * the plus / minus / ... key.
+	 */
+	private boolean canChangeValueUsingKeys(GeoElement geo) {
+		return geo.isGeoNumeric()
+				&& (geo.isSimple() || ((GeoNumeric) geo).isAVSliderOrCheckboxVisible());
 	}
 
 	private void readMovedPoints(List<GeoElement> geos) {
@@ -1522,27 +1569,25 @@ public abstract class GlobalKeyDispatcher {
 		}
 	}
 
-	private void moveSliderPointOrRandomGeo(GeoElement geo,
+	private boolean moveSliderPointOrRandomGeo(GeoElement geo,
 			double changeVal, boolean activeSlider) {
+		boolean changed = false;
 		if (geo.isPointerChangeable()) {
 
 			// update number
-			if (geo.isGeoNumeric()
-					&& activeSlider) {
-				changeSliderValue((GeoNumeric) geo, changeVal);
-				hasUnsavedGeoChanges = true;
+			if (activeSlider && canChangeValueUsingKeys(geo)) {
+				changed = changeSliderValue((GeoNumeric) geo, changeVal);
 			}
 
-			// update point on path
-			else if (geo instanceof GeoPointND) {
-				GeoPointND p = (GeoPointND) geo;
+			// update +- for point on path
+			else if (geo instanceof GeoPointND p) {
 				if (p.isPointOnPath()) {
 					if (p.getPath() instanceof GeoList) {
 						loopPointOnPath(changeVal, p);
+						changed = true;
 					} else {
-						p.addToPathParameter(changeVal * p.getAnimationStep());
+						changed = p.addToPathParameter(changeVal * p.getAnimationStep());
 					}
-					hasUnsavedGeoChanges = true;
 				}
 			}
 		}
@@ -1555,16 +1600,18 @@ public abstract class GlobalKeyDispatcher {
 					&& (geo.isRandomGeo() || parentAlgorithm instanceof SetRandomValue)) {
 				parentAlgorithm.updateUnlabeledRandomGeos();
 				geo.updateRandomGeo();
-				hasUnsavedGeoChanges = true;
+				changed = true;
 			}
 
 			// update parent algorithm for unlabeled random numbers
 			// and all other algorithms
 			else if (parentAlgorithm.updateUnlabeledRandomGeos()) {
 				parentAlgorithm.compute();
-				hasUnsavedGeoChanges = true;
+				changed = true;
 			}
 		}
+		hasUnsavedGeoChanges |= changed;
+		return changed;
 	}
 
 	private static void loopPointOnPath(double changeVal, GeoPointND p) {
@@ -1693,11 +1740,14 @@ public abstract class GlobalKeyDispatcher {
 		return false;
 	}
 
-	private void changeSliderValue(GeoNumeric num, double changeVal) {
+	private boolean changeSliderValue(GeoNumeric num, double changeVal) {
 		double numStep = getAnimationStep(num);
 		double newValue = num.getValue()
 				+ changeVal * numStep;
-
+		if ((num.getValue() == num.getIntervalMax() && changeVal > 0)
+				|| (num.getValue() == num.getIntervalMin() && changeVal < 0)) {
+			return false;
+		}
 		// HOME / END keys
 		if (Double.isInfinite(changeVal)) {
 			newValue = changeVal > 0 ? num.getIntervalMax()
@@ -1717,13 +1767,13 @@ public abstract class GlobalKeyDispatcher {
 						1 / numStep);
 			}
 		}
-
 		// stop all animation if slider dragged
 		if (num.isAnimating()) {
 			num.getKernel().getAnimationManager().stopAnimation();
 		}
 
 		num.setValue(newValue);
+		return true;
 	}
 
 	private double[] getIncrement(List<? extends GeoElementND> geos) {
@@ -1771,11 +1821,11 @@ public abstract class GlobalKeyDispatcher {
 	protected boolean handleEnter() {
 		if (selection.getSelectedGeos().size() == 1) {
 			GeoElement geo = selection.getSelectedGeos().get(0);
-			if (geo.isGeoList()) {
+			if (geo instanceof GeoList list) {
 				DrawDropDownList dropdown = DrawDropDownList.asDrawable(app, geo);
 				if (dropdown != null) {
 					dropdown.handleEnter();
-					ScreenReader.readDropDownItemSelected(geo);
+					ScreenReader.readDropDownItemSelected(list);
 					return true;
 				}
 			} else if (geo.isGeoInputBox() && geo.isEuclidianVisible()) {

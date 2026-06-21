@@ -1,6 +1,20 @@
-package org.geogebra.common.main.settings;
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
 
-//import geogebra.gui.view.probcalculator.ProbabilityManager;
+package org.geogebra.common.main.settings;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -14,7 +28,8 @@ import org.geogebra.common.kernel.geos.GeoNumeric;
 /**
  * Settings for the probability calculator view.
  */
-public class ProbabilityCalculatorSettings extends AbstractSettings {
+public class ProbabilityCalculatorSettings extends AbstractSettings<ProbabilityCalculatorSettings> {
+
 	/** distributions */
 	public enum Dist {
 		/** normal */
@@ -78,6 +93,7 @@ public class ProbabilityCalculatorSettings extends AbstractSettings {
 	/** number of distributions */
 	public static final int distCount = Dist.values().length;
 
+	private boolean enabled = true;
 	private GeoNumeric[] parameters = { };
 	private Dist distributionType = Dist.NORMAL;
 	private boolean isCumulative = false;
@@ -97,7 +113,7 @@ public class ProbabilityCalculatorSettings extends AbstractSettings {
 	 *            listeners
 	 */
 	public ProbabilityCalculatorSettings(
-			LinkedList<SettingListener> listeners) {
+			LinkedList<SettingListener<ProbabilityCalculatorSettings>> listeners) {
 		super(listeners);
 	}
 
@@ -226,6 +242,14 @@ public class ProbabilityCalculatorSettings extends AbstractSettings {
 	 */
 	public void setCollection(StatisticsCollection stats) {
 		this.stats = stats;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public boolean isEnabled() {
+		return this.enabled;
 	}
 
 	/**

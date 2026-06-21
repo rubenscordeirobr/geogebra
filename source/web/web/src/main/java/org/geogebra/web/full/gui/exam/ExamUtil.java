@@ -1,8 +1,25 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.exam;
 
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.exam.ExamController;
 import org.geogebra.common.ownership.GlobalScope;
+import org.geogebra.common.ownership.SuiteScope;
 import org.geogebra.common.util.StringUtil;
 import org.geogebra.web.html5.Browser;
 import org.geogebra.web.html5.GeoGebraGlobal;
@@ -20,7 +37,7 @@ public class ExamUtil {
 
 	private AppW app;
 	private static boolean examModeRunning = false;
-	private static final ExamController examController = GlobalScope.examController;
+	private final ExamController examController;
 
 	/**
 	 * @param app
@@ -28,6 +45,7 @@ public class ExamUtil {
 	 */
 	public ExamUtil(AppW app) {
 		this.app = app;
+		this.examController = GlobalScope.getExamController(app);
 	}
 
 	/**
@@ -135,10 +153,11 @@ public class ExamUtil {
 	 * @return exam status description
 	 */
 	public static String status(AppW appW) {
+		SuiteScope suiteScope = GlobalScope.getSuiteScope(appW);
+		ExamController examController = suiteScope != null ? suiteScope.examController : null;
 		return appW.getLocalization().getMenu("exam_menu_entry") + ": "
-				+ (examController.isCheating()
+				+ (examController != null && examController.isCheating()
 						? appW.getLocalization().getMenu("exam_alert")
 						: appW.getLocalization().getMenu("OK"));
 	}
-
 }

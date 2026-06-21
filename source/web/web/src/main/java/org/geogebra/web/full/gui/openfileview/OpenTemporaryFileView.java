@@ -1,7 +1,24 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.openfileview;
 
 import java.util.Collection;
 
+import org.geogebra.common.exam.ExamController;
 import org.geogebra.common.main.OpenFileListener;
 import org.geogebra.common.main.exam.TempStorage;
 import org.geogebra.common.move.ggtapi.models.Material;
@@ -30,7 +47,8 @@ public class OpenTemporaryFileView extends HeaderFileView implements
 		app.registerOpenFileListener(this);
 		common = new FileViewCommon(app, "Open", false);
 		common.addStyleName("examTemporaryFiles");
-		tempStorage = GlobalScope.examController.getTempStorage();
+		ExamController examController = GlobalScope.getExamController(app);
+		tempStorage = examController != null ? examController.getTempStorage() : null;
 	}
 
 	@Override

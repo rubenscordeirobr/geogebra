@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.arithmetic;
@@ -20,6 +24,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.ConstructionDefaults;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.StringTemplate;
@@ -35,12 +40,12 @@ import org.geogebra.common.kernel.geos.GeoFunction;
 import org.geogebra.common.kernel.geos.GeoFunctionNVar;
 import org.geogebra.common.kernel.geos.GeoLine;
 import org.geogebra.common.kernel.matrix.Coords;
+import org.geogebra.common.main.Localization;
 import org.geogebra.common.main.MyError;
 import org.geogebra.common.plugin.Operation;
 import org.geogebra.common.util.DoubleUtil;
 import org.geogebra.common.util.MaxSizeHashMap;
 import org.geogebra.common.util.MyMath;
-import org.geogebra.common.util.StringUtil;
 import org.geogebra.common.util.debug.Log;
 
 import com.google.j2objc.annotations.Weak;
@@ -70,7 +75,7 @@ public class FunctionNVar extends ValidExpression
 	@Weak
 	protected Kernel kernel;
 	private final static int MAX_CAS_EVAL_MAP_SIZE = 100;
-	private MaxSizeHashMap<String, FunctionNVar> casEvalMap;
+	private Map<String, FunctionNVar> casEvalMap;
 	private String shortLHS;
 	private ExpressionNode casEvalExpression;
 	private String casEvalStringSymbolic;
@@ -185,6 +190,11 @@ public class FunctionNVar extends ValidExpression
 	@Override
 	public Kernel getKernel() {
 		return kernel;
+	}
+
+	@Override
+	public Localization getLocalization() {
+		return kernel.getLocalization();
 	}
 
 	@Override
@@ -384,6 +394,7 @@ public class FunctionNVar extends ValidExpression
 				ev = expression.evaluate(StringTemplate.defaultTemplate);
 			} catch (Throwable th) {
 				// throw original error when desperate mode failed
+				err.addSuppressed(th);
 				throw err;
 			}
 		}
@@ -405,7 +416,7 @@ public class FunctionNVar extends ValidExpression
 	}
 
 	/**
-	 * Returns the last x, y and z variables from the input var array, if they exist.
+	 * Returns the last x, y and z variables from the input var array if they exist.
 	 *
 	 * @param vars input array
 	 * @return x, y and z variables from the input, if they exist
@@ -414,11 +425,11 @@ public class FunctionNVar extends ValidExpression
 		// get function variables for x, y, z
 		FunctionVariable xVar = null, yVar = null, zVar = null;
 		for (FunctionVariable fVar : vars) {
-			if ("x".equals(fVar.toString(StringTemplate.defaultTemplate))) {
+			if ("x".equals(fVar.getSetVarString())) {
 				xVar = fVar;
-			} else if ("y".equals(fVar.toString(StringTemplate.defaultTemplate))) {
+			} else if ("y".equals(fVar.getSetVarString())) {
 				yVar = fVar;
-			} else if ("z".equals(fVar.toString(StringTemplate.defaultTemplate))) {
+			} else if ("z".equals(fVar.getSetVarString())) {
 				zVar = fVar;
 			}
 		}
@@ -723,7 +734,7 @@ public class FunctionNVar extends ValidExpression
 	 * 
 	 * @return CAS map command -&gt; result
 	 */
-	protected MaxSizeHashMap<String, FunctionNVar> getCasEvalMap() {
+	protected Map<String, FunctionNVar> getCasEvalMap() {
 		if (casEvalMap == null) {
 			casEvalMap = new MaxSizeHashMap<>(
 					MAX_CAS_EVAL_MAP_SIZE);
@@ -736,17 +747,16 @@ public class FunctionNVar extends ValidExpression
 	 * @param sb
 	 *            XML builder
 	 */
-	public void printCASevalMapXML(StringBuilder sb) {
+	public void printCASevalMapXML(XMLStringBuilder sb) {
 		if (casEvalMap != null) {
-			sb.append("<casMap>\n");
+			sb.startOpeningTag("casMap", 1).endTag();
 			for (Entry<String, FunctionNVar> entry : casEvalMap.entrySet()) {
-				sb.append("\t<entry key=\"");
-				StringUtil.encodeXML(sb, entry.getKey());
-				sb.append("\" val=\"");
-				StringUtil.encodeXML(sb, entry.getValue().toString(StringTemplate.xmlTemplate));
-				sb.append("\"/>\n");
+				sb.startTag("entry", 2)
+						.attr("key", entry.getKey())
+						.attr("val", entry.getValue().toString(StringTemplate.xmlTemplate))
+						.endTag();
 			}
-			sb.append("</casMap>\n");
+			sb.closeTag("casMap");
 		}
 	}
 
@@ -831,18 +841,16 @@ public class FunctionNVar extends ValidExpression
 			tree.setOperation(adjustOp(op, negate));
 			tree.setLeft(new IneqTree());
 			tree.setRight(new IneqTree());
-			return initIneqs(leftTree,  tree.getLeft(), negate)
-					&& initIneqs(rightTree,  tree.getRight(),
-							negate);
+			return initIneqs(leftTree, tree.getLeft(), negate)
+					&& initIneqs(rightTree, tree.getRight(), negate);
 		} else if (op.equals(Operation.NOT)) {
-			return initIneqs(leftTree,  tree, !negate);
+			return initIneqs(leftTree, tree, !negate);
 		} else if (op.equals(Operation.IMPLICATION)) {
 			tree.setOperation(adjustOp(Operation.OR, negate));
 			tree.setLeft(new IneqTree());
 			tree.setRight(new IneqTree());
-			return initIneqs(leftTree,  tree.getLeft(), !negate)
-					&& initIneqs(rightTree,  tree.getRight(),
-							negate);
+			return initIneqs(leftTree, tree.getLeft(), !negate)
+					&& initIneqs(rightTree, tree.getRight(), negate);
 		} else if (op.equals(Operation.FUNCTION_NVAR)) {
 			FunctionalNVar nv = (FunctionalNVar) leftTree.getLeft();
 			ExpressionNode subExpr = nv.getFunction().getExpression()
@@ -853,7 +861,7 @@ public class FunctionNVar extends ValidExpression
 				subExpr.replace(subVars[i],
 						((MyList) rightTree.getLeft()).get(i));
 			}
-			return initIneqs(subExpr,  tree, negate);
+			return initIneqs(subExpr, tree, negate);
 		} else {
 			return false;
 		}
@@ -1083,26 +1091,13 @@ public class FunctionNVar extends ValidExpression
 			// is there a constant number to the right?
 			if (right instanceof MyDouble && right.isConstant()) {
 				MyDouble num = (MyDouble) right;
-				double temp;
 				switch (en.getOperation()) {
 				case MULTIPLY:
-					temp = num.getDouble() / vx;
-					if (DoubleUtil.isEqual(1, temp)) {
-						expression = expression.replace(en, fVars[varNo])
-								.wrap();
-					} else {
-						num.set(temp);
-					}
+					replaceCoefficient(num, num.getDouble() / vx, en, varNo);
 					return;
 
 				case DIVIDE:
-					temp = num.getDouble() * vx;
-					if (DoubleUtil.isEqual(1, temp)) {
-						expression = expression.replace(en, fVars[varNo])
-								.wrap();
-					} else {
-						num.set(temp);
-					}
+					replaceCoefficient(num, num.getDouble() * vx, en, varNo);
 					return;
 
 				default:
@@ -1120,15 +1115,8 @@ public class FunctionNVar extends ValidExpression
 			// is there a constant number to the left?
 			if (left instanceof MyDouble && left.isConstant()) {
 				MyDouble num = (MyDouble) left;
-				double temp;
 				if (en.isOperation(Operation.MULTIPLY)) {
-					temp = num.getDouble() / vx;
-					if (DoubleUtil.isEqual(1, temp)) {
-						expression = expression.replace(en, fVars[varNo])
-								.wrap();
-					} else {
-						num.set(temp);
-					}
+					replaceCoefficient(num, num.getDouble() / vx, en, varNo);
 				} else {
 					en.setRight(multXnode(vx, varNo));
 				}
@@ -1137,6 +1125,14 @@ public class FunctionNVar extends ValidExpression
 			}
 		} else {
 			dilateExpressionX(right, vx, varNo);
+		}
+	}
+
+	private void replaceCoefficient(MyDouble num, double temp, ExpressionNode en, int varNo) {
+		if (DoubleUtil.isEqual(1, temp)) {
+			expression = expression.replace(en, fVars[varNo]).wrap();
+		} else {
+			num.set(temp);
 		}
 	}
 

@@ -1,3 +1,4 @@
+// vendored
 /*
  * Copyright 2009 Google Inc.
  *
@@ -21,6 +22,7 @@ import java.util.List;
 
 import org.geogebra.common.main.App;
 import org.geogebra.common.util.StringUtil;
+import org.geogebra.editor.share.util.GWTKeycodes;
 import org.geogebra.gwtutil.NavigatorUtil;
 import org.geogebra.web.html5.Browser;
 import org.geogebra.web.html5.main.AppW;
@@ -47,8 +49,6 @@ import org.gwtproject.user.client.ui.SimplePanel;
 import org.gwtproject.user.client.ui.UIObject;
 import org.gwtproject.user.client.ui.Widget;
 import org.gwtproject.user.client.ui.impl.PopupImpl;
-
-import com.himamis.retex.editor.share.util.GWTKeycodes;
 
 import elemental2.dom.DomGlobal;
 import elemental2.dom.EventListener;
@@ -77,7 +77,7 @@ import jsinterop.base.Js;
  * {@link #setGlassStyleName(String)}.
  * </p>
  *
- * <h3>CSS Style Rules</h3>
+ * <h2>CSS Style Rules</h2>
  * <dl>
  * <dt>.gwt-PopupPanel</dt>
  * <dd>the outside of the popup</dd>
@@ -263,7 +263,7 @@ public class GPopupPanel extends SimplePanel implements
 		 * @param panel
 		 *            the panel to affect
 		 */
-		public ResizeAnimation(GPopupPanel panel, Panel root) {
+		ResizeAnimation(GPopupPanel panel, Panel root) {
 			this.curPanel = panel;
 			this.animationRoot = root;
 		}
@@ -276,7 +276,7 @@ public class GPopupPanel extends SimplePanel implements
 		 * @param showing
 		 *            true if the popup is showing, false if not
 		 */
-		public void setState(boolean showing, boolean isUnloading) {
+		void setState(boolean showing, boolean isUnloading) {
 			// Immediately complete previous open/close animation
 			this.isUnloading = isUnloading;
 			cancel();
@@ -600,20 +600,7 @@ public class GPopupPanel extends SimplePanel implements
 			show();
 		}
 
-		// If left/top are set from a previous center() call, and our content
-		// has changed, we may get a bogus getOffsetWidth because our new
-		// content
-		// is wrapping (giving a lower offset width) then it would without the
-		// previous left. Setting left/top back to 0 avoids this.
-		Element elem = getElement();
-		elem.getStyle().setPropertyPx("left", 0);
-		elem.getStyle().setPropertyPx("top", 0);
-
-		int left = (getRootPanel().getOffsetWidth() - getOffsetWidth()) >> 1;
-		int top = (getRootPanel().getOffsetHeight() - Math.min(getOffsetHeight(), getMaxHeight())
-				- (int) keyboardHeight) >> 1;
-		setPopupPosition(Math.max(left, 0), Math.max(top, 0));
-				
+		setCenteredPosition(keyboardHeight);
 		if (!initiallyShowing) {
 			setAnimationEnabled(initiallyAnimated);
 			// Run the animation. The popup is already visible, so we can skip
@@ -627,6 +614,22 @@ public class GPopupPanel extends SimplePanel implements
 				setVisible(true);
 			}
 		}
+	}
+
+	private void setCenteredPosition(double keyboardHeight) {
+		// If left/top are set from a previous center() call, and our content
+		// has changed, we may get a bogus getOffsetWidth because our new
+		// content
+		// is wrapping (giving a lower offset width) then it would without the
+		// previous left. Setting left/top back to 0 avoids this.
+		Element elem = getElement();
+		elem.getStyle().setPropertyPx("left", 0);
+		elem.getStyle().setPropertyPx("top", 0);
+
+		int left = (getRootPanel().getOffsetWidth() - getOffsetWidth()) >> 1;
+		int top = (getRootPanel().getOffsetHeight() - Math.min(getOffsetHeight(), getMaxHeight())
+				- (int) keyboardHeight) >> 1;
+		setPopupPosition(Math.max(left, 0), Math.max(top, 0));
 	}
 
 	/**

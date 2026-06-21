@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.spreadsheet.core;
 
 import java.util.ArrayList;
@@ -187,7 +203,7 @@ final class CopyPasteCutTabularDataImpl<T>
 				.getTiledRange(destination, rowStep, columnStep);
 
 		for (int column = tiledRange.getMinColumn();
-			 column <= tiledRange.getMaxColumn(); column += columnStep) {
+				column <= tiledRange.getMaxColumn(); column += columnStep) {
 			for (int row = tiledRange.getMinRow(); row <= tiledRange.getMaxRow(); row += rowStep) {
 				pasteInternalOnce(new TabularRange(row, column,
 						row + rowStep - 1, column + columnStep - 1));

@@ -1,5 +1,3 @@
-import org.docstr.gradle.plugins.gwt.LogLevel
-
 plugins {
     alias(libs.plugins.geogebra.java.library)
     alias(libs.plugins.geogebra.pmd)
@@ -21,6 +19,7 @@ dependencies {
 
     annotationProcessor(project(":gwt-generator"))
     annotationProcessor(libs.gwt.resources.processor)
+    compileOnly(libs.jakarta.servlet.api)
 }
 
 tasks.compileJava {
@@ -30,10 +29,10 @@ tasks.compileJava {
 val module = "org.geogebra.keyboard.KeyboardWeb"
 
 gwt {
-    modules(module)
-    devModules(module)
-
-    logLevel = LogLevel.INFO
+    modules.add(module)
+    devMode {
+        modules.add(module)
+    }
 }
 
 gwtDistribution {

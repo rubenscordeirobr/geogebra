@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.toolbar;
 
 import java.awt.BorderLayout;
@@ -16,11 +32,10 @@ import java.text.BreakIterator;
 import java.util.ArrayList;
 
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -233,18 +248,13 @@ public class ToolbarContainer extends JPanel implements ComponentListener {
 	}
 
 	private JPanel getGridButtonPanel() {
-
-		int iconSize = (int) Math.round(app.getScaledIconSize() * 0.75);
-
 		// undo button
-
 		AbstractAction undoAction = ((GuiManagerD) app.getGuiManager())
 				.getUndoAction();
-		undoAction.putValue(Action.SMALL_ICON,
-				app.getScaledIcon(GuiResourcesD.MENU_EDIT_UNDO, iconSize));
-		undoAction.putValue("enabled", false);
 
-		JButton btnUndo = new JButton(undoAction);
+		JButton btnUndo = newJButton(GuiResourcesD.MENU_EDIT_UNDO);
+		btnUndo.setAction(undoAction);
+		undoAction.putValue("enabled", false);
 		String text = loc.getMenuTooltip("Undo");
 		btnUndo.setText(null);
 		btnUndo.setToolTipText(text);
@@ -253,9 +263,8 @@ public class ToolbarContainer extends JPanel implements ComponentListener {
 		// redo button
 		AbstractAction redoAction = ((GuiManagerD) app.getGuiManager())
 				.getRedoAction();
-		redoAction.putValue(Action.SMALL_ICON,
-				app.getScaledIcon(GuiResourcesD.MENU_EDIT_REDO, iconSize));
-		JButton btnRedo = new JButton(redoAction);
+		JButton btnRedo = newJButton(GuiResourcesD.MENU_EDIT_REDO);
+		btnRedo.setAction(redoAction);
 		text = loc.getMenuTooltip("Redo");
 		btnRedo.setText(null);
 		btnRedo.setToolTipText(text);
@@ -263,8 +272,7 @@ public class ToolbarContainer extends JPanel implements ComponentListener {
 
 		// properties button
 
-		final JButton btnProperties = new JButton(
-				app.getScaledIcon(GuiResourcesD.MENU_OPTIONS, iconSize));
+		final JButton btnProperties = newJButton(GuiResourcesD.MENU_OPTIONS);
 		btnProperties.setFocusPainted(false);
 		btnProperties.setBorderPainted(false);
 		btnProperties.setContentAreaFilled(false);
@@ -287,8 +295,7 @@ public class ToolbarContainer extends JPanel implements ComponentListener {
 		});
 
 		// help button
-		JButton btnHelp = new JButton(
-				app.getScaledIcon(GuiResourcesD.MENU_HELP, iconSize));
+		JButton btnHelp = newJButton(GuiResourcesD.MENU_HELP);
 		btnHelp.setFocusPainted(false);
 		btnHelp.setBorderPainted(false);
 		btnHelp.setContentAreaFilled(false);
@@ -356,6 +363,10 @@ public class ToolbarContainer extends JPanel implements ComponentListener {
 		}
 
 		return gridButtonPanel;
+	}
+
+	private JButton newJButton(GuiResourcesD icon) {
+		return new JButton(app.getScaledIcon(icon, app.getScaledIconSize()));
 	}
 
 	/**
@@ -812,7 +823,7 @@ public class ToolbarContainer extends JPanel implements ComponentListener {
 
 			for (final OptionType type : OptionType.values()) {
 				String menuText = PropertiesView.getTypeStringSimple(loc, type);
-				ImageIcon ic = PropertiesViewD.getTypeIcon(app, type);
+				Icon ic = PropertiesViewD.getTypeIcon(app, type);
 				JMenuItem item = new JMenuItem(menuText, ic);
 
 				// not available if no objects yet

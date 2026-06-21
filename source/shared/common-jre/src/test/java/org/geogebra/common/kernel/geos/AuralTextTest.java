@@ -1,8 +1,25 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.geos;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -14,11 +31,10 @@ import org.geogebra.common.kernel.kernelND.GeoElementND;
 import org.geogebra.common.main.AppCommon3D;
 import org.geogebra.common.plugin.EventType;
 import org.geogebra.common.plugin.script.GgbScript;
+import org.geogebra.editor.share.util.Unicode;
 import org.geogebra.test.annotation.Issue;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.himamis.retex.editor.share.util.Unicode;
 
 public class AuralTextTest {
 
@@ -73,7 +89,7 @@ public class AuralTextTest {
 		app.setRightClickEnabled(false);
 		aural("sl=Slider(-5,5)", "Slider", "increase",
 				"decrease", "edit");
-		assertEquals("Slider sl equals 0",
+		assertEquals("Slider sl = 0",
 				((GeoNumeric) get("sl")).getAuralText());
 		aural("4", "Number");
 	}
@@ -86,16 +102,21 @@ public class AuralTextTest {
 	public void numberCaptionAural() {
 		add("vec=Slider(-5,5)");
 		add("SetCaption(vec,\"Vector v = %v\")");
-		aural("vec", "Vector v  equals  0", "start animation", "increase",
+		aural("vec", "Vector v = 0", "start animation", "increase",
 				"decrease", "edit");
-		assertEquals("Vector v  equals  0",
+		assertEquals("Vector v = 0",
 				((GeoNumeric) get("vec")).getAuralText());
 	}
 
 	@Test
 	public void checkboxAural() {
-		aural("checkbox()", "Checkbox", "uncheck", "edit");
-		aural("false", "Checkbox", " check", "edit");
+		aural("checkbox()", "Check Box", "uncheck", "edit");
+		aural("false", "Check Box", " check", "edit");
+	}
+
+	@Test
+	public void functionAural() {
+		aural("f(x)=cbrt(x)", "Function f", "edit");
 	}
 
 	@Test
@@ -147,18 +168,26 @@ public class AuralTextTest {
 	}
 
 	@Test
+	public void textAuralIntegral() {
+		aural("LaTeX(\"\\int_{x=1}^{2}x dx\")",
+				Unicode.INTEGRAL + " from x=1 to 2 xdx", "edit");
+		aural("LaTeX(\"\\sum_{x=1}^{2}x\")",
+				"\u2211 from x=1 to 2 x", "edit");
+	}
+
+	@Test
 	public void textAural() {
 		aural("LaTeX(\"a\\geq b\\leq c\")", "a" + Unicode.GREATER_EQUAL + "b"
 				+ Unicode.LESS_EQUAL + "c", "edit");
 		aural("LaTeX(\"a\\ge b\\le c\")", "a" + Unicode.GREATER_EQUAL + "b"
 				+ Unicode.LESS_EQUAL + "c", "edit");
-		aural("LaTeX(\"b=a+\\mathbf{x^2}\")", "b equals a plus x squared", "edit");
+		aural("LaTeX(\"b=a+\\mathbf{x^2}\")", "b=a plus x squared", "edit");
 		aural("LaTeX(\"a+\\mathbf{x^3}\")", "a plus x cubed", "edit");
 		aural("LaTeX(\"a+\\mathbf{x^4}\")", "a plus x to the power of 4 end power", "edit");
 		aural("LaTeX(\"a_{bcd}\")", "a start subscript bcd end subscript", "edit");
 		aural("LaTeX(\"\\sqrt{x}\")", "start square root x end root", "edit");
 		aural("LaTeX(\"\\sqrt[3]{x}\")", "start cube root x end root", "edit");
-		aural("LaTeX(\"\\frac{x}{2}\")", "start fraction x over 2 end fraction", "edit");
+		aural("LaTeX(\"\\frac{x}{2}\")", "start of fraction x over 2 end of fraction", "edit");
 		aural("LaTeX(\"\\vec{x}\")", " vector x", "edit");
 		aural("LaTeX(\"\\displaylines{x\\\\y}\")", "x y", "edit");
 		aural("LaTeX(\"\\overbrace{x}\")", "open brace  over x", "edit");
@@ -179,7 +208,7 @@ public class AuralTextTest {
 		aural("TableText({{1,2,3},{3,4,5}},\"v\")", "table with 2 columns and 3 rows "
 						+ "The 1st column is 1 2 3 The 2nd column is 3 4 5 end of table",
 				"edit");
-		aural("FractionText(1.5)", "start fraction 3 over 2 end fraction", "edit");
+		aural("FractionText(1.5)", "start of fraction 3 over 2 end of fraction", "edit");
 		aural("LaTeX(\"\\scalebox{0.5}{hello}\")", "hello", "edit");
 		aural("LaTeX(\"\\rotatebox{90}{hello}\")", "hello", "edit");
 		aural("LaTeX(\"\\textsf{textsf} \\mathsf{mathsf} \\sf{sf}\")",
@@ -206,8 +235,8 @@ public class AuralTextTest {
 		aural("LaTeX(\"x-y\")", "x minus y", "edit");
 		aural("LaTeX(\"\\text{x-y}\")", "x\u2010y", "edit");
 		aural("LaTeX((-1,2))", "open parenthesis  minus 1 comma  2 close parenthesis", "edit");
-		aural("LaTeX(\"A \\notin B\")", "A not in B", "edit");
-		aural("LaTeX(\"A \\neq B\")", "A not equal to B", "edit");
+		aural("LaTeX(\"A \\notin B\")", "A\u2209B", "edit");
+		aural("LaTeX(\"A \\neq B\")", "A" + Unicode.NOTEQUAL + "B", "edit");
 	}
 
 	@Test
@@ -242,7 +271,8 @@ public class AuralTextTest {
 		GeoInputBox box = (GeoInputBox) add("myBox=InputBox()")[0];
 		assertEquals("Input Box myBox", box.getAuralText().trim());
 		box.setCaption("$\\frac{1}{2}$");
-		assertEquals("Input Box start fraction 1 over 2 end fraction", box.getAuralText().trim());
+		assertEquals("Input Box  start of fraction 1 over 2 end of fraction",
+				box.getAuralText().trim());
 		box.setCaption("plainText");
 		assertEquals("Input Box plainText", box.getAuralText().trim());
 	}
@@ -253,7 +283,8 @@ public class AuralTextTest {
 		box.setLabelVisible(false);
 		assertEquals("Input Box", box.getAuralText().trim());
 		box.setCaption("$\\frac{1}{2}$");
-		assertEquals("Input Box start fraction 1 over 2 end fraction", box.getAuralText().trim());
+		assertEquals("Input Box  start of fraction 1 over 2 end of fraction",
+				box.getAuralText().trim());
 	}
 
 	@Test
@@ -271,5 +302,15 @@ public class AuralTextTest {
 		String[] sentences = aural.split("\\.");
 		assertThat(aural, endsWith("."));
 		assertThat(sentences[0], containsString(out[0]));
+	}
+
+	@Test
+	@Issue("APPS-7350")
+	public void hiddenPrefixLabelShouldReadInputValueWithoutType() {
+		GeoElementND geo = add("2 + 3")[0];
+		geo.setLabelSimple(LabelManager.HIDDEN_PREFIX + "_{1}");
+		String aural = geo.getAuralText(new ScreenReaderBuilderDot(app.getLocalization()));
+		assertThat(aural, containsString("2 plus 3"));
+		assertThat(aural, not(containsString(LabelManager.HIDDEN_PREFIX)));
 	}
 }

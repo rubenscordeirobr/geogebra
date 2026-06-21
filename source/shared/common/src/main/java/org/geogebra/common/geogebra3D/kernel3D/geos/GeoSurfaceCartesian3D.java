@@ -1,8 +1,25 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.kernel3D.geos;
 
 import java.util.TreeMap;
 
 import org.geogebra.common.geogebra3D.kernel3D.transform.MirrorableAtPlane;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.AutoColor;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.Kernel;
@@ -316,11 +333,11 @@ public class GeoSurfaceCartesian3D extends GeoSurfaceCartesianND
 	// SPECIFIC XML
 
 	@Override
-	protected void getStyleXML(StringBuilder sb) {
+	protected void getStyleXML(XMLStringBuilder sb) {
 		super.getStyleXML(sb);
 		// level of detail
 		if (getLevelOfDetail() == LevelOfDetail.QUALITY) {
-			sb.append("\t<levelOfDetailQuality val=\"true\"/>\n");
+			sb.startTag("levelOfDetailQuality").attr("val", true).endTag();
 		}
 	}
 
@@ -488,11 +505,6 @@ public class GeoSurfaceCartesian3D extends GeoSurfaceCartesianND
 		// we want vector product AM*AB to equal 0, so A, B, M are collinear
 		// we only check first and second values of AM*AB since third will
 		// be a consequence
-
-		double gxc = z0 * vy - vz * y0;
-		double gyc = x0 * vz - vx * z0;
-		double gzc = y0 * vx - vy * x0;
-
 		double uMin, uMax;
 		if (isSurfaceOfRevolutionAroundOx) {
 			uMin = x0;
@@ -504,6 +516,9 @@ public class GeoSurfaceCartesian3D extends GeoSurfaceCartesianND
 
 		double vMin = getMinParameter(1);
 		double vMax = getMaxParameter(1);
+		double gxc = z0 * vy - vz * y0;
+		double gyc = x0 * vz - vx * z0;
+		double gzc = y0 * vx - vy * x0;
 
 		double finalError = Double.NaN;
 		double dotProduct = -1;
@@ -659,7 +674,7 @@ public class GeoSurfaceCartesian3D extends GeoSurfaceCartesianND
 	}
 
 	@Override
-	public void printCASEvalMapXML(StringBuilder sb) {
+	public void printCASEvalMapXML(XMLStringBuilder sb) {
 		// fun.printCASevalMapXML(sb);
 	}
 

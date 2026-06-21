@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.view.data;
 
 import java.awt.BorderLayout;
@@ -16,10 +32,11 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JLabel;
@@ -43,7 +60,9 @@ import org.geogebra.common.gui.view.data.DataItem;
 import org.geogebra.common.gui.view.data.DataSource;
 import org.geogebra.common.gui.view.data.DataVariable;
 import org.geogebra.common.gui.view.data.DataVariable.GroupType;
+import org.geogebra.common.gui.view.spreadsheet.SpreadsheetViewInterface;
 import org.geogebra.common.main.GeoGebraColorConstants;
+import org.geogebra.common.main.SpreadsheetTableModel;
 import org.geogebra.common.plugin.GeoClass;
 import org.geogebra.common.util.Validation;
 import org.geogebra.desktop.awt.GColorD;
@@ -115,7 +134,11 @@ public class DataSourcePanel extends JPanel
 		this.app = app;
 		this.loc = app.getLocalization();
 		this.mode = mode;
-		dataSource = new DataSource(app);
+		dataSource = new DataSource(app, () -> {
+			SpreadsheetViewInterface spreadsheetView = app.getGuiManager().getSpreadsheetView();
+			return spreadsheetView == null ? List.of()
+					: spreadsheetView.getSpreadsheetTable().getSelectedRanges();
+		});
 
 		createGUIElements();
 		createSourceTable();
@@ -123,29 +146,28 @@ public class DataSourcePanel extends JPanel
 		updatePanel(mode, true);
 		setLabels();
 		addFocusListener(this);
-
 	}
 
 	// ====================================================
 	// GUI
 	// ====================================================
-
 	/**
 	 * @param newMode mode
 	 * @param doAutoLoadSelectedGeos load elements
 	 */
 	public void updatePanel(int newMode, boolean doAutoLoadSelectedGeos) {
 		this.mode = newMode;
-
 		if (doAutoLoadSelectedGeos) {
 			dataSource.setDataListFromSelection(newMode);
 		}
-
 		buildGUI();
 		updateGUI();
 		loadSourceTableFromDataSource();
 		revalidate();
+	}
 
+	private void updatePanel(int newMode) {
+		updatePanel(newMode, false);
 	}
 
 	private void buildGUI() {
@@ -377,13 +399,13 @@ public class DataSourcePanel extends JPanel
 
 		} else if (source == btnAdd) {
 			dataSource.getSelectedDataVariable().addNewValue();
-			updatePanel(DataAnalysisModel.MODE_MULTIVAR, false);
+			updatePanel(DataAnalysisModel.MODE_MULTIVAR);
 
 		} else if (source == btnDelete) {
 			if (dataSource.getSelectedDataVariable().getValues().size() > 2) {
 				dataSource.getSelectedDataVariable().removeLastValue();
 				loadSourceTableFromDataSource();
-				updatePanel(DataAnalysisModel.MODE_MULTIVAR, false);
+				updatePanel(DataAnalysisModel.MODE_MULTIVAR);
 			}
 		} else if (source == btnOptions) {
 			JPopupMenu optionsPopup = getOptionsMenu();
@@ -404,12 +426,12 @@ public class DataSourcePanel extends JPanel
 		if (source == fldStart) {
 			dataSource.setClassStart(Validation.validateDouble(fldStart,
 					dataSource.getClassStart()));
-			updatePanel(mode, false);
+			updatePanel(mode);
 
 		} else if (source == fldWidth) {
 			dataSource.setClassWidth(Validation.validateDouble(fldWidth,
 					dataSource.getClassWidth()));
-			updatePanel(mode, false);
+			updatePanel(mode);
 		}
 	}
 
@@ -573,8 +595,8 @@ public class DataSourcePanel extends JPanel
 				.getBorder("TableHeader.cellBorder");
 
 		protected Font font = UIManager.getFont("TableHeader.font");
-		private final ImageIcon importIcon;
-		private final ImageIcon importIconRollover;
+		private final Icon importIcon;
+		private final Icon importIconRollover;
 
 		protected HeaderTableCellRenderer() {
 			setLayout(new BorderLayout());
@@ -688,7 +710,7 @@ public class DataSourcePanel extends JPanel
 			itmNumeric.setSelected(var.getGeoClass() == GeoClass.NUMERIC);
 			itmNumeric.addActionListener(arg0 -> {
 				var.setGeoClass(GeoClass.NUMERIC);
-				updatePanel(mode, false);
+				updatePanel(mode);
 			});
 
 			final JCheckBoxMenuItem itemTypeText = new JCheckBoxMenuItem(
@@ -696,7 +718,7 @@ public class DataSourcePanel extends JPanel
 			itemTypeText.setSelected(var.getGeoClass() == GeoClass.TEXT);
 			itemTypeText.addActionListener(arg0 -> {
 				var.setGeoClass(GeoClass.TEXT);
-				updatePanel(mode, false);
+				updatePanel(mode);
 			});
 
 			ButtonGroup grp = new ButtonGroup();
@@ -716,7 +738,7 @@ public class DataSourcePanel extends JPanel
 				if (itmRawData.isSelected()
 						&& var.getGroupType() != GroupType.RAWDATA) {
 					var.setGroupType(GroupType.RAWDATA);
-					updatePanel(mode, false);
+					updatePanel(mode);
 				}
 			});
 
@@ -727,7 +749,7 @@ public class DataSourcePanel extends JPanel
 				if (itmFrequency.isSelected()
 						&& var.getGroupType() != GroupType.FREQUENCY) {
 					var.setGroupType(GroupType.FREQUENCY);
-					updatePanel(mode, false);
+					updatePanel(mode);
 				}
 			});
 
@@ -738,7 +760,7 @@ public class DataSourcePanel extends JPanel
 				if (itmClass.isSelected()
 						&& var.getGroupType() != GroupType.CLASS) {
 					var.setGroupType(GroupType.CLASS);
-					updatePanel(mode, false);
+					updatePanel(mode);
 				}
 			});
 
@@ -758,16 +780,16 @@ public class DataSourcePanel extends JPanel
 
 			// ==========================
 			// two var data type
-
+			SpreadsheetTableModel tableModel = app.getSpreadsheetTableModel();
 			final JCheckBoxMenuItem itmNumeric = new JCheckBoxMenuItem(
 					loc.getMenu("Number"));
 			itmNumeric.setSelected(var.getGeoClass() == GeoClass.NUMERIC);
 			itmNumeric.addActionListener(arg0 -> {
 				ArrayList<DataItem> itemList = new ArrayList<>();
-				itemList.add(new DataItem(app));
-				itemList.add(new DataItem(app));
+				itemList.add(new DataItem(tableModel));
+				itemList.add(new DataItem(tableModel));
 				var.setDataVariableAsRawData(GeoClass.NUMERIC, itemList);
-				updatePanel(mode, false);
+				updatePanel(mode);
 			});
 
 			final JCheckBoxMenuItem itmPoint = new JCheckBoxMenuItem(
@@ -775,9 +797,9 @@ public class DataSourcePanel extends JPanel
 			itmPoint.setSelected(var.getGeoClass() == GeoClass.POINT);
 			itmPoint.addActionListener(arg0 -> {
 				ArrayList<DataItem> itemList = new ArrayList<>();
-				itemList.add(new DataItem(app));
+				itemList.add(new DataItem(tableModel));
 				var.setDataVariableAsRawData(GeoClass.POINT, itemList);
-				updatePanel(mode, false);
+				updatePanel(mode);
 			});
 
 			ButtonGroup grp = new ButtonGroup();
@@ -800,7 +822,7 @@ public class DataSourcePanel extends JPanel
 		itmHeader.addActionListener(arg0 -> {
 			if (dataSource.enableHeader() != itmHeader.isSelected()) {
 				dataSource.setEnableHeader(itmHeader.isSelected());
-				updatePanel(mode, false);
+				updatePanel(mode);
 			}
 		});
 
@@ -819,7 +841,7 @@ public class DataSourcePanel extends JPanel
 		 */
 		private static final long serialVersionUID = 1L;
 
-		public ImageButton(ImageIcon imageIcon) {
+		public ImageButton(Icon imageIcon) {
 			super(imageIcon);
 			setMargin(new Insets(0, 0, 0, 0));
 			setBorderPainted(false);

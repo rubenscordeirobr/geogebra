@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.inputbar;
 
 import org.geogebra.common.gui.inputfield.InputHelper;
@@ -10,12 +26,15 @@ import org.geogebra.common.main.MyError;
 import org.geogebra.common.main.error.ErrorHandler;
 import org.geogebra.common.main.error.ErrorHelper;
 import org.geogebra.common.util.AsyncOperation;
+import org.geogebra.editor.share.util.GWTKeycodes;
+import org.geogebra.editor.share.util.Unicode;
 import org.geogebra.web.full.css.GuiResources;
 import org.geogebra.web.full.gui.GuiManagerW;
 import org.geogebra.web.full.gui.view.algebra.InputPanelW;
 import org.geogebra.web.html5.Browser;
 import org.geogebra.web.html5.gui.AlgebraInput;
 import org.geogebra.web.html5.gui.inputfield.AutoCompleteTextFieldW;
+import org.geogebra.web.html5.gui.inputfield.HistoryPopupW;
 import org.geogebra.web.html5.gui.util.AriaHelper;
 import org.geogebra.web.html5.gui.util.ToggleButton;
 import org.geogebra.web.html5.main.AppW;
@@ -28,9 +47,6 @@ import org.gwtproject.event.dom.client.KeyUpEvent;
 import org.gwtproject.event.dom.client.KeyUpHandler;
 import org.gwtproject.user.client.ui.FlowPanel;
 import org.gwtproject.user.client.ui.RequiresResize;
-
-import com.himamis.retex.editor.share.util.GWTKeycodes;
-import com.himamis.retex.editor.share.util.Unicode;
 
 /**
  * InputBar for GeoGebraWeb
@@ -50,6 +66,7 @@ public class AlgebraInputW extends FlowPanel
 	/** help popup */
 	protected InputBarHelpPopup helpPopup;
 	private boolean focused = false;
+	private HistoryPopupW popup;
 
 	/**
 	 * @param app1 - Application
@@ -76,8 +93,10 @@ public class AlgebraInputW extends FlowPanel
 		inputField.getTextBox().addKeyUpHandler(this);
 		inputField.getTextBox().addFocusHandler(this);
 		inputField.getTextBox().addBlurHandler(this);
-
-		inputField.addHistoryPopup(app.getInputPosition() == InputPosition.top);
+		this.popup = new HistoryPopupW(app, app.getAppletFrame());
+		popup.setDownPopup(app.getInputPosition() == InputPosition.top);
+		popup.setTextField(inputField);
+		inputField.setUpDownArrowHandler(popup);
 		if (Browser.isTabletBrowser()) {
 			inputField.enableGGBKeyboard();
 		}
@@ -252,9 +271,9 @@ public class AlgebraInputW extends FlowPanel
 
 				app.setScrollToShow(false);
 
-				inputField.addToHistory(input);
+				popup.addToHistory(input);
 				if (!getTextField().getText().equals(input)) {
-					inputField.addToHistory(getTextField().getText());
+					popup.addToHistory(getTextField().getText());
 				}
 				inputField.setText(null);
 

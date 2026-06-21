@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.inputfield;
 
 import java.awt.Component;
@@ -11,8 +27,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
-import javax.swing.ImageIcon;
 import javax.swing.border.AbstractBorder;
+
+import org.geogebra.desktop.gui.util.GeoGebraIconD;
+import org.geogebra.desktop.main.ScaledIcon;
 
 /**
  * Extended Border class that adds simulated buttons to the right border of a
@@ -29,7 +47,7 @@ public class BorderButtonD extends AbstractBorder
 	private Component borderOwner;
 
 	public static final String cmdSuffix = "BorderButtonAction";
-	private ImageIcon[] icon;
+	private ScaledIcon[] icon;
 	private static final int hGap = 7;
 
 	private boolean[] isVisibleIcon;
@@ -63,14 +81,14 @@ public class BorderButtonD extends AbstractBorder
 		// register mouseMotionListener
 		borderOwner.addMouseMotionListener(this);
 
-		icon = new ImageIcon[maxIconCount];
+		icon = new ScaledIcon[maxIconCount];
 		isVisibleIcon = new boolean[maxIconCount];
 		isMouseOverIcon = new boolean[maxIconCount];
 		iconRect = new Rectangle[maxIconCount];
 		al = new ActionListener[maxIconCount];
 
 		for (int i = 0; i < maxIconCount; i++) {
-			icon[i] = new ImageIcon();
+			icon[i] = GeoGebraIconD.createEmptyIcon(1, 1);
 			iconRect[i] = new Rectangle();
 			isMouseOverIcon[i] = false;
 			// need default visibility = false so that focus lost/gained
@@ -107,7 +125,7 @@ public class BorderButtonD extends AbstractBorder
 	 * @param icon icon
 	 * @param listener listener
 	 */
-	public void setBorderButton(int index, ImageIcon icon,
+	public void setBorderButton(int index, ScaledIcon icon,
 			ActionListener listener) {
 		if (index < 0 || index > maxIconCount) {
 			return;

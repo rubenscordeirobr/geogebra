@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.algos;
@@ -107,44 +111,38 @@ public abstract class AlgoPolygonRegularND extends AlgoElement
 		rotAngle = new MyDouble(kernel);
 
 		outputPolygon = new OutputHandler<>(
-				new ElementFactory<GeoPolygon>() {
-					@Override
-					public GeoPolygon newElement() {
-						GeoPolygon p = newGeoPolygon(cons);
-						p.setParentAlgorithm(AlgoPolygonRegularND.this);
-						// p.setInitLabelsCalled(true);
-						return p;
-					}
+				() -> {
+					GeoPolygon p = newGeoPolygon(cons);
+					p.setParentAlgorithm(this);
+					// p.setInitLabelsCalled(true);
+					return p;
 				});
 
 		outputSegments = new OutputHandler<>(
-				new ElementFactory<GeoElement>() {
-					@Override
-					public GeoElement newElement() {
-						int size = outputSegments.size();
-						GeoPolygon polygon =  outputPolygon.getElement(0);
-						GeoElement segment = (GeoElement) (size == 0
-								? polygon.createSegment(cons, A, B, true)
-								: polygon.createSegmentOwnDimension(cons, A, B, true));
-						segment.setAuxiliaryObject(true);
-						boolean segmentsVisible = false;
-						if (size > 0) { // check if at least one segment is
-										// visible
-							for (int i = 0; i < size && !segmentsVisible; i++) {
-								segmentsVisible = segmentsVisible
-										|| outputSegments.getElement(i)
-												.isEuclidianVisible();
-							}
-						} else { // no segment yet
-							segmentsVisible = true;
+				() -> {
+					int size = outputSegments.size();
+					GeoPolygon polygon = outputPolygon.getElement(0);
+					GeoElement segment = (GeoElement) (size == 0
+							? polygon.createSegment(cons, A, B, true)
+							: polygon.createSegmentOwnDimension(cons, A, B, true));
+					segment.setAuxiliaryObject(true);
+					boolean segmentsVisible = false;
+					if (size > 0) { // check if at least one segment is
+						// visible
+						for (int i = 0; i < size && !segmentsVisible; i++) {
+							segmentsVisible = segmentsVisible
+									|| outputSegments.getElement(i)
+									.isEuclidianVisible();
 						}
-						segment.setEuclidianVisible(segmentsVisible);
-						segment.setLabelVisible(showNewSegmentsLabels);
-						segment.setViewFlags(A.getViewSet());
-						segment.setVisibleInView3D((GeoElement) A);
-						segment.setVisibleInViewForPlane((GeoElement) A);
-						return segment;
+					} else { // no segment yet
+						segmentsVisible = true;
 					}
+					segment.setEuclidianVisible(segmentsVisible);
+					segment.setLabelVisible(showNewSegmentsLabels);
+					segment.setViewFlags(A.getViewSet());
+					segment.setVisibleInView3D((GeoElement) A);
+					segment.setVisibleInViewForPlane((GeoElement) A);
+					return segment;
 				});
 
 		if (!labelPointsAndSegments) {
@@ -152,34 +150,31 @@ public abstract class AlgoPolygonRegularND extends AlgoElement
 		}
 
 		outputPoints = new OutputHandler<>(
-				new ElementFactory<GeoElement>() {
-					@Override
-					public GeoElement newElement() {
-						GeoElement newPoint = newGeoPoint(cons);
-						newPoint.setParentAlgorithm(AlgoPolygonRegularND.this);
-						newPoint.setAuxiliaryObject(true);
-						((GeoPointND) newPoint).setPointSize(A.getPointSize());
-						newPoint.setEuclidianVisible(A.isEuclidianVisible()
-								|| B.isEuclidianVisible());
-						newPoint.setAuxiliaryObject(true);
-						newPoint.setLabelVisible(showNewPointsLabels);
-						newPoint.setViewFlags(A.getViewSet());
-						newPoint.setVisibleInView3D((GeoElement) A);
-						newPoint.setVisibleInViewForPlane((GeoElement) A);
-						GeoBoolean conditionToShow = A.getShowObjectCondition();
-						if (conditionToShow == null) {
-							conditionToShow = B.getShowObjectCondition();
-						}
-						if (conditionToShow != null) {
-							try {
-								newPoint.setShowObjectCondition(
-										conditionToShow);
-							} catch (Exception e) {
-								// circular exception -- do nothing
-							}
-						}
-						return newPoint;
+				() -> {
+					GeoElement newPoint = newGeoPoint(cons);
+					newPoint.setParentAlgorithm(this);
+					newPoint.setAuxiliaryObject(true);
+					((GeoPointND) newPoint).setPointSize(A.getPointSize());
+					newPoint.setEuclidianVisible(A.isEuclidianVisible()
+							|| B.isEuclidianVisible());
+					newPoint.setAuxiliaryObject(true);
+					newPoint.setLabelVisible(showNewPointsLabels);
+					newPoint.setViewFlags(A.getViewSet());
+					newPoint.setVisibleInView3D((GeoElement) A);
+					newPoint.setVisibleInViewForPlane((GeoElement) A);
+					GeoBoolean conditionToShow = A.getShowObjectCondition();
+					if (conditionToShow == null) {
+						conditionToShow = B.getShowObjectCondition();
 					}
+					if (conditionToShow != null) {
+						try {
+							newPoint.setShowObjectCondition(
+									conditionToShow);
+						} catch (Exception e) {
+							// circular exception -- do nothing
+						}
+					}
+					return newPoint;
 				});
 
 		if (!labelPointsAndSegments) {

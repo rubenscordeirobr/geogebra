@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.geos;
@@ -20,6 +24,7 @@ import java.util.TreeSet;
 import javax.annotation.CheckForNull;
 
 import org.geogebra.common.awt.GColor;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.MatrixTransformable;
@@ -1680,15 +1685,15 @@ public class GeoPolygon extends GeoElement implements GeoNumberValue,
 	 * returns all class-specific xml tags for getXML GeoGebra File Format
 	 */
 	@Override
-	protected void getStyleXML(StringBuilder sb) {
+	protected void getStyleXML(XMLStringBuilder sb) {
 		getLineStyleXML(sb);
 		super.getStyleXML(sb);
 		getMaskXML(sb);
 	}
 
-	private void getMaskXML(final StringBuilder sb) {
+	private void getMaskXML(final XMLStringBuilder sb) {
 		if (isMask) {
-			sb.append("\t<isMask val=\"true\"/>\n");
+			sb.startTag("isMask").attr("val", true).endTag();
 		}
 	}
 
@@ -1779,8 +1784,6 @@ public class GeoPolygon extends GeoElement implements GeoNumberValue,
 		}
 
 		// check orientations
-		boolean answer = true;
-
 		double x1 = xList.get(n - 1);
 		double y1 = yList.get(n - 1);
 		double dx1 = x1 - xList.get(n - 2);
@@ -1793,6 +1796,7 @@ public class GeoPolygon extends GeoElement implements GeoNumberValue,
 
 		// calc first orientation
 		int orientation = DoubleUtil.compare(dy1 * dx2, dx1 * dy2);
+		boolean answer = true;
 		if (orientation == 0) {
 			if (DoubleUtil.isGreater(0, dx1 * dx2 + dy1 * dy2)) { // U-turn
 				answer = false;
@@ -2377,8 +2381,8 @@ public class GeoPolygon extends GeoElement implements GeoNumberValue,
 		GeoPoint pB = (GeoPoint) lPoints[lPoints.length - 1];
 		double xB = pB.inhomX;
 		double yB = pB.inhomY;
-		double dx0 = xB - xA;
-		double dy0 = yB - yA;
+		final double dx0 = xB - xA;
+		final double dy0 = yB - yA;
 		// third point
 		xA = xB;
 		yA = yB;
@@ -2394,8 +2398,8 @@ public class GeoPolygon extends GeoElement implements GeoNumberValue,
 		double det = dx0 * dy1 - dx1 * dy0;
 		// other points
 		for (int i = 1; i < lPoints.length; i++) {
-			dx0 = dx1;
-			dy0 = dy1;
+			final double dx = dx1;
+			final double dy = dy1;
 			xA = xB;
 			yA = yB;
 			pB = (GeoPoint) lPoints[i];
@@ -2408,11 +2412,11 @@ public class GeoPolygon extends GeoElement implements GeoNumberValue,
 				return false;
 			}
 			if (!isDegenerated) {
-				if (!DoubleUtil.isEqual(dx0 * dx1 + dy0 * dy1, dot)) {
+				if (!DoubleUtil.isEqual(dx * dx1 + dy * dy1, dot)) {
 					// not the same angle
 					return false;
 				}
-				if (!DoubleUtil.isEqual(dx0 * dy1 - dx1 * dy0, det)) {
+				if (!DoubleUtil.isEqual(dx * dy1 - dx1 * dy, det)) {
 					// not the same orientation
 					return false;
 				}

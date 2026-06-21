@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.util;
 
 import static org.geogebra.common.kernel.Kernel.STANDARD_PRECISION;
@@ -50,7 +66,7 @@ public class DoubleUtil {
 	 * 
 	 * 
 	 */
-	final public static boolean isEqual(double a, double b) {
+	public static boolean isEqual(double a, double b) {
 		if (a == b) {
 			return true;
 		}
@@ -73,7 +89,7 @@ public class DoubleUtil {
 	 * 
 	 * @return whether x, y, z are all zero
 	 */
-	final public static boolean isEpsilon(double e, double x, double y,
+	public static boolean isEpsilon(double e, double x, double y,
 			double z) {
 		double eAbs = Math.abs(e);
 		return !(eAbs > STANDARD_PRECISION || eAbs > Math.abs(x) * STANDARD_PRECISION
@@ -116,7 +132,7 @@ public class DoubleUtil {
 	 *            input
 	 * @return 0.0 if x is nearly zero
 	 */
-	final public static double chop(double x) {
+	public static double chop(double x) {
 		if (isZero(x)) {
 			return 0.0d;
 		}
@@ -132,7 +148,7 @@ public class DoubleUtil {
 	 *            maximum difference
 	 * @return whether the x-eps &lt; y &lt; x+eps
 	 */
-	final public static boolean isEqual(double x, double y, double eps) {
+	public static boolean isEqual(double x, double y, double eps) {
 		return x == y || ((x - eps) < y) && (y < (x + eps));
 	}
 
@@ -168,7 +184,7 @@ public class DoubleUtil {
 	 *            array of numbers
 	 * @return whether all given numbers are zero within current precision
 	 */
-	final static boolean isZero(double[] a) {
+	static boolean isZero(double[] a) {
 		for (int i = 0; i < a.length; i++) {
 			if (!isZero(a[i])) {
 				return false;
@@ -194,14 +210,14 @@ public class DoubleUtil {
 	/**
 	 * Returns whether x is greater than y
 	 * 
-	 * @param x
+	 * @param d1
 	 *            first compared number
-	 * @param y
+	 * @param d2
 	 *            second compared number
 	 * @return x &gt; y + STANDARD_PRECISION
 	 */
-	final public static boolean isGreater(double x, double y) {
-		return x > (y + STANDARD_PRECISION);
+	public static boolean isGreater(double d1, double d2) {
+		return d1 > (d2 + STANDARD_PRECISION);
 	}
 
 	/**
@@ -212,7 +228,7 @@ public class DoubleUtil {
 	 *            second value
 	 * @return 0 if x ~ y ; -1 if x &lt; y ; 1 if x &gt; y
 	 */
-	final public static int compare(double x, double y) {
+	public static int compare(double x, double y) {
 		if (isGreater(x, y)) {
 			return 1;
 		}
@@ -235,7 +251,7 @@ public class DoubleUtil {
 	 *            tolerance
 	 * @return true if x &gt; y + eps
 	 */
-	final public static boolean isGreater(double x, double y, double eps) {
+	public static boolean isGreater(double x, double y, double eps) {
 		return x > (y + eps);
 	}
 
@@ -264,7 +280,7 @@ public class DoubleUtil {
 	 *            precision
 	 * @return whether e is zero compared to x and eps
 	 */
-	final public static boolean isEpsilonWithPrecision(double e, double x, double eps) {
+	public static boolean isEpsilonWithPrecision(double e, double x, double eps) {
 		double eAbs = Math.abs(e);
 		return !(eAbs > eps || eAbs > Math.abs(x) * eps);
 	}
@@ -332,7 +348,7 @@ public class DoubleUtil {
 	 *            real number
 	 * @return x rounded to an integer if close
 	 */
-	final public static double checkInteger(double x) {
+	public static double checkInteger(double x) {
 		double roundVal = Math.round(x);
 		if (Math.abs(x - roundVal) < STANDARD_PRECISION) {
 			return roundVal;
@@ -346,7 +362,7 @@ public class DoubleUtil {
 	 *            raw value
 	 * @return angle
 	 */
-	final public static double convertToAngleValue(double val) {
+	public static double convertToAngleValue(double val) {
 		if ((val > STANDARD_PRECISION) && (val < Kernel.PI_2)) {
 			return val;
 		}
@@ -471,7 +487,7 @@ public class DoubleUtil {
      * @param x number
      * @return x rounded to 1/2/5 * 10^digits
      */
-    final public static double round125(double x) {
+    public static double round125(double x) {
         double pot = getPowerOfTen(x);
         int n = (int) (x / pot);
         if (n >= 5) {
@@ -488,7 +504,7 @@ public class DoubleUtil {
      * @param x number
      * @return 10^n where x = v * 10^n with 1 &lt;= v&lt; 10
      */
-    final public static double getPowerOfTen(double x) {
+    public static double getPowerOfTen(double x) {
         return Math.pow(10, (int) Math.floor(Math.log(x) / Math.log(10)));
     }
 

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.kernel3D.algos;
 
 import org.geogebra.common.geogebra3D.kernel3D.geos.GeoCurveCartesian3D;
@@ -28,7 +44,7 @@ public class AlgoTransformation3D {
 	 * @param curve
 	 *            t-&gt;(x,y,z) curve
 	 */
-	static final public void toGeoCurveCartesian(Kernel kernel,
+	static public void toGeoCurveCartesian(Kernel kernel,
 			GeoFunction geoFun, GeoCurveCartesian3D curve) {
 		FunctionVariable t = curve.getFun(1) == null ? null
 				: curve.getFun(1).getFunctionVariables()[0];
@@ -66,7 +82,7 @@ public class AlgoTransformation3D {
 	 * @param surface
 	 *            surface
 	 */
-	static final public void toGeoSurfaceCartesian(Kernel kernel,
+	static public void toGeoSurfaceCartesian(Kernel kernel,
 			GeoFunctionNVar geoFun, GeoSurfaceCartesian3D surface) {
 		FunctionVariable u = new FunctionVariable(kernel, "u");
 		FunctionVariable v = new FunctionVariable(kernel, "v");

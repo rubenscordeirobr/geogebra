@@ -1,8 +1,24 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.commands;
 
-import static com.himamis.retex.editor.share.util.Unicode.DEGREE_STRING;
 import static org.geogebra.common.BaseUnitTest.hasValue;
 import static org.geogebra.common.BaseUnitTest.isDefined;
+import static org.geogebra.editor.share.util.Unicode.DEGREE_STRING;
 import static org.geogebra.test.TestStringUtil.unicode;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -23,6 +39,7 @@ import org.geogebra.common.kernel.QuadraticEquationRepresentable;
 import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.algos.AlgoConicFivePoints;
 import org.geogebra.common.kernel.algos.AlgoTableText;
+import org.geogebra.common.kernel.arithmetic.ExpressionNodeConstants;
 import org.geogebra.common.kernel.arithmetic.FunctionalNVar;
 import org.geogebra.common.kernel.geos.GeoFunctionNVar;
 import org.geogebra.common.kernel.geos.GeoLine;
@@ -34,16 +51,15 @@ import org.geogebra.common.kernel.kernelND.SurfaceEvaluable;
 import org.geogebra.common.main.App;
 import org.geogebra.common.main.GeoGebraColorConstants;
 import org.geogebra.common.plugin.GeoClass;
-import org.geogebra.common.util.ImageManager;
+import org.geogebra.common.util.ImageManagerCommon;
 import org.geogebra.common.util.StringUtil;
+import org.geogebra.editor.share.util.Unicode;
 import org.geogebra.test.commands.AlgebraTestHelper;
 import org.hamcrest.core.StringContains;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import com.himamis.retex.editor.share.util.Unicode;
 
 public class CommandsTestCommon extends BaseCommandTest {
 
@@ -78,7 +94,7 @@ public class CommandsTestCommon extends BaseCommandTest {
 	@Test
 	public void testQuadricExpr() {
 		t("-y^2=z-1", "(-y^(2)) = z - 1");
-		t("quad:y^2=1-z",  "y^(2) = 1 - z");
+		t("quad:y^2=1-z", "y^(2) = 1 - z");
 		GeoQuadric3D quad = (GeoQuadric3D) lookup("quad");
 		quad.setEquationForm(QuadraticEquationRepresentable.Form.IMPLICIT);
 		assertThat(quad, hasValue("y" + Unicode.SUPERSCRIPT_2 + " + 0z"
@@ -268,6 +284,14 @@ public class CommandsTestCommon extends BaseCommandTest {
 	}
 
 	@Test
+	public void intersectLineLineWithOrWithoutIndex() {
+		t("Intersect(x = 4, y = 4, 1)", "(4, 4)");
+		t("Intersect(y = 5, x = 5, 2)", "(5, 5)");
+		t("Intersect(x = 3, y = 3)", "(3, 3)");
+		t("Intersect(y = 2, x = 2)", "(2, 2)");
+	}
+
+	@Test
 	public void cmdSetConstructionStep() {
 		app.setSaved();
 		assertTrue(app.clearConstruction());
@@ -337,11 +361,11 @@ public class CommandsTestCommon extends BaseCommandTest {
 	@Test
 	public void parsePower() {
 		t("a=4", "4");
-		t("pia", "12.566370614359172");
-		t("pi1", "3.141592653589793");
-		t("pi1a", "12.566370614359172");
-		t("pie", "8.539734222673566");
-		t("pii", "3.141592653589793ί");
+		t("pia", "12.5663706143592");
+		t("pi1", "3.14159265358979");
+		t("pi1a", "12.5663706143592");
+		t("pie", "8.53973422267357");
+		t("pii", "3.141592653589793" + Unicode.IMAGINARY);
 		t("pix", "(pi * x)");
 		t("sinx", "sin(x)");
 		t("sin x", "sin(x)");
@@ -597,11 +621,11 @@ public class CommandsTestCommon extends BaseCommandTest {
 
 	@Test
 	public void expandedFractionIsNotUsedForEvaluation() {
-		t("a=(1+1/143)^143", "2.7088378687594363");
+		t("a=(1+1/143)^143", "2.70883786875944");
 		((GeoNumeric) lookup("a")).setSymbolicMode(true, true);
 		t("a", "2.708837868759473");
 
-		t("b=(1+1/400)^400", "2.714891744381287");
+		t("b=(1+1/400)^400", "2.71489174438129");
 		((GeoNumeric) lookup("b")).setSymbolicMode(true, true);
 		t("b", "2.7148917443812293");
 	}
@@ -643,9 +667,10 @@ public class CommandsTestCommon extends BaseCommandTest {
 		t("Angle[ (1,1) ]", "45*" + DEGREE_STRING);
 		t("Angle[ (1,1), (3,1/3), (2,1/2) ]", "8.972626614896395*" + DEGREE_STRING);
 		t("Angle[ (1,1), (4,1/4), 30" + DEGREE_STRING + " ]", "30*" + DEGREE_STRING,
-				"(1.026923788646684, -0.6004809471616708)");
+				"(1.026923788646684, -0.600480947161671)");
 		tRound("Angle[ Segment[(1,1),(2,1/2)], x+y=17 ]", "341.56505" + DEGREE_STRING);
 		t("Angle((1, -1, 0),(0, 0, 0),(-1, -1, 0), zAxis)", "270*" + DEGREE_STRING);
+		t("Angle(pi)", "180*" + DEGREE_STRING);
 	}
 
 	@Test
@@ -665,7 +690,7 @@ public class CommandsTestCommon extends BaseCommandTest {
 	@Test
 	public void cmdAppend() {
 		t("Append[ {1,2,3,4,5}, Polygon[(1,1),(2,1/2),4] ]", "{1, 2, 3, 4, 5, 1.25}");
-		t("Append[ Polygon[(1,1),(2,1/2),4],  {1,2,3,4,5} ]", "{1.25, 1, 2, 3, 4, 5}");
+		t("Append[ Polygon[(1,1),(2,1/2),4], {1,2,3,4,5} ]", "{1.25, 1, 2, 3, 4, 5}");
 	}
 
 	@Test
@@ -1100,11 +1125,13 @@ public class CommandsTestCommon extends BaseCommandTest {
 	@Test
 	public void cmdColumn() {
 		t("Column[ A1 ]", "1");
+		t("Column[ (1,1) ]", "NaN");
 	}
 
 	@Test
 	public void cmdColumnName() {
 		t("ColumnName[ A1 ]", "A");
+		t("ColumnName[ (1,1) ]", "");
 	}
 
 	@Test
@@ -1467,6 +1494,8 @@ public class CommandsTestCommon extends BaseCommandTest {
 		tRound("Extremum[ x^3-3x ]", "(-1, 2)", "(1, -2)");
 		tRound("Extremum[ nroot(x^(3) - 3x, 3) ]",
 				"(-1, 1.25992)", "(1, -1.25992)");
+		tRound("Extremum[ If(0<x<2, x^(3) - 3x) ]",
+				"(?, ?)", "(1, -2)");
 		// TODO t("Extremum((x^2-4)/(x-2),-9,9)", "(NaN, NaN)");
 	}
 
@@ -1571,8 +1600,9 @@ public class CommandsTestCommon extends BaseCommandTest {
 	@Test
 	public void cmdFitLog() {
 		// slightly different result on M2 Mac with xmlTemplate, use maxPrecision instead
-		t("FitLog[ {(1,1),(2,2),(3,3),(4,1/4),(5,1/5)} ]", StringTemplate.maxPrecision,
-				"1.77913767533668 - 0.510849628173396ln(x)");
+		t("FitLog[ {(1,1),(2,2),(3,3),(4,1/4),(5,1/5)} ]", StringTemplate.printDecimals(
+						ExpressionNodeConstants.StringType.GEOGEBRA, 13, false),
+				"1.7791376753367 - 0.5108496281734ln(x)");
 	}
 
 	@Test
@@ -2244,6 +2274,7 @@ public class CommandsTestCommon extends BaseCommandTest {
 		t("Last[ {1,2,3,4,5} , 2 ]", "{4, 5}");
 		t("Last[ \"GeoGebra\" ]", "a");
 		t("Last[ \"GeoGebra\" , 3 ]", "bra");
+		t("Last[DataFunction({0,1},{2,3})]", "3");
 	}
 
 	@Test
@@ -2342,6 +2373,9 @@ public class CommandsTestCommon extends BaseCommandTest {
 		t("Q=P+(1,0)", "(1, 0)");
 		t("loc = Locus(Q,P)", "Locus[Q, P]");
 		assertThat(lookup("loc"), isDefined());
+		t("slider=Slider(0,5,0.1)", "0");
+		t("Q=(1+slider,0)", "(1, 0)");
+		t("First(Locus(Q,slider),1)", "{(1, 0)}");
 	}
 
 	@Test
@@ -2630,13 +2664,13 @@ public class CommandsTestCommon extends BaseCommandTest {
 		t("Numerator[ 12345678901/23456789012 ]", "12345678901");
 		t("Numerator[ 123456789012/3456789012 ]", "10288065751");
 		t("Numerator[ 1234567890123/45678901234 ]", "1234567890123");
-		t("frac=10/6", "1.6666666666666667");
+		t("frac=10/6", "1.66666666666667");
 		t("Numerator(frac)", "5");
 		t("Denominator(frac)", "3");
-		t("frac2=-10/6", "-1.6666666666666667");
+		t("frac2=-10/6", "-1.66666666666667");
 		t("Numerator(frac2)", "-5");
 		t("Denominator(frac2)", "3");
-		t("frac3=-10/-6", "1.6666666666666667");
+		t("frac3=-10/-6", "1.66666666666667");
 		t("Numerator(frac3)", "5");
 		t("Denominator(frac3)", "3");
 		t("Numerator(0.125/0.166666666666666666)", "3");
@@ -2859,9 +2893,9 @@ public class CommandsTestCommon extends BaseCommandTest {
 
 	@Test
 	public void cmdPenStroke() {
-		t("PenStroke()", "PenStroke[]");
+		t("PenStroke()", "PenStrokeBezier[]");
 		t("PenStroke[(1,1),(2,2)]",
-				"PenStroke[1.0000E0,1.0000E0,2.0000E0,2.0000E0,NaN,NaN]");
+				"PenStrokeBezier[1.0000E0,1.0000E0,1,2.0000E0,2.0000E0,0,NaN,NaN,0]");
 	}
 
 	@Test
@@ -3006,9 +3040,9 @@ public class CommandsTestCommon extends BaseCommandTest {
 	@Test
 	public void cmdProduct() {
 		t("Product[ {1,2,3,4} ]", "24");
-		t("Product[ 1..10,  5 ]", "120");
-		t("Product[ {1,2,3},  {100,1,2} ]", "18");
-		t("Product[ {{1,2,3},  {100,1,2}} ]", "{100, 2, 6}");
+		t("Product[ 1..10, 5 ]", "120");
+		t("Product[ {1,2,3}, {100,1,2} ]", "18");
+		t("Product[ {{1,2,3}, {100,1,2}} ]", "{100, 2, 6}");
 		tRound("Product[ k/(k+1),k,1,7 ]", "0.125");
 		t("Product[{x,y}]", "(x * y)");
 		t("Product[ Sequence({{1,k},{0,1}},k,1,10) ]", "{{1, 55}, {0, 1}}");
@@ -3247,9 +3281,9 @@ public class CommandsTestCommon extends BaseCommandTest {
 
 	@Test
 	public void cmdRigidPolygon() {
-		t("RigidPolygon[ (0,0), (1,0), (0,1) ]");
-		t("RigidPolygon[ Polygon[(1,1),(2,1/2),(3,1/3)] ]");
-		t("RigidPolygon[ Polygon[(1,1),(2,1/2),(3,1/3)], 42,4 ]");
+		tRound("RigidPolygon[ (0,0), (1,0), (0,1) ]", "0.5", "1", "1.41421", "1");
+		tRound("RigidPolygon[ Polygon[(1,1),(2,1/2),(3,1/3)] ]", "0.16667");
+		tRound("RigidPolygon[ Polygon[(1,1),(2,1/2),(3,1/3)], 42,4 ]", "0.16667");
 	}
 
 	@Test
@@ -3273,6 +3307,7 @@ public class CommandsTestCommon extends BaseCommandTest {
 		t("Root(b)", "(NaN, NaN)");
 		t("Root(x^6 - 2x^5 - 4x^4 + 8x^3)", "(-2, 0)", "(0, 0)", "(2, 0)");
 		t("Root(x^8 - x^4)", "(-1, 0)", "(0, 0)", "(1, 0)");
+		t("{Root(If(-.1<x<2,x^3-x))}", "{(NaN, NaN), (0, 0), (1, 0)}");
 	}
 
 	@Test
@@ -3311,13 +3346,20 @@ public class CommandsTestCommon extends BaseCommandTest {
 
 	@Test
 	public void cmdRotateText() {
-		t("RotateText[ \"GeoGebra\",  30" + Unicode.DEGREE_STRING + " ]",
-				"\\rotatebox{29.999999999999996}{ \\text{ GeoGebra }  }");
+		t("RotateText[ \"GeoGebra\", 30" + Unicode.DEGREE_STRING + " ]",
+				"\\rotatebox{30.000000000000004}{ \\text{ GeoGebra }  }");
 	}
 
 	@Test
 	public void cmdRow() {
 		t("Row[ A1 ]", "1");
+		t("Row[ (1,1) ]", "NaN");
+		t("NTO9999=1", "1");
+		t("NTP9999=1", "1");
+		t("NTO10000=1", "1");
+		t("Row(NTO9999)", "9999");
+		t("Row(NTP9999)", "NaN");
+		t("Row(NTO10000)", "NaN");
 	}
 
 	@Test
@@ -3487,7 +3529,7 @@ public class CommandsTestCommon extends BaseCommandTest {
 
 	@Test
 	public void cmdSetImage() {
-		app.setImageManager(Mockito.mock(ImageManager.class));
+		app.setImageManager(Mockito.mock(ImageManagerCommon.class));
 		t("c:x^2+y^2=1", "x^(2) + y^(2) = 1");
 		t("pic=ToolImage(2)");
 		t("SetImage(c, pic)");
@@ -3953,6 +3995,7 @@ public class CommandsTestCommon extends BaseCommandTest {
 	@Test
 	public void cmdSXX() {
 		t("Sxx[ {1,2,3,4,5} ]", "10");
+		t("Sxx[ {1,2,3,4,5}, {0,1,2,3,0} ]", "10");
 		t("Sxx[ {(1,1),(2,2),(3,3),(4,1/4),(5,1/5)} ]", "10");
 	}
 
@@ -4094,7 +4137,7 @@ public class CommandsTestCommon extends BaseCommandTest {
 	@Test
 	public void cmdTMean2Estimate() {
 		t("TMean2Estimate[ {1,2,3,4,5}, {1,2,3,4,5}, 13, false ]", "?");
-		t("TMean2Estimate[ 42, 4, 13, 50, 42, 4,  13, false]", "?");
+		t("TMean2Estimate[ 42, 4, 13, 50, 42, 4, 13, false]", "?");
 	}
 
 	@Test
@@ -4143,6 +4186,7 @@ public class CommandsTestCommon extends BaseCommandTest {
 	public void cmdTranslate() {
 		t("Translate[Polygon[(1,1), (2,1/2), 4], (1,1)]", "1.25");
 		t("Translate[(1, 1), (3,1/3) ]", "(4, 1.3333333333333333)");
+		t("Translate(Vector((2, 3)), (1, 7))", "(2, 3)");
 	}
 
 	@Test
@@ -4201,6 +4245,8 @@ public class CommandsTestCommon extends BaseCommandTest {
 	@Test
 	public void cmdTurningPoint() {
 		t("InflectionPoint[ x^3 ]", "(0, 0)");
+		tRound("InflectionPoint[ If(5<x<7,x^3 * (6-x)^3) ]",
+				"(?, ?)", "(?, ?)", "(?, ?)", "(6, 0)");
 	}
 
 	@Test
@@ -4324,7 +4370,9 @@ public class CommandsTestCommon extends BaseCommandTest {
 
 	@Test
 	public void cmdUnique() {
-		t("Unique[ {1,2,3,4,5}]", "{1, 2, 3, 4, 5}");
+		t("Unique[ {1,2,3,3,4,5}]", "{1, 2, 3, 4, 5}");
+		t("Unique[{\"a\",\"a\",\"b\"}]", "{\"a\", \"b\"}");
+		t("Unique[ {1/3, 1/3+1E-16}] * 3", "{1}");
 	}
 
 	@Test

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.kernel3D.geos;
 
 import java.util.ArrayList;
@@ -355,7 +371,7 @@ public class GeoPolygon3D extends GeoPolygon implements GeoPolygon3DInterface,
 	 * 
 	 * @return true if all points lie on coord system
 	 */
-	static final public boolean checkPointsAreOnCoordSys(CoordSys coordSys,
+	static public boolean checkPointsAreOnCoordSys(CoordSys coordSys,
 			GeoPointND[] points, GeoPoint[] points2D, double[] tmpCoords, double precision) {
 
 		Coords o = coordSys.getOrigin();
@@ -441,7 +457,7 @@ public class GeoPolygon3D extends GeoPolygon implements GeoPolygon3DInterface,
 	 *
 	 * @return true if it has worked
 	 */
-	static final public boolean updateCoordSys(CoordSys coordSys,
+	static public boolean updateCoordSys(CoordSys coordSys,
 			GeoPointND[] points, GeoPoint[] points2D, double[] tmpCoords, double precision) {
 		coordSys.resetCoordSys();
 		for (int i = 0; !coordSys.isMadeCoordSys()
@@ -774,7 +790,7 @@ public class GeoPolygon3D extends GeoPolygon implements GeoPolygon3DInterface,
 
 	}
 
-	final private void rotate(NumberValue phiVal, Coords center,
+	private void rotate(NumberValue phiVal, Coords center,
 			Coords direction) {
 		getCoordSys().rotate(phiVal.getDouble(), center,
 				direction.normalized());

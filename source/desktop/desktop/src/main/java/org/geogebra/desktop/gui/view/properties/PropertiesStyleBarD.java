@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.view.properties;
 
 import java.awt.BorderLayout;
@@ -5,8 +21,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.SystemColor;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
@@ -14,7 +28,7 @@ import java.util.HashMap;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -24,7 +38,6 @@ import javax.swing.JToolTip;
 import javax.swing.SwingConstants;
 import javax.swing.ToolTipManager;
 
-import org.geogebra.common.gui.view.properties.PropertiesStyleBar;
 import org.geogebra.common.gui.view.properties.PropertiesView;
 import org.geogebra.common.main.App;
 import org.geogebra.common.main.OptionType;
@@ -32,10 +45,10 @@ import org.geogebra.common.util.debug.Log;
 import org.geogebra.desktop.gui.util.PopupMenuButtonD;
 import org.geogebra.desktop.main.AppD;
 
-public class PropertiesStyleBarD extends PropertiesStyleBar {
+public class PropertiesStyleBarD {
 	protected static final String downTriangle = "  \u25BE  ";
 	private static final int MARGIN_Y = 5;
-	PropertiesView propertiesView;
+	PropertiesViewD propertiesView;
 	protected AppD app;
 
 	protected PopupMenuButtonD btnOption;
@@ -52,7 +65,7 @@ public class PropertiesStyleBarD extends PropertiesStyleBar {
 	 * @param propertiesView properties view
 	 * @param app app
 	 */
-	public PropertiesStyleBarD(PropertiesView propertiesView, AppD app) {
+	public PropertiesStyleBarD(PropertiesViewD propertiesView, AppD app) {
 		this.propertiesView = propertiesView;
 		this.app = app;
 
@@ -90,7 +103,7 @@ public class PropertiesStyleBarD extends PropertiesStyleBar {
 			if (btn != null) {
 				btn.setFont(app.getPlainFont());
 				btn.setToolTipText(propertiesView.getTypeString(type));
-				ImageIcon icon = PropertiesViewD.getTypeIcon(app, type);
+				Icon icon = PropertiesViewD.getTypeIcon(app, type);
 				if (icon == null) {
 					Log.error("No icon for" + type);
 				} else {

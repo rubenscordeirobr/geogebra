@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.toolbar;
 
 import java.util.Vector;
@@ -62,7 +78,7 @@ public class ToolBar {
 	/**
 	 * Integer used to indicate a separator in the toolbar.
 	 */
-	public static final Integer SEPARATOR = Integer.valueOf(-1);
+	public static final Integer SEPARATOR = -1;
 
 	/**
 	 * Returns with the default definition of the general tool bar without
@@ -262,7 +278,7 @@ public class ToolBar {
 
 		// properties
 		sb.append(" | ");
-		sb.append(EuclidianConstants.MODE_TRANSLATEVIEW);
+		sb.append(EuclidianConstants.MODE_TRANSLATE_VIEW);
 		sb.append(" ");
 		sb.append(EuclidianConstants.MODE_ZOOM_IN);
 		sb.append(" ");
@@ -430,7 +446,7 @@ public class ToolBar {
 
 		// properties
 		sb.append(" | ");
-		sb.append(EuclidianConstants.MODE_TRANSLATEVIEW);
+		sb.append(EuclidianConstants.MODE_TRANSLATE_VIEW);
 		sb.append(" ");
 		sb.append(EuclidianConstants.MODE_ZOOM_IN);
 		sb.append(" ");
@@ -617,7 +633,7 @@ public class ToolBar {
 		// view control
 		sb.append(EuclidianConstants.MODE_ROTATEVIEW);
 		sb.append(" ");
-		sb.append(EuclidianConstants.MODE_TRANSLATEVIEW);
+		sb.append(EuclidianConstants.MODE_TRANSLATE_VIEW);
 		sb.append(" ");
 		sb.append(EuclidianConstants.MODE_ZOOM_IN);
 		sb.append(" ");
@@ -716,8 +732,7 @@ public class ToolBar {
 		int pos = toolbarString.lastIndexOf('|');
 		if (pos > 0) {
 			String after = toolbarString.substring(pos + 1).trim();
-			int digits = (EuclidianConstants.MACRO_MODE_ID_OFFSET + "")
-					.length();
+			int digits = String.valueOf(EuclidianConstants.MACRO_MODE_ID_OFFSET).length();
 			boolean mayStartWithMacro = after.length() >= digits;
 			for (int i = 0; i < digits && mayStartWithMacro; i++) {
 				if (after.charAt(i) > '9' || after.charAt(i) < '0') {
@@ -741,7 +756,7 @@ public class ToolBar {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append(ToolBar.getAllToolsNoMacros(app.isHTML5Applet(),
-				GlobalScope.examController.isExamActive(), app));
+				GlobalScope.isExamActive(app), app));
 
 		// macros
 		Kernel kernel = app.getKernel();
@@ -806,7 +821,7 @@ public class ToolBar {
 	 *            toolbar definition
 	 * @return whether this is default toolbar of any version
 	 */
-	final static public boolean isDefaultToolbar(String definition) {
+	static public boolean isDefaultToolbar(String definition) {
 		if (definition == null) {
 			return false;
 		}
@@ -818,7 +833,7 @@ public class ToolBar {
 				|| isDefaultToolbar(defSplit, DEFAULT_TOOLBAR_3D);
 	}
 
-	final static private boolean isDefaultToolbar(String[] split, String[][] defaultToolbar) {
+	static private boolean isDefaultToolbar(String[] split, String[][] defaultToolbar) {
 		if (split.length != defaultToolbar.length) {
 			return false;
 		}
@@ -841,7 +856,7 @@ public class ToolBar {
 		return true;
 	}
 
-	final static private String[] split(String definition) {
+	static private String[] split(String definition) {
 		String def2 = definition.replaceAll(",", ""); // remove comas
 		def2 = def2.replaceAll("59", ""); // remove record to spreadsheet tool
 		def2 = def2.replaceAll("\\|{2,}", " \\| "); // remove double vertical

@@ -1,3 +1,4 @@
+// vendored
 /*
  * Copyright (C) 2010 The Android Open Source Project
  *
@@ -1029,4 +1030,9 @@ public class JSONObject {
 		return nameValuePairs.hashCode();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		return obj instanceof JSONObject
+				&& nameValuePairs.equals(((JSONObject) obj).nameValuePairs);
+	}
 }

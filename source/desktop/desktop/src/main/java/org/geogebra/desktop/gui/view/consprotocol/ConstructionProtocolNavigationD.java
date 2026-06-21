@@ -1,14 +1,18 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
-*/
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
 
 package org.geogebra.desktop.gui.view.consprotocol;
 
@@ -24,7 +28,6 @@ import java.util.Locale;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -38,7 +41,6 @@ import org.geogebra.common.gui.SetLabels;
 import org.geogebra.common.gui.view.consprotocol.ConstructionProtocolNavigation;
 import org.geogebra.common.kernel.ConstructionStepper;
 import org.geogebra.common.main.App;
-import org.geogebra.common.main.settings.AbstractSettings;
 import org.geogebra.common.main.settings.ConstructionProtocolSettings;
 import org.geogebra.common.main.settings.SettingListener;
 import org.geogebra.desktop.gui.menubar.GeoGebraMenuBar;
@@ -51,7 +53,7 @@ import org.geogebra.desktop.util.GuiResourcesD;
  */
 public class ConstructionProtocolNavigationD
 		extends ConstructionProtocolNavigation
-		implements ActionListener, SettingListener, SetLabels {
+		implements ActionListener, SettingListener<ConstructionProtocolSettings>, SetLabels {
 
 	private JButton btFirst;
 	private JButton btPrev;
@@ -176,7 +178,7 @@ public class ConstructionProtocolNavigationD
 		playPanel.setVisible(showPlayButton);
 		playPanel.add(Box.createRigidArea(new Dimension(20, 10)));
 		btPlay = new JButton();
-		btPlay.setIcon(new ImageIcon(appD.getPlayImage()));
+		btPlay.setIcon(appD.getScaledIcon(GuiResourcesD.NAV_PLAY));
 		btPlay.addActionListener(this);
 
 		spDelay.addChangeListener(e -> {
@@ -305,13 +307,13 @@ public class ConstructionProtocolNavigationD
 
 	@Override
 	public void setButtonPlay() {
-		btPlay.setIcon(new ImageIcon(((AppD) app).getPlayImage()));
+		btPlay.setIcon(((AppD) app).getScaledIcon(GuiResourcesD.NAV_PLAY));
 		btPlay.setText(loc.getMenu("Play"));
 	}
 
 	@Override
 	public void setButtonPause() {
-		btPlay.setIcon(new ImageIcon(((AppD) app).getPauseImage()));
+		btPlay.setIcon(((AppD) app).getScaledIcon(GuiResourcesD.NAV_PAUSE));
 		btPlay.setText(loc.getMenu("Pause"));
 	}
 
@@ -319,7 +321,7 @@ public class ConstructionProtocolNavigationD
 	 * Steps through the construction automatically.
 	 */
 	private class AutomaticPlayer implements ActionListener {
-		private Timer timer; // for animation
+		private final Timer timer; // for animation
 
 		/**
 		 * Creates a new player to step through the construction automatically.
@@ -367,11 +369,10 @@ public class ConstructionProtocolNavigationD
 	}
 
 	@Override
-	public void settingsChanged(AbstractSettings settings) {
-		ConstructionProtocolSettings cps = (ConstructionProtocolSettings) settings;
-		setPlayButtonVisible(cps.showPlayButton());
-		setPlayDelay(cps.getPlayDelay());
-		setConsProtButtonVisible(cps.showConsProtButton());
+	public void settingsChanged(ConstructionProtocolSettings settings) {
+		setPlayButtonVisible(settings.showPlayButton());
+		setPlayDelay(settings.getPlayDelay());
+		setConsProtButtonVisible(settings.showConsProtButton());
 		update();
 
 	}

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.commands;
 
 import java.util.Arrays;
@@ -45,10 +61,10 @@ public class CmdSum extends CommandProcessor {
 		GeoElement[] arg;
 
 		// needed for Sum[]
-		if (c.getArgumentNumber() == 0) {
+		if (n == 0) {
 			throw argNumErr(c);
 		}
-		if (c.getArgumentNumber() == 4) {
+		if (n == 4) {
 			GeoElement[] res = processSymb(this, c, Operation.PLUS);
 			if (res != null) {
 				return res;
@@ -272,22 +288,20 @@ public class CmdSum extends CommandProcessor {
 		return algo.getOutput();
 	}
 
-	final private GeoElement sum(String label, GeoList list) {
+	private GeoElement sum(String label, GeoList list) {
 		AlgoSum algo = new AlgoSum(cons, list);
 		algo.getResult().setLabel(label);
-		GeoElement ret = algo.getResult();
-		return ret;
+		return algo.getResult();
 	}
 
 	/**
 	 * Sum[list of text,n] Michael Borcherds
 	 */
-	final private GeoElement sum(String label, GeoList list, GeoNumeric num,
+	private GeoElement sum(String label, GeoList list, GeoNumeric num,
 			FoldComputer fold) {
 		AlgoFoldFunctions algo = new AlgoFoldFunctions(cons, label, list, num,
 				Operation.PLUS, fold);
-		GeoElement ret = algo.getResult();
-		return ret;
+		return algo.getResult();
 	}
 
 }

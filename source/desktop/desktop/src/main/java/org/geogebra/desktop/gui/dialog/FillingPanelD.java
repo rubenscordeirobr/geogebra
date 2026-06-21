@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.dialog;
 
 import java.awt.BorderLayout;
@@ -16,7 +32,7 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -47,8 +63,7 @@ import org.geogebra.desktop.gui.util.SliderUtil;
 import org.geogebra.desktop.main.AppD;
 import org.geogebra.desktop.util.GuiResourcesD;
 import org.geogebra.desktop.util.ImageResourceD;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * panel to select the filling of a polygon or conic section
@@ -309,11 +324,12 @@ class FillingPanelD extends JPanel
 		imgFileNameList.add(GuiResourcesD.FILLING_HELP);
 		imgFileNameList.add(GuiResourcesD.FILLING_SETTINGS);
 
-		ImageIcon[] iconArray = new ImageIcon[imgFileNameList.size()];
-		iconArray[0] = GeoGebraIconD.createNullSymbolIcon(24, 24);
+		Icon[] iconArray = new Icon[imgFileNameList.size()];
+		iconArray[0] = GeoGebraIconD.createNullSymbolIcon(24, 24,
+				app.getImageManager().getPixelRatio());
 		for (int i = 1; i < iconArray.length; i++) {
 			iconArray[i] = GeoGebraIconD.createFileImageIcon(
-					imgFileNameList.get(i));
+					imgFileNameList.get(i), app.getImageManager().getPixelRatio());
 		}
 		// ============================================
 

@@ -243,19 +243,22 @@ $keyboard_button_transition: opacity .3s ease;
 		will-change: transform, opacity;
 		transition: opacity .03s linear,transform .12s cubic-bezier(0,0,.2,1);
 
+		&.forceKeyboardFocus .selectedDropDownElement, &.keyboardFocus .dropDownElement:focus-visible {
+			outline-color: var(--ggb-dark-color);
+			outline-width: 2px;
+			outline-style: solid;
+			background: var(--ggb-light-color);
+			outline-offset: -2px;
+		}
+
 		.dropDownElement {
 			padding-left: 24px;
 			padding-right: 24px;
 			height: 32px;
 			line-height: 32px;
-
-			&.keyboardFocus:focus-visible {
-				outline-color: var(--ggb-dark-color);
-				outline-width: 2px;
-				outline-style: solid;
-				background: var(--ggb-light-color);
-				outline-offset: -2px;
-			}
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
 		}
 
 		.dropDownElement:hover {
@@ -281,8 +284,8 @@ $keyboard_button_transition: opacity .3s ease;
 	.dialogComponent {
 		z-index: z-index.$z-dialog;
 		background-color: white;
-		border-radius: 4px;
-		box-shadow: 0px 11px 15px -7px rgba(0, 0, 0, 0.2), 0px 24px 38px 3px rgba(0, 0, 0, 0.14), 0px 9px 46px 8px rgba(0,0,0,.12);
+		border-radius: 24px;
+		box-shadow: 0 6px 32px -2px rgba(133, 132, 138, 0.16), 0 4px 12px -1px rgba(133, 132, 138, 0.06);
 		max-width: 500px;
 		width: 90%;
 
@@ -291,31 +294,30 @@ $keyboard_button_transition: opacity .3s ease;
 		}
 
 		.dialogMainPanel {
-			padding-top: 20px;
-			height: calc(100% - 20px);
+			padding-top: 24px;
+			height: calc(100% - 24px);
 			overflow: hidden;
+			display: flex;
+			flex-direction: column;
 
 			.dialogTitle {
-				min-height: 20px;
-				font-size: 125%;
-				margin-bottom: 20px;
+				font-size: 24px;
+				font-weight: 400;
+				line-height: 32px;
+				margin-bottom: 16px;
 				margin-left: 24px;
 			}
 
 			.dialogContent {
-				// 112px = 20px title + 20px margin + 52px button panel
-				// NOTE: this needs to be adjusted according what is added to the dialog
-				// (e.g. if no buttons do not add button panel height)
-				height: calc(100% - 92px);
 				padding: 0px 24px;
 				overflow-y: auto;
 			}
 
 			.dialogBtnPanel {
 				display: inline-flex;
-				padding: 8px 8px 8px 24px;
-				position: relative;
-				float: right;
+				gap: 8px;
+				padding: 24px 24px 24px 0;
+				margin-left: auto;
 			}
 		}
 
@@ -325,7 +327,7 @@ $keyboard_button_transition: opacity .3s ease;
 			}
 
 			.dialogSubTitle {
-				margin-bottom: 24px;
+				margin-bottom: 16px;
 				margin-left: 24px;
 				height: 14px;
 				font-size: 75%;
@@ -410,6 +412,7 @@ $keyboard_button_transition: opacity .3s ease;
 		@extend .materialTextButton;
 
 		color: neutral(700);
+		margin: 0;
 
 		&:hover {
 			color: neutral(700);
@@ -430,33 +433,13 @@ $keyboard_button_transition: opacity .3s ease;
 		@extend .materialContainedButton;
 
 		box-shadow: none;
+		margin: 0;
 
 		&:focus-visible {
 			outline-color: var(--ggb-dark-color);
 			outline-width: 2px;
 			outline-style: solid;
 			outline-offset: 3px;
-		}
-	}
-
-   .orDividerComponent {
-		display: flex;
-
-		.divider {
-			height: 1px;
-			background-color: colors.$black-87;
-			opacity: 0.12;
-			margin: 7px 0px 6px 0px;
-			flex-grow: 1;
-		}
-
-		.orLbl {
-			height: 14px;
-			line-height: 14px;
-			font-size: 75%;
-			margin: 0px 24px;
-			flex-basis: auto;
-			text-transform: uppercase;
 		}
 	}
 
@@ -526,7 +509,7 @@ $keyboard_button_transition: opacity .3s ease;
 		}
 
 		.left, .right {
-			position: fixed;
+			position: sticky;
 			padding: 10px;
 			height: 24px;
 			z-index: 10;
@@ -541,6 +524,7 @@ $keyboard_button_transition: opacity .3s ease;
 		}
 
 		.left {
+			left: 0;
 			background: linear-gradient(270deg, rgba(255, 255, 255, 0.00) 0%, #FFF 35.58%);
 		}
 
@@ -585,7 +569,7 @@ $keyboard_button_transition: opacity .3s ease;
 					background-image: radial-gradient(circle, neutral(500) 10%, transparent 10.01%);
 				}
 
-				&.keyboardFocus {
+				&.keyboardFocus:focus-visible {
 					outline-color: var(--ggb-dark-color);
 					outline-width: 2px;
 					outline-style: solid;
@@ -873,6 +857,11 @@ $keyboard_button_transition: opacity .3s ease;
 		}
 	}
 
+	.dropDown, .comboBox {
+		.optionLabelHolder {
+			max-width: calc(100% - 56px);
+		}
+	}
 	.dropDown, .comboBox, .inputTextField, .textEdit {
 		min-width: 64px;
 		height: 48px;
@@ -907,6 +896,9 @@ $keyboard_button_transition: opacity .3s ease;
 				line-height: 24px;
 				min-width: 144px;
 				margin: 11px 10px 11px 16px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
 			}
 		}
 
@@ -997,12 +989,33 @@ $keyboard_button_transition: opacity .3s ease;
 				background-color: white;
 
 				&:hover {
-                	border: none;
-                }
+					border: none;
+				}
 			}
 		}
 	}
 
+	.validation {
+		&.error {
+			border-color: colors.$error;
+
+			.label {
+				color: colors.$error;
+			}
+			input[type=text] {
+				color: colors.$error;
+			}
+		}
+
+		&.error.active {
+			border: 2px solid colors.$error;
+			padding: 0;
+
+			input[type=text] {
+				color: neutral(900);
+			}
+		}
+	}
 /* INPUT TEXT FIELD COMPONENT */
 	.inputTextField {
 		width: 100%;
@@ -1036,18 +1049,24 @@ $keyboard_button_transition: opacity .3s ease;
 				box-shadow: none;
 			}
 
+			.withCursorOverlay {
+				input[type=text] {
+					color: transparent;
+				}
+			}
+
 			button {
-        			visibility: hidden;
-        			position: absolute;
-        			opacity: 1;
-        			margin: 0 10px;
-        			img {
-        				opacity: 0.54;
-        				transition: $keyboard_button_transition;
-        				&:hover, &:active {
-        					opacity: 1;
-        				}
-        			}
+					visibility: hidden;
+					position: absolute;
+					opacity: 1;
+					margin: 0 10px;
+					img {
+						opacity: 0.54;
+						transition: $keyboard_button_transition;
+						&:hover, &:active {
+							opacity: 1;
+						}
+					}
 			}
 
 			&.kbdInput button {
@@ -1059,26 +1078,6 @@ $keyboard_button_transition: opacity .3s ease;
 			input[type=text] {
 				background-color: white;
 				color: neutral(500);
-			}
-		}
-
-		&.error {
-			border-color: colors.$error;
-
-			.label {
-				color: colors.$error;
-			}
-			input[type=text] {
-				color: colors.$error;
-			}
-		}
-
-		&.error.active {
-			border: 2px solid colors.$error;
-			padding: 0;
-
-			input[type=text] {
-				color: neutral(900);
 			}
 		}
 
@@ -1115,7 +1114,7 @@ $keyboard_button_transition: opacity .3s ease;
 			opacity: 0.54;
 		}
 
-		.fa-light {
+		.fa-light, .fa-solid {
 			display: flex;
 			opacity: .54;
 			font-size: 20px;
@@ -1129,11 +1128,11 @@ $keyboard_button_transition: opacity .3s ease;
 		&.active {
 			background-color: var(--ggb-light-color);
 
-			img, .fa-light {
+			img, .fa-light, .fa-solid {
 				opacity: 1;
 			}
 
-			.fa-light {
+			.fa-light, .fa-solid {
 				color: var(--ggb-dark-color);
 			}
 		}
@@ -1282,14 +1281,6 @@ $keyboard_button_transition: opacity .3s ease;
 			justify-content: space-between;
 		}
 
-		.optionsSlider {
-			display: inline;
-
-			.gwt-Label {
-				display: none;
-			}
-		}
-
 		.preview {
 			overflow: hidden;
 			margin-right: 8px;
@@ -1304,10 +1295,13 @@ $keyboard_button_transition: opacity .3s ease;
 	}
 
 	.sideSheet {
-		box-shadow: 0 6px 16px rgba(0, 0, 0, .28);
 		height: 100%;
-		min-width: 400px;
 		width: 100%;
+
+		&.floating {
+			box-shadow: 0 6px 16px rgba(0, 0, 0, .28);
+			min-width: 400px;
+		}
 
 		.titlePanel {
 			display: flex;
@@ -1378,7 +1372,7 @@ $keyboard_button_transition: opacity .3s ease;
 				outline-style: solid;
 				background: var(--ggb-light-color);
 				outline-offset: -2px;
-            }
+			}
 
 			.headerArrow {
 				width: 24px;
@@ -1417,7 +1411,7 @@ $keyboard_button_transition: opacity .3s ease;
 				outline-style: solid;
 				background: var(--ggb-light-color);
 				outline-offset: -2px;
-            }
+			}
 		}
 
 		&.extended {
@@ -1444,11 +1438,89 @@ $keyboard_button_transition: opacity .3s ease;
 			width: 100%;
 		}
 
-		.textArea {
+		.gwt-TextArea.textArea {
+			padding: 12px 16px;
+			box-shadow: none;
+			border-radius: 8px;
 			width: 100%;
 			height: 100%;
-			resize: none;
-			border: 0px !important;
+			border: none;
+		}
+	}
+
+	.connectedButtonGroup {
+		display: flex;
+		align-items: flex-start;
+		gap: 2px;
+		align-self: stretch;
+
+		.connectedButton {
+			height: 40px;
+			background-color: neutral(200);
+			border-radius: 8px;
+			cursor: pointer;
+			display: flex;
+			flex-direction: column;
+			flex: 1 0 0;
+			transition-property: border-radius, background-color;
+			transition-duration: 200ms, 200ms;
+			transition-delay: 0ms, 200ms;
+			transition-timing-function: ease-in-out;
+
+			.gwt-Label {
+				text-align: center;
+				color: neutral(800);
+				overflow: hidden;
+				text-overflow: ellipsis;
+				padding: 4px 16px;
+				transition-property: color;
+				transition-duration: 200ms;
+				transition-delay: 200ms;
+				transition-timing-function: ease-in-out;
+			}
+
+			&:first-child {
+				border-radius: 20px 8px 8px 20px;
+			}
+
+			&:last-child {
+				border-radius: 8px 20px 20px 8px;
+			}
+
+			&.selected, &.selected:hover {
+				border-radius: 20px;
+				background-color: var(--ggb-primary-color);
+				.gwt-Label {
+					color: neutral(0);
+				}
+			}
+
+			&.selected:hover {
+				background-color: var(--ggb-dark-color);
+			}
+
+			&:hover {
+				background-color: neutral(300);
+			}
+
+			&.disabled, &.disabled:hover {
+				background-color: neutral(300);
+				pointer: default;
+				.gwt-Label {
+					color: neutral(500);
+				}
+			}
+
+			&.ripple:after {
+				background-image: radial-gradient(circle, neutral(500) 10%, transparent 10.01%);
+			}
+
+			&.keyboardFocus:focus-visible {
+				outline-color: var(--ggb-dark-color);
+				outline-width: 2px;
+				outline-style: solid;
+				outline-offset: -2px;
+			}
 		}
 	}
 }

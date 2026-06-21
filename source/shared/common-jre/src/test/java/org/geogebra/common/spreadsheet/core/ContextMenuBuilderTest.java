@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.spreadsheet.core;
 
 import static org.geogebra.common.spreadsheet.core.ContextMenuBuilder.HEADER_INDEX;
@@ -5,7 +21,6 @@ import static org.geogebra.common.spreadsheet.core.ContextMenuItem.Identifier.CA
 import static org.geogebra.common.spreadsheet.core.ContextMenuItem.Identifier.COPY;
 import static org.geogebra.common.spreadsheet.core.ContextMenuItem.Identifier.CREATE_CHART;
 import static org.geogebra.common.spreadsheet.core.ContextMenuItem.Identifier.CUT;
-import static org.geogebra.common.spreadsheet.core.ContextMenuItem.Identifier.DELETE;
 import static org.geogebra.common.spreadsheet.core.ContextMenuItem.Identifier.DELETE_COLUMN;
 import static org.geogebra.common.spreadsheet.core.ContextMenuItem.Identifier.DELETE_ROW;
 import static org.geogebra.common.spreadsheet.core.ContextMenuItem.Identifier.DIVIDER;
@@ -40,7 +55,11 @@ public final class ContextMenuBuilderTest {
 
 	@Before
 	public void setUp() {
-		data = new TestTabularData();
+		setupWithSize(100, 100);
+	}
+
+	private void setupWithSize(int rows, int columns) {
+		data = new TestTabularData(rows, columns);
 		fillTestData();
 		clipboard = new TestClipboard();
 		controller = new SpreadsheetController(data, new SpreadsheetStyling());
@@ -97,6 +116,14 @@ public final class ContextMenuBuilderTest {
 	}
 
 	@Test
+	public void testRowMenuOrderMaxSize() {
+		setupWithSize(Spreadsheet.MAX_ROWS, 7);
+		testMenuOrder(1, HEADER_INDEX,
+				List.of(CUT, COPY, PASTE, DIVIDER, CALCULATE, CREATE_CHART, DIVIDER,
+						DIVIDER, DELETE_ROW));
+	}
+
+	@Test
 	public void testColumnMenuOrder() {
 		testMenuOrder(HEADER_INDEX, 1,
 				List.of(CUT, COPY, PASTE, DIVIDER, CALCULATE, CREATE_CHART, DIVIDER,
@@ -109,6 +136,14 @@ public final class ContextMenuBuilderTest {
 		assertEquals(List.of(CUT, COPY, PASTE, DIVIDER, CALCULATE, CREATE_CHART, DIVIDER,
 						INSERT_COLUMN_LEFT, INSERT_COLUMN_RIGHT),
 				getIdentifiers(menuItems));
+	}
+
+	@Test
+	public void testColumnMenuOrderMaxSize() {
+		setupWithSize(7, Spreadsheet.MAX_COLUMNS);
+		testMenuOrder(HEADER_INDEX, 1,
+				List.of(CUT, COPY, PASTE, DIVIDER, CALCULATE, CREATE_CHART, DIVIDER,
+						DIVIDER, DELETE_COLUMN));
 	}
 
 	private void runItemAt(int row, int column, Identifier id) {
@@ -209,7 +244,7 @@ public final class ContextMenuBuilderTest {
 	public void testInsertColumnLeft() {
 		runItemAt(HEADER_INDEX, 3, DELETE_COLUMN);
 		assertThat(data.numberOfColumns(), equalTo(99));
-		runItemAt(HEADER_INDEX, 5,  INSERT_COLUMN_LEFT);
+		runItemAt(HEADER_INDEX, 5, INSERT_COLUMN_LEFT);
 		checkNewColumnAt(5);
 		assertThat(data.numberOfColumns(), equalTo(100));
 	}
@@ -228,7 +263,7 @@ public final class ContextMenuBuilderTest {
 	public void testInsertColumnRight() {
 		runItemAt(HEADER_INDEX, 4, DELETE_COLUMN);
 		assertThat(data.numberOfColumns(), equalTo(99));
-		runItemAt(HEADER_INDEX, 5,  INSERT_COLUMN_RIGHT);
+		runItemAt(HEADER_INDEX, 5, INSERT_COLUMN_RIGHT);
 		checkNewColumnAt(6);
 		assertThat(data.numberOfColumns(), equalTo(100));
 	}

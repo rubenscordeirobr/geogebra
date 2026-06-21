@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.geos;
 
 import java.util.ArrayList;
@@ -15,9 +31,9 @@ import org.geogebra.common.kernel.arithmetic.MyNumberPair;
 import org.geogebra.common.kernel.arithmetic.NumberValue;
 import org.geogebra.common.plugin.Operation;
 import org.geogebra.common.util.DoubleUtil;
+import org.geogebra.editor.share.util.Unicode;
 
 import com.google.j2objc.annotations.Weak;
-import com.himamis.retex.editor.share.util.Unicode;
 
 /**
  * Container for condition triples (upper bound, lower bound, other conditions)
@@ -141,8 +157,7 @@ public class Bounds {
 		}
 		// If[x==1,2,If[x==3,4,5]]
 		if (b.upper != null && b.lower != null && (b.condition != null)
-				&& DoubleUtil.isEqual(b.upper.doubleValue(),
-						b.lower.doubleValue())) {
+				&& DoubleUtil.isEqual(b.upper, b.lower)) {
 			fv.set(b.upper);
 			ExpressionValue v = b.condition
 					.evaluate(StringTemplate.defaultTemplate);
@@ -388,7 +403,11 @@ public class Bounds {
 			}
 		}
 
-		return lower == null ? Double.valueOf(Double.NEGATIVE_INFINITY) : lower;
+		if (lower == null) {
+			return Double.NEGATIVE_INFINITY;
+		} else {
+			return lower;
+		}
 	}
 
 	/**
@@ -420,7 +439,11 @@ public class Bounds {
 				}
 			}
 		}
-		return upper == null ? Double.valueOf(Double.POSITIVE_INFINITY) : upper;
+		if (upper == null) {
+			return Double.POSITIVE_INFINITY;
+		} else {
+			return upper;
+		}
 	}
 
 	@Override

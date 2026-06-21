@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.util;
 
 import java.text.Normalizer;
@@ -16,12 +32,10 @@ import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.parser.ParserInfo;
 import org.geogebra.common.main.Localization;
-import org.geogebra.common.util.debug.Log;
+import org.geogebra.editor.share.util.Greek;
+import org.geogebra.editor.share.util.Unicode;
 
-import com.himamis.retex.editor.share.util.Greek;
-import com.himamis.retex.editor.share.util.Unicode;
-
-public class StringUtil extends com.himamis.retex.editor.share.input.Character {
+public class StringUtil extends org.geogebra.editor.share.input.Character {
 
 	final static public String mp3Marker = "data:audio/mp3;base64,";
 	final static public String pngMarker = "data:image/png;base64,";
@@ -37,16 +51,16 @@ public class StringUtil extends com.himamis.retex.editor.share.input.Character {
 	final static public String htmlMarker = "data:text/html;charset=utf-8,";
 
 	// table to convert a nibble to a hex char.
-	private static char[] hexChar = { '0', '1', '2', '3', '4', '5', '6', '7',
+	private static final char[] hexChar = { '0', '1', '2', '3', '4', '5', '6', '7',
 			'8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
 	private static StringUtil prototype;
 
 	private static final Object lock = new Object();
 
-	private static StringBuilder sbReplaceExp = new StringBuilder(200);
+	private static final StringBuilder sbReplaceExp = new StringBuilder(200);
 
-	private static Map<String, String> typoMapping = new HashMap<>();
+	private static final Map<String, String> typoMapping = new HashMap<>();
 
 	static {
 		typoMapping.put("o", "0");
@@ -96,7 +110,7 @@ public class StringUtil extends com.himamis.retex.editor.share.input.Character {
 	 * @param c
 	 *            unicode char
 	 */
-	final public static String toHexString(char c) {
+	public static String toHexString(char c) {
 		int i = c + 0;
 
 		StringBuilder hexSB = new StringBuilder(8);
@@ -115,7 +129,7 @@ public class StringUtil extends com.himamis.retex.editor.share.input.Character {
 	 *            number input
 	 * @return hex code
 	 */
-	final public static String toHexString(int i) {
+	public static String toHexString(int i) {
 		StringBuilder hexSB = new StringBuilder(16);
 		hexSB.append(hexChar[(i & 0xf0000000) >>> 28]);
 		hexSB.append(hexChar[(i & 0xf000000) >>> 24]);
@@ -133,7 +147,7 @@ public class StringUtil extends com.himamis.retex.editor.share.input.Character {
 	 *            color
 	 * @return hex string (no prefix)
 	 */
-	final public static String toHexString(GColor col) {
+	public static String toHexString(GColor col) {
 		byte r = (byte) col.getRed();
 		byte g = (byte) col.getGreen();
 		byte b = (byte) col.getBlue();
@@ -150,7 +164,7 @@ public class StringUtil extends com.himamis.retex.editor.share.input.Character {
 	 *            blue
 	 * @return hex string
 	 */
-	final public static String toHexString(byte r, byte g, byte b) {
+	public static String toHexString(byte r, byte g, byte b) {
 		StringBuilder hexSB = new StringBuilder(8);
 		// RED
 		hexSB.append(hexChar[(r & 0xf0) >>> 4]);
@@ -172,7 +186,7 @@ public class StringUtil extends com.himamis.retex.editor.share.input.Character {
 	 *            input text
 	 * @return hex string
 	 */
-	final public static String toHexString(String s) {
+	public static String toHexString(String s) {
 		StringBuilder sb = new StringBuilder(s.length() * 6);
 		for (int i = 0; i < s.length(); i++) {
 			sb.append(toHexString(s.charAt(i)));
@@ -206,7 +220,7 @@ public class StringUtil extends com.himamis.retex.editor.share.input.Character {
 	 *            whether to encode &lt; &gt;
 	 * @return HTML string
 	 */
-	final public static String toHTMLString(String str, boolean encodeLTGT) {
+	public static String toHTMLString(String str, boolean encodeLTGT) {
 		if (str == null) {
 			return null;
 		}
@@ -264,84 +278,6 @@ public class StringUtil extends com.himamis.retex.editor.share.input.Character {
 			}
 		}
 		return sb.toString();
-	}
-
-	/**
-	 * Converts the given unicode string to a string where special characters
-	 * are converted to <code>&amp;#encoding;</code> sequences . The resulting
-	 * string can be used in XML files.
-	 * 
-	 * @param str
-	 *            unicode string
-	 * @return XML string
-	 */
-	public static String encodeXML(String str) {
-		StringBuilder sb = new StringBuilder(str.length());
-		encodeXML(sb, str);
-		return sb.toString();
-	}
-
-	/**
-	 * Converts the given unicode string to a string where special characters
-	 * are converted to <code>&amp;#encoding;</code> sequences . The resulting
-	 * string can be used in XML files.
-	 * 
-	 * @param sb
-	 *            output builder
-	 * @param str
-	 *            raw string
-	 */
-	public static void encodeXML(StringBuilder sb, String str) {
-		if (str == null) {
-			return;
-		}
-
-		// convert every single character and append it to sb
-		int len = str.length();
-
-		// support for high Unicode characters
-		// https://stackoverflow.com/questions/24501020/how-can-i-convert-a-java-string-to-xml-entities-for-versions-of-unicode-beyond-3
-		for (int i = 0; i < len; i = str.offsetByCodePoints(i, 1)) {
-			int c = str.codePointAt(i);
-
-			if (c <= '\u001f' || c >= 0x10000) {
-				// #2399 all apart from U+0009, U+000A, U+000D are invalid in
-				// XML
-				// none should appear anyway, but encode to be safe
-
-				// eg &#x0A;
-				sb.append("&#x");
-				sb.append(Integer.toHexString(c));
-				sb.append(';');
-
-				if (c <= '\u001f' && c != '\n' && c != '\r') {
-					Log.warn("Control character being written to XML: " + c);
-				}
-
-			} else {
-
-				switch (c) {
-				case '>':
-					sb.append("&gt;");
-					break;
-				case '<':
-					sb.append("&lt;");
-					break;
-				case '"':
-					sb.append("&quot;");
-					break;
-				case '\'':
-					sb.append("&apos;");
-					break;
-				case '&':
-					sb.append("&amp;");
-					break;
-
-				default:
-					sb.append((char) c);
-				}
-			}
-		}
 	}
 
 	/**
@@ -434,45 +370,12 @@ public class StringUtil extends com.himamis.retex.editor.share.input.Character {
 				continue;
 			}
 
-			switch (c) {
-			/*
-			 * case '(': sbReplaceExp.append("\\left("); break;
-			 * 
-			 * case ')': sbReplaceExp.append("\\right)"); break;
-			 */
-
-			case '%': // % -> \%
+			if (c == '%') { // % -> \%
 				if (previousChar != '\\') {
 					sbReplaceExp.append("\\");
 				}
 				sbReplaceExp.append("%");
-				break;
-
-			/*
-			 * not needed for JLaTeXMath and in fact it doesn't work inside
-			 * \text{} // Exponents // added by Loic Le Coq 2009/11/04 case
-			 * '\u2070': // ^0 sbReplaceExp.append("^0"); break;
-			 * 
-			 * case '\u00b9': // ^1 sbReplaceExp.append("^1"); break; // end
-			 * Loic case '\u00b2': // ^2 sbReplaceExp.append("^2"); break;
-			 * 
-			 * case '\u00b3': // ^3 sbReplaceExp.append("^3"); break;
-			 * 
-			 * case '\u2074': // ^4 sbReplaceExp.append("^4"); break;
-			 * 
-			 * case '\u2075': // ^5 sbReplaceExp.append("^5"); break;
-			 * 
-			 * case '\u2076': // ^6 sbReplaceExp.append("^6"); break; // added
-			 * by Loic Le Coq 2009/11/04 case '\u2077': // ^7
-			 * sbReplaceExp.append("^7"); break;
-			 * 
-			 * case '\u2078': // ^8 sbReplaceExp.append("^8"); break;
-			 * 
-			 * case '\u2079': // ^9 sbReplaceExp.append("^9"); break; // end
-			 * Loic Le Coq
-			 */
-
-			default:
+			} else {
 				if (!convertGreekLetters) {
 					sbReplaceExp.append(c);
 				} else {
@@ -1066,7 +969,7 @@ public class StringUtil extends com.himamis.retex.editor.share.input.Character {
 			// GGB-641 this is just for ProverBotanasMethod
 			sb1.append("(");
 			long[] l = kernel.doubleToRational(x);
-			sb1.append(l[0] + "/" + l[1]);
+			sb1.append(l[0]).append("/").append(l[1]);
 			sb1.append(')');
 		} else {
 			sb1.append("exact(");
@@ -1300,7 +1203,7 @@ public class StringUtil extends com.himamis.retex.editor.share.input.Character {
 	 *            input
 	 * @return encode unicode as \\uXXXX, escape \',\", \t, \n, \r, \\
 	 */
-	final public static String toJavaString(String str) {
+	public static String toJavaString(String str) {
 		if (str == null) {
 			return null;
 		}
@@ -1786,22 +1689,12 @@ public class StringUtil extends com.himamis.retex.editor.share.input.Character {
 	 */
 	public static void appendFormat(StringBuilder sbFormatSF, double x,
 			ScientificFormatAdapter sfa) {
-		String absStr;
 		if (x == 0) {
 			// avoid output of "-0.00"
-			absStr = sfa.format(0);
-		} else if (x > 0) {
-			absStr = sfa.format(x);
+			sbFormatSF.append(sfa.format(0));
 		} else {
-			sbFormatSF.append('-');
-			absStr = sfa.format(-x);
+			sbFormatSF.append(sfa.format(x));
 		}
-
-		// make sure ".123" is returned as "0.123".
-		if (absStr.charAt(0) == '.') {
-			sbFormatSF.append('0');
-		}
-		sbFormatSF.append(absStr);
 	}
 
     /**
@@ -1861,7 +1754,12 @@ public class StringUtil extends com.himamis.retex.editor.share.input.Character {
 	public static List<String> labelVariants(String label) {
 		int startPos;
 		if ((startPos = label.indexOf("_{")) > 0) {
-			String index = label.substring(startPos + 2, label.length() - 1);
+			int fromIndex = startPos + 2;
+			int toIndex = label.length() - 1;
+			if (fromIndex > toIndex) {
+				return List.of();
+			}
+			String index = label.substring(fromIndex, toIndex);
 			String base = label.substring(0, startPos);
 
 			List<String> variants = new ArrayList<>();
@@ -1892,6 +1790,19 @@ public class StringUtil extends com.himamis.retex.editor.share.input.Character {
 		String ret = StringUtil.toLowerCaseUS(string);
 		return Normalizer.normalize(ret, Normalizer.Form.NFD)
 				.replaceAll("[\u0300-\u036F]", "");
+	}
+
+	/**
+	 * @param coords input string
+	 * @return string parsed as array of doubles
+	 */
+	public static double[] parseDoubleArray(String coords) {
+		String[] coordsRaw = coords.split(",");
+		double[] coordsValues = new double[coordsRaw.length];
+		for (int i = 0; i < coordsRaw.length; i++) {
+			coordsValues[i] = Double.parseDouble(coordsRaw[i]);
+		}
+		return coordsValues;
 	}
 
 	private static void addTypoVariants(List<String> variants, String base, String index) {

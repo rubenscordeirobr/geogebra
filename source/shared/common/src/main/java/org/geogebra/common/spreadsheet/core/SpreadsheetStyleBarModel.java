@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.spreadsheet.core;
 
 import static org.geogebra.common.spreadsheet.style.SpreadsheetStyling.DEFAULT_CELL_ALIGNMENT;
@@ -52,7 +68,15 @@ public final class SpreadsheetStyleBarModel {
 		@Property("readonly")
 		public final @CheckForNull GColor textColor;
 
-		State(boolean isEnabled,
+		/**
+		 * Constructs a state class. Visible for testing only.
+		 * @param isEnabled enabled
+		 * @param fontTraits traits
+		 * @param textAlignment alignment
+		 * @param backgroundColor background color
+		 * @param textColor text color
+		 */
+		public State(boolean isEnabled,
 				@CheckForNull Set<SpreadsheetStyling.FontTrait> fontTraits,
 				@CheckForNull SpreadsheetStyling.TextAlignment textAlignment,
 				@CheckForNull GColor backgroundColor,
@@ -221,7 +245,8 @@ public final class SpreadsheetStyleBarModel {
 		}
 		GColor backgroundColor = styling.getBackgroundColor(row, column,
 				styling.getDefaultBackgroundColor());
-		GColor textColor = styling.getTextColor(row, column, styling.getDefaultTextColor());
+		GColor textColor = styling.getTextColor(row, column,
+				SpreadsheetStyling.getDefaultTextColor());
 		return new State(true, fontTraits, textAlignment, backgroundColor, textColor);
 	}
 

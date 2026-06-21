@@ -1,6 +1,24 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.arithmetic;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.geogebra.common.kernel.arithmetic.Inequality.IneqType;
@@ -105,9 +123,8 @@ public class IneqTree {
 	}
 
 	/**
-	 * recomputeSize needed to make this up to date
-	 * 
-	 * @return number of inequalities in this tree
+	 * {@link #recomputeSize()} needed to make this up to date
+	 * @return Number of inequalities in this tree
 	 */
 	public int getSize() {
 		return size;
@@ -201,5 +218,48 @@ public class IneqTree {
 			return leftVal.negate();
 		}
 		return ExtendedBoolean.UNKNOWN;
+	}
+
+	/**
+	 * @return A filtered list from all the encountered inequalities. If there exist two
+	 * or more inequalities that share the same border, only returns one of the strict borders
+	 * for that inequality.
+	 */
+	public List<Inequality> getPreferredBorders() {
+		List<Inequality> borders = new ArrayList<>();
+		for (Inequality inequality : getInequalities()) {
+			boolean alreadyPresent = false;
+			for (int j = 0; j < borders.size(); j++) {
+				Inequality border = borders.get(j);
+				if (inequality.isEqualBorder(border).boolVal()) {
+					if (isPreferredBorder(border, inequality)) {
+						borders.set(j, inequality);
+					}
+					alreadyPresent = true;
+					break;
+				}
+			}
+			if (!alreadyPresent) {
+				borders.add(inequality);
+			}
+		}
+		return borders;
+	}
+
+	private Set<Inequality> getInequalities() {
+		recomputeSize();
+		Set<Inequality> inequalities = new HashSet<>();
+		for (int i = 0; i < size; i++) {
+			inequalities.add(get(i));
+		}
+		return inequalities;
+	}
+
+	/**
+	 * @return Whether {@code candidate} should replace {@code current} as border to be drawn.
+	 */
+	private boolean isPreferredBorder(Inequality current, Inequality candidate) {
+		return (candidate.isStrict() && !current.isStrict() && operation == Operation.AND)
+				|| (!candidate.isStrict() && current.isStrict() && operation == Operation.OR);
 	}
 }

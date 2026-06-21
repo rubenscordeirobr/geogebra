@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.geogebra3D.gui;
 
 import java.awt.Component;
@@ -169,19 +185,6 @@ public class GuiManager3D extends GuiManagerD {
 	// ////////////////////////////
 	// POPUP MENU
 	// ////////////////////////////
-
-	/**
-	 * Displays the zoom menu at the position p in the coordinate space of
-	 * euclidianView
-	 */
-	/*
-	 * public void showDrawingPadPopup(Component invoker, Point p) { // clear
-	 * highlighting and selections in views app.getEuclidianView().resetMode();
-	 * 
-	 * // menu for drawing pane context menu ContextMenuGraphicsWindow3D
-	 * popupMenu = new ContextMenuGraphicsWindow3D( app, p.x, p.y);
-	 * popupMenu.show(invoker, p.x, p.y); }
-	 */
 
 	/**
 	 * Displays the zoom menu at the position p in the coordinate space of

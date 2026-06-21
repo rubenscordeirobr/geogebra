@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.toolbarpanel;
 
 import static org.geogebra.common.GeoGebraConstants.SCIENTIFIC_APPCODE;
@@ -96,14 +112,14 @@ public class ToolbarPanel extends FlowPanel
 	private @CheckForNull ToolsTab tabTools;
 	private @CheckForNull SpreadsheetTab spreadsheetTab;
 	private ShowableTab tabContainer;
-	private boolean isOpen;
+	private boolean isOpen = true;
 	private final ScheduledCommand deferredOnRes = this::resize;
 	private final UndoRedoProvider undoRedoProvider;
 	private @CheckForNull UndoRedoPanel undoRedoPanel;
 	private FlowPanel heading;
 	private final FlowPanel styleBarWrapper;
 	private final DockPanelDecorator decorator;
-	private final ExamController examController = GlobalScope.examController;
+	private final ExamController examController;
 	private ScientificEmbedTopBar topBar;
 	private @CheckForNull SpreadsheetStyleBar spreadsheetStyleBar;
 
@@ -113,6 +129,7 @@ public class ToolbarPanel extends FlowPanel
 	public ToolbarPanel(AppW app, DockPanelDecorator decorator) {
 		this.app = (AppWFull) app;
 		this.decorator = decorator;
+		examController = GlobalScope.getExamController(app);
 		eventDispatcher = app.getEventDispatcher();
 		styleBarWrapper = new FlowPanel();
 		undoRedoProvider = new UndoRedoProvider(app);
@@ -734,7 +751,9 @@ public class ToolbarPanel extends FlowPanel
 	}
 
 	private void updateWidthForClosing(ToolbarDockPanelW dockPanel, DockSplitPaneW dockParent) {
-		setLastOpenWidth(getOffsetWidth());
+		if (getOffsetWidth() > 0) {
+			setLastOpenWidth(getOffsetWidth());
+		}
 		dockParent.setWidgetMinSize(dockPanel, getNavigationRailWidth());
 		dockParent.setWidgetSize(dockPanel, getNavigationRailWidth());
 	}
@@ -904,6 +923,9 @@ public class ToolbarPanel extends FlowPanel
 	}
 
 	private void switchTab(TabIds tab, boolean fade) {
+		if (isOpen && getSelectedTabId() == tab && isTabActive(tab)) {
+			return;
+		}
 		app.getToolTipManager().hideTooltip();
 		navRail.selectTab(tab);
 		openNoResize();
@@ -925,6 +947,15 @@ public class ToolbarPanel extends FlowPanel
 		if (spreadsheetStyleBar != null) {
 			spreadsheetStyleBar.setVisible(tab == TabIds.SPREADSHEET);
 		}
+	}
+
+	private boolean isTabActive(TabIds tab) {
+		for (ToolbarTab toolbarTab : tabs) {
+			if (toolbarTab.getID() == tab) {
+				return toolbarTab.isActive();
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -951,6 +982,16 @@ public class ToolbarPanel extends FlowPanel
 	 */
 	public void openTableView(boolean fade) {
 		openTableView(null, fade);
+	}
+
+	/**
+	 * If algebra view is active, hide the whole toolbar. If not, open the algebra view.
+	 */
+	public void toggleAlgebraView() {
+		navRail.onAlgebraPressed();
+		if (!navRail.isOpen()) {
+			app.getActiveEuclidianView().requestFocus();
+		}
 	}
 
 	/**
@@ -1501,5 +1542,12 @@ public class ToolbarPanel extends FlowPanel
 		if (!navRail.isOpen()) {
 			app.getActiveEuclidianView().requestFocus();
 		}
+	}
+
+	/**
+	 * Toggles the distribution view.
+	 */
+	public void toggleDistributionView() {
+		navRail.onDistributionPressed();
 	}
 }

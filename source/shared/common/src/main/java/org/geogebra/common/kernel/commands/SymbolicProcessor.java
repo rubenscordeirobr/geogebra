@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.commands;
 
 import java.util.ArrayList;
@@ -72,11 +88,11 @@ public class SymbolicProcessor {
 	}
 
 	private static final class SubExpressionEvaluator implements Traversing {
-		private ExpressionValue root;
-		private SymbolicProcessor processor;
-		private EvalInfo evalInfo;
+		private final ExpressionValue root;
+		private final SymbolicProcessor processor;
+		private final EvalInfo evalInfo;
 
-		public SubExpressionEvaluator(SymbolicProcessor symbolicProcessor,
+		private SubExpressionEvaluator(SymbolicProcessor symbolicProcessor,
 				ExpressionValue root, EvalInfo evalInfo) {
 			this.processor = symbolicProcessor;
 			this.root = root;
@@ -370,7 +386,6 @@ public class SymbolicProcessor {
 	public static void autoCompleteVariables(Command cmd) {
 		ExpressionNode en = cmd.getArgument(0);
 		Kernel kernel = cmd.getKernel();
-		Construction cons = kernel.getConstruction();
 		/*
 		 * Solve command has one argument which is an expression | equation |
 		 * list
@@ -426,6 +441,7 @@ public class SymbolicProcessor {
 
 		MyList variables = new MyList(kernel, n);
 		int i = 0;
+		Construction cons = kernel.getConstruction();
 		Iterator<String> ite = set.iterator();
 		if (n == 1) {
 			if (ite.hasNext()) {

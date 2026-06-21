@@ -1,25 +1,24 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * DrawLine.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 11. October 2001, 23:59
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.euclidian.draw;
 
 import java.util.ArrayList;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GArea;
 import org.geogebra.common.awt.GGraphics2D;
 import org.geogebra.common.awt.GLine2D;
@@ -29,7 +28,6 @@ import org.geogebra.common.euclidian.EuclidianStatic;
 import org.geogebra.common.euclidian.EuclidianView;
 import org.geogebra.common.euclidian.GeneralPathClipped;
 import org.geogebra.common.euclidian.Previewable;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.kernel.ConstructionDefaults;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.geos.GeoFunction;
@@ -230,7 +228,7 @@ public class DrawLine extends SetDrawable implements Previewable {
 
 	// transform line to screen coords
 	// write start and endpoint into (x1,y1), (x2,y2)
-	private final void setClippedLine(double minx, double miny, double maxx,
+	private void setClippedLine(double minx, double miny, double maxx,
 			double maxy) {
 		// first calc two points in screen coords that are on the line
 
@@ -278,7 +276,7 @@ public class DrawLine extends SetDrawable implements Previewable {
 	// Cohen & Sutherland algorithm for line clipping on a rectangle
 	// Computergraphics I (Prof. Held) pp.100
 	// points (0, y1), (width, y2) -> clip on y=0 and y=height
-	final private void clipTopBottom(double minx, double miny, double maxy) {
+	private void clipTopBottom(double minx, double miny, double maxy) {
 		// calc clip attributes for both points (x1,y1), (x2,y2)
 		attr1[TOP] = y1 < minx - EuclidianStatic.CLIP_DISTANCE;
 		attr1[BOTTOM] = y1 > maxy + EuclidianStatic.CLIP_DISTANCE;
@@ -320,7 +318,7 @@ public class DrawLine extends SetDrawable implements Previewable {
 	// Cohen & Sutherland algorithm for line clipping on a rectangle
 	// Computergraphics I (Prof. Held) pp.100
 	// points (x1, 0), (x2, height) -> clip on x=0 and x=width
-	final private void clipLeftRight(double minx, double maxx) {
+	private void clipLeftRight(double minx, double maxx) {
 		// calc clip attributes for both points (x1,y1), (x2,y2)
 		attr1[LEFT] = x1 < minx - EuclidianStatic.CLIP_DISTANCE;
 		attr1[RIGHT] = x1 > maxx + EuclidianStatic.CLIP_DISTANCE;
@@ -360,7 +358,7 @@ public class DrawLine extends SetDrawable implements Previewable {
 	}
 
 	// set label position (xLabel, yLabel)
-	private final void setLabelPosition() {
+	private void setLabelPosition() {
 		// choose smallest position change
 		// 1-Norm distance between old label position
 		// and point 1, point 2
@@ -769,12 +767,11 @@ public class DrawLine extends SetDrawable implements Previewable {
 
 		}
 		gpc.closePath();
-		GArea gpcArea = AwtFactory.getPrototype().newArea(gpc);
+		GArea gpcArea = AwtFactory.getPrototype().newArea(gpc.getGeneralPath());
 		if (!invert) {
 			return gpcArea;
 		}
-		GArea complement = AwtFactory.getPrototype()
-				.newArea(view.getBoundingPath());
+		GArea complement = view.getBoundsArea();
 		complement.subtract(gpcArea);
 		return complement;
 	}

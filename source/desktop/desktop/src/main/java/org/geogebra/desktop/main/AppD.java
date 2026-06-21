@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.desktop.main;
@@ -19,6 +23,7 @@ import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Container;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -60,9 +65,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -79,6 +84,7 @@ import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
@@ -100,6 +106,7 @@ import javax.swing.WindowConstants;
 
 import org.geogebra.common.GeoGebraConstants;
 import org.geogebra.common.GeoGebraConstants.Platform;
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GDimension;
 import org.geogebra.common.awt.GFont;
 import org.geogebra.common.awt.MyImage;
@@ -112,7 +119,6 @@ import org.geogebra.common.export.pstricks.GeoGebraExport;
 import org.geogebra.common.export.pstricks.GeoGebraToAsymptote;
 import org.geogebra.common.export.pstricks.GeoGebraToPgf;
 import org.geogebra.common.export.pstricks.GeoGebraToPstricks;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.factories.CASFactory;
 import org.geogebra.common.factories.Factory;
 import org.geogebra.common.factories.FormatFactory;
@@ -122,11 +128,11 @@ import org.geogebra.common.geogebra3D.io.OFFHandler;
 import org.geogebra.common.gui.toolbar.ToolBar;
 import org.geogebra.common.gui.view.algebra.AlgebraView;
 import org.geogebra.common.io.XMLParseException;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.io.layout.DockPanelData;
 import org.geogebra.common.io.layout.Perspective;
 import org.geogebra.common.javax.swing.GImageIcon;
 import org.geogebra.common.jre.factory.FormatFactoryJre;
-import org.geogebra.common.jre.gui.MyImageJre;
 import org.geogebra.common.jre.headless.AppDI;
 import org.geogebra.common.jre.kernel.commands.CommandDispatcher3DJre;
 import org.geogebra.common.jre.main.TemplateHelper;
@@ -148,6 +154,7 @@ import org.geogebra.common.main.SpreadsheetTableModel;
 import org.geogebra.common.main.error.ErrorHandler;
 import org.geogebra.common.main.settings.AbstractSettings;
 import org.geogebra.common.main.settings.DefaultSettings;
+import org.geogebra.common.main.settings.FontSettings;
 import org.geogebra.common.main.settings.SettingsBuilder;
 import org.geogebra.common.main.settings.updater.SettingsUpdaterBuilder;
 import org.geogebra.common.media.VideoManager;
@@ -166,6 +173,7 @@ import org.geogebra.common.util.debug.Log.LogDestination;
 import org.geogebra.common.util.lang.Language;
 import org.geogebra.desktop.CommandLineArguments;
 import org.geogebra.desktop.GeoGebra;
+import org.geogebra.desktop.awt.AwtFactoryD;
 import org.geogebra.desktop.awt.GBufferedImageD;
 import org.geogebra.desktop.awt.GDimensionD;
 import org.geogebra.desktop.awt.GFontD;
@@ -179,7 +187,6 @@ import org.geogebra.desktop.euclidianND.EuclidianViewInterfaceD;
 import org.geogebra.desktop.export.GeoGebraTubeExportD;
 import org.geogebra.desktop.export.PrintPreviewD;
 import org.geogebra.desktop.export.pstricks.ExportGraphicsFactoryD;
-import org.geogebra.desktop.factories.AwtFactoryD;
 import org.geogebra.desktop.factories.CASFactoryD;
 import org.geogebra.desktop.factories.FactoryD;
 import org.geogebra.desktop.factories.LaTeXFactoryD;
@@ -205,7 +212,6 @@ import org.geogebra.desktop.javax.swing.GImageIconD;
 import org.geogebra.desktop.kernel.geos.GeoElementGraphicsAdapterD;
 import org.geogebra.desktop.main.settings.DefaultSettingsD;
 import org.geogebra.desktop.main.settings.SettingsBuilderD;
-import org.geogebra.desktop.main.settings.updater.FontSettingsUpdaterD;
 import org.geogebra.desktop.main.undo.UndoManagerD;
 import org.geogebra.desktop.move.ggtapi.models.LoginOperationD;
 import org.geogebra.desktop.plugin.GgbAPID;
@@ -221,17 +227,14 @@ import org.geogebra.desktop.util.LoggerD;
 import org.geogebra.desktop.util.StringUtilD;
 import org.geogebra.desktop.util.UtilD;
 
+import com.formdev.flatlaf.FlatLightLaf;
+
 /**
  * GeoGebra Application
  *
  * @author Markus Hohenwarter
  */
 public class AppD extends App implements KeyEventDispatcher, AppDI {
-
-	/**
-	 * License file
-	 */
-	public static final String LICENSE_FILE = "/org/geogebra/desktop/_license.txt";
 
 	/**
 	 * Command line arguments
@@ -428,6 +431,9 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 
 		// init settings
 		initSettings();
+		getSettings().getFontSettings().addListener(settings ->
+				getFontManager().setFontSize(((FontSettings) settings)
+						.getGuiFontSizeSafe()));
 
 		// init euclidian view
 		initEuclidianViews();
@@ -571,6 +577,17 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 	 *            LAF
 	 */
 	public static void setLAF(boolean isSystemLAF) {
+		try {
+			System.setProperty("flatlaf.menuBarEmbedded", "false");
+
+			UIManager.setLookAndFeel(new FlatLightLaf());
+			UIManager.put("Table.showHorizontalLines", true);
+			UIManager.put("Table.showVerticalLines", true);
+			UIManager.put("Table.intercellSpacing", new Dimension(1, 1));
+			return;
+		} catch (Exception ex) {
+			System.err.println("Failed to initialize LaF");
+		}
 		try {
 			if (isSystemLAF) {
 				UIManager.setLookAndFeel(
@@ -1528,9 +1545,9 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 
 	/**
 	 * @param res image resource ID
-	 * @return image icon
+	 * @return image for given resource ID
 	 */
-	public ImageIcon getImageIcon(ImageResourceD res) {
+	public Image getImage(ImageResourceD res) {
 		return imageManager.getImageIcon(res, null);
 	}
 
@@ -1538,7 +1555,7 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 	 * @param res image resource ID
 	 * @return scaled icon
 	 */
-	public ImageIcon getScaledIcon(ImageResourceD res) {
+	public ScaledIcon getScaledIcon(ImageResourceD res) {
 		return getScaledIcon(res, null);
 	}
 
@@ -1585,18 +1602,18 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 	 * @param borderColor border color
 	 * @return scaled icon
 	 */
-	public ImageIcon getScaledIcon(ImageResourceD res, Color borderColor) {
-		ImageIcon icon = imageManager.getImageIcon(res, borderColor);
-		return scaleIcon(icon, getScaledIconSize());
+	public ScaledIcon getScaledIcon(ImageResourceD res, Color borderColor) {
+		Image icon = imageManager.getImageIcon(res, borderColor);
+		return scaleIcon(icon, getScaledIconSize(), getImageManager().getPixelRatio());
 	}
 
 	/**
 	 * @param res resource
 	 * @return scaled icon
 	 */
-	public ImageIcon getScaledIconCommon(ImageResourceD res) {
-		ImageIcon icon = imageManager.getImageIcon(res, null);
-		return scaleIcon(icon, getScaledIconSize());
+	public ScaledIcon getScaledIconCommon(ImageResourceD res) {
+		Image icon = imageManager.getImageIcon(res, null);
+		return scaleIcon(icon, getScaledIconSize(), getImageManager().getPixelRatio());
 	}
 
 	/**
@@ -1604,18 +1621,18 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 	 * @param iconSize icon size
 	 * @return scaled icon
 	 */
-	public ImageIcon getScaledIcon(ImageResourceD res, int iconSize) {
-		ImageIcon icon = imageManager.getImageIcon(res, null);
-		return scaleIcon(icon, iconSize);
+	public ScaledIcon getScaledIcon(ImageResourceD res, int iconSize) {
+		Image icon = imageManager.getImageIcon(res, null);
+		return scaleIcon(icon, iconSize, imageManager.getPixelRatio());
 	}
 
-	private static ImageIcon scaleIcon(ImageIcon icon, int iconSize) {
+	private static ScaledIcon scaleIcon(Image icon, int iconSize, double scale) {
 		if (icon == null || iconSize == 0) {
 			return null;
 		}
-		Image img = icon.getImage().getScaledInstance(iconSize, iconSize,
-				Image.SCALE_SMOOTH);
-		return new ImageIcon(img);
+		Image img = icon.getScaledInstance((int) (iconSize * scale),
+				(int) (iconSize * scale), Image.SCALE_SMOOTH);
+		return new ScaledIcon(img, scale);
 
 	}
 
@@ -1637,7 +1654,7 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 	 */
 	public ScaledIcon getToolBarImage(String modeText, Color borderColor) {
 
-		ImageIcon icon = imageManager.getImageIcon(
+		Image icon = imageManager.getImageIcon(
 				imageManager.getToolImageResource(modeText), borderColor,
 				Color.WHITE);
 
@@ -1649,7 +1666,7 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 		 */
 
 		if (icon == null) {
-			icon = getToolIcon(borderColor);
+			icon = getToolIconImage(borderColor);
 
 			Log.debug("icon missing for mode " + modeText);
 		}
@@ -1660,9 +1677,9 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 
 	/**
 	 * @param border border color
-	 * @return tool icon
+	 * @return generic tool icon image
 	 */
-	public ImageIcon getToolIcon(Color border) {
+	public Image getToolIconImage(Color border) {
 		ImageResourceD res;
 		if (imageManager.getMaxIconSize() <= 32 && imageManager.getPixelRatio() <= 1.0) {
 			res = GuiResourcesD.TOOL_MODE32;
@@ -1674,7 +1691,7 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 	}
 
 	public ImageIcon getEmptyIcon() {
-		return imageManager.getImageIcon(GuiResourcesD.EMPTY);
+		return new ImageIcon(imageManager.getImageIcon(GuiResourcesD.EMPTY));
 	}
 
 	/**
@@ -1691,14 +1708,6 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 	public Image getRefreshViewImage() {
 		// don't need to load gui jar as reset image is in main jar
 		return getMenuInternalImage(GuiResourcesD.VIEW_REFRESH);
-	}
-
-	/***
-	 * @return returns NAV_PLAY image
-	 */
-	public Image getPlayImage() {
-		// don't need to load gui jar as reset image is in main jar
-		return imageManager.getInternalImage(GuiResourcesD.NAV_PLAY).getImage();
 	}
 
 	/***
@@ -1739,22 +1748,13 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 	}
 
 	/***
-	 * @return returns NAV_PAUSE image
-	 */
-	public Image getPauseImage() {
-		// don't need to load gui jar as reset image is in main jar
-		return imageManager.getInternalImage(GuiResourcesD.NAV_PAUSE)
-				.getImage();
-	}
-
-	/***
 	 *
 	 * @param filename filename
 	 * @return returns image by path
 	 */
 	@Override
 	public MyImageD getExternalImage(String filename) {
-		return ImageManagerD.getExternalImage(filename);
+		return ImageManagerD.getStaticExternalImage(filename);
 	}
 
 	/***
@@ -1767,7 +1767,7 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 	@Override
 	public final MyImage getExternalImageAdapter(String filename, int width,
 			int height) {
-		return ImageManagerD.getExternalImage(filename);
+		return ImageManagerD.getStaticExternalImage(filename);
 	}
 
 	/***
@@ -1776,7 +1776,7 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 	 * @param image image
 	 */
 	@Override
-	public void addExternalImage(String filename, MyImageJre image) {
+	public void addExternalImage(String filename, MyImage image) {
 		imageManager.addExternalImage(filename, image);
 	}
 
@@ -1804,13 +1804,13 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 				MyImageD img = getExternalImage(iconName);
 				if (img == null || img.isSVG()) {
 					// default icon
-					icon = new ScaledIcon(getToolIcon(border), imageManager.getPixelRatio());
+					icon = new ScaledIcon(getToolIconImage(border), imageManager.getPixelRatio());
 				} else {
 					// use image as icon
 					int size = imageManager.getMaxScaledIconSize();
-					icon = new ScaledIcon(new ImageIcon(ImageManagerD.addBorder(img.getImage()
+					icon = new ScaledIcon(ImageManagerD.addBorder(img.getImage()
 							.getScaledInstance(size, -1, Image.SCALE_SMOOTH),
-							border, null)), imageManager.getPixelRatio());
+							border, null), imageManager.getPixelRatio());
 				}
 			} catch (Exception e) {
 				Log.debug("macro does not exist: ID = " + macroID);
@@ -1978,7 +1978,7 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 	 *             error
 	 */
 	@Override
-	public MyImageJre getExportImage(double maxX, double maxY)
+	public MyImage getExportImage(double maxX, double maxY)
 			throws OutOfMemoryError {
 
 		return new MyImageD(GBufferedImageD.getAwtBufferedImage(
@@ -2707,7 +2707,7 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 	 * @param size font size
 	 * @return font
 	 */
-	final public GFont getFont(boolean serif, int style, int size) {
+	final public GFont getFont(boolean serif, int style, double size) {
 		return fontManager.getFont(serif, style, size);
 	}
 
@@ -3220,11 +3220,11 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 	 */
 
 	@Override
-	protected void getLayoutXML(StringBuilder sb, boolean asPreference) {
+	protected void getLayoutXML(XMLStringBuilder sb, boolean asPreference) {
 		if (guiManager == null) {
 			initGuiManager();
 		}
-		getGuiManager().getLayout().getXml(sb, asPreference);
+		super.getLayoutXML(sb, asPreference);
 	}
 
 	/**
@@ -3875,8 +3875,8 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 	}
 
 	@Override
-	public GFont getFontCommon(boolean b, int i, int size) {
-		return getFont(b, i, size);
+	public GFont getFontCommon(boolean serif, int style, double size) {
+		return getFont(serif, style, size);
 	}
 
 	public GFont getBoldFontCommon() {
@@ -4413,7 +4413,7 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 	 * @param res ImageResourceD
 	 * @return ImageIcon
 	 */
-	public ImageIcon getMenuIcon(ImageResourceD res) {
+	public Icon getMenuIcon(ImageResourceD res) {
 		if (isMacOS()) {
 			// fixed-size, 16x16 icons for mac menu
 			return getScaledIcon(res, 16);
@@ -4781,7 +4781,7 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 		Image img1 = icon.getImage();
 
 		BufferedImage img2 = ImageManagerD.toBufferedImage(img1);
-		return StringUtil.pngMarker + GgbAPID.base64encode(img2, 72);
+		return StringUtil.pngMarker + GBufferedImageD.base64encode(img2, 72);
 	}
 
 	/**
@@ -4791,23 +4791,15 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 	 *            string builder
 	 */
 	@Override
-	public void getKeyboardXML(StringBuilder sb) {
-		sb.append("<keyboard width=\"");
-		sb.append(((KeyboardSettings) getSettings().getKeyboard())
-				.getKeyboardWidth());
-		sb.append("\" height=\"");
-		sb.append(((KeyboardSettings) getSettings().getKeyboard())
-				.getKeyboardHeight());
-		sb.append("\" opacity=\"");
-		sb.append(((KeyboardSettings) getSettings().getKeyboard())
-				.getKeyboardOpacity());
-		sb.append("\" language=\"");
-		sb.append(((KeyboardSettings) getSettings().getKeyboard())
-				.getKeyboardLocale());
-		sb.append("\" show=\"");
-		sb.append(((KeyboardSettings) getSettings().getKeyboard())
-				.isShowKeyboardOnStart());
-		sb.append("\"/>");
+	public void getKeyboardXML(XMLStringBuilder sb) {
+		KeyboardSettings keyboard = (KeyboardSettings) getSettings().getKeyboard();
+		sb.startTag("keyboard", 0)
+				.attr("width", keyboard.getKeyboardWidth())
+				.attr("height", keyboard.getKeyboardHeight())
+				.attr("opacity", keyboard.getKeyboardOpacity())
+				.attr("language", keyboard.getKeyboardLocale())
+				.attr("show", keyboard.isShowKeyboardOnStart())
+				.endTag();
 	}
 
 	@Override
@@ -4820,7 +4812,7 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 	}
 
 	@Override
-	public void updateKeyboardSettings(LinkedHashMap<String, String> attrs) {
+	public void updateKeyboardSettings(Map<String, String> attrs) {
 		try {
 			int width = Integer.parseInt(attrs.get("width"));
 			KeyboardSettings kbs = (KeyboardSettings) getSettings()
@@ -4834,8 +4826,8 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 			kbs.setShowKeyboardOnStart(showOnStart);
 			kbs.setKeyboardLocale(attrs.get("language"));
 		} catch (RuntimeException e) {
-			e.printStackTrace();
 			Log.error("error in element <keyboard>");
+			Log.debug(e);
 		}
 	}
 
@@ -4846,8 +4838,13 @@ public class AppD extends App implements KeyEventDispatcher, AppDI {
 
 	@Override
 	protected SettingsUpdaterBuilder newSettingsUpdaterBuilder() {
-		return new SettingsUpdaterBuilder(this)
-				.withFontSettingsUpdater(new FontSettingsUpdaterD(this));
+		getSettings().getFontSettings().addListener(settings -> {
+			FontSettings fontSettings = (FontSettings) settings;
+			if (fontSettings.getGuiFontSize() == -1) {
+				setMaxIconSize(fontSettings.getAppFontSize());
+			}
+		});
+		return super.newSettingsUpdaterBuilder();
 	}
 
 	@Override

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.algos;
 
 import java.util.ArrayList;
@@ -119,7 +135,7 @@ public class AlgoNSolveODE extends AlgoElement {
 		al = new ArrayList<>(dim);
 
 		for (int i = 0; i < dim; i++) {
-			al.add(new ArrayList<MyPoint>());
+			al.add(new ArrayList<>());
 		}
 
 		FirstOrderIntegrator integrator = new DormandPrince54Integrator(0.001,
@@ -174,10 +190,10 @@ public class AlgoNSolveODE extends AlgoElement {
 		}
 	};
 
-	private class ODEN implements FirstOrderDifferentialEquations {
-		private GeoList fun1;
+	private final class ODEN implements FirstOrderDifferentialEquations {
+		private final GeoList fun1;
 
-		public ODEN(GeoList fun) {
+		private ODEN(GeoList fun) {
 			this.fun1 = fun;
 		}
 

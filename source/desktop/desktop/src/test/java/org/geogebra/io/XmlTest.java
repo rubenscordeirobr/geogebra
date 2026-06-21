@@ -1,16 +1,44 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+ 
 package org.geogebra.io;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Locale;
 
+import org.geogebra.common.GeoGebraConstants;
+import org.geogebra.common.geogebra3D.kernel3D.geos.GeoSpace;
 import org.geogebra.common.io.XmlTestUtil;
+import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.commands.AlgebraProcessor;
+import org.geogebra.common.kernel.geos.GeoBoolean;
+import org.geogebra.common.kernel.geos.GeoButton;
+import org.geogebra.common.kernel.geos.GeoConic;
+import org.geogebra.common.kernel.geos.GeoNumeric;
 import org.geogebra.common.kernel.geos.GeoPoint;
 import org.geogebra.common.kernel.kernelND.GeoElementND;
+import org.geogebra.common.util.MyMath;
 import org.geogebra.desktop.headless.AppDNoGui;
 import org.geogebra.desktop.main.LocalizationD;
 import org.geogebra.desktop.util.UtilD;
+import org.geogebra.editor.share.util.Unicode;
+import org.geogebra.test.annotation.Issue;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -34,18 +62,129 @@ public class XmlTest {
 
 	@Test
 	public void pointReloadTest() {
-		GeoElementND p = ap.processAlgebraCommand("P=(1,1)", true)[0];
+		GeoElementND p = processAlgebraCommand("P=(1,1)");
 		((GeoPoint) p).setAnimationStep(0.01);
 		app.setXML(app.getXML(), true);
-		assertEquals(0.01,
-				app.getKernel().lookupLabel("P").getAnimationStep(), 1E-8);
+		assertEquals(0.01, app.getKernel().lookupLabel("P").getAnimationStep(), 1E-8);
 	}
 
 	@Test
 	public void specialPointsLoadTest() {
-		app.setXML(UtilD.loadFileIntoString(
-				"src/test/resources/specialpoints.xml"), true);
+		app.setXML(UtilD.loadFileIntoString("src/test/resources/specialpoints.xml"), true);
 		assertEquals(20, app.getGgbApi().getAllObjectNames().length);
 	}
 
+	@Test
+	@Issue("APPS-6072")
+	public void checkAnimationSpeedsOnFileSaveAndLoad() {
+		// Some random input
+		processAlgebraCommand("A = (1, 2)");
+		processAlgebraCommand("l = {A, (3, 4)}");
+		processAlgebraCommand("a = 3");
+		processAlgebraCommand("A1 = 2");
+		processAlgebraCommand("B1 = 3");
+		processAlgebraCommand("C1 = Sum(A1:B1)");
+
+		// Some elements with modified animation speed
+		GeoElementND numeric = processAlgebraCommand("b = 5");
+		numeric.toGeoElement().setAnimationSpeed(2.5);
+		GeoElementND slider = processAlgebraCommand("Slider(-5, 5, 1)");
+		slider.setAuxiliaryObject(true);
+		slider.toGeoElement().setAnimationSpeed(0.5);
+		GeoElementND spreadsheetElement = processAlgebraCommand("D1 = 4");
+		spreadsheetElement.toGeoElement().setAnimationSpeed(3.0);
+
+		String xml = app.getXML();
+
+		assertTrue(xml.contains("speed=\"2.5\""));
+		assertTrue(xml.contains("speed=\"0.5\""));
+		assertTrue(xml.contains("speed=\"3\""));
+		assertFalse(xml.contains("speed=\"1\""));
+
+		// Reload
+		app.setXML(xml, true);
+		xml = app.getXML();
+
+		assertTrue(xml.contains("speed=\"2.5\""));
+		assertTrue(xml.contains("speed=\"0.5\""));
+		assertTrue(xml.contains("speed=\"3\""));
+		assertFalse(xml.contains("speed=\"1\""));
+	}
+
+	@Test
+	@Issue("APPS-1470")
+	public void elementShouldNotBeReloadedAsVectorIfLocalVariableExists() {
+		processAlgebraCommand("l1 = {(1, 2), (3, 4)}");
+		processAlgebraCommand("l2 = {(0, 2), (1, 0)}");
+		processAlgebraCommand("l3 = Zip(Vector(aa, bb), aa, l1, bb, l2)");
+		processAlgebraCommand("KeepIf(Length(vv) < 2,vv,l3)");
+
+		String xml = app.getXML();
+		assertFalse(xml.contains("Vector[vv]"));
+
+		app.setXML(xml, true);
+		assertFalse(app.getXML().contains("Vector[vv]"));
+	}
+
+	@Test
+	@Issue("APPS-7032")
+	public void constantElementsShouldBeOverwrittenWhenLoadingXML() {
+		app.setXML("<geogebra><construction>"
+				+ "<element type=\"boolean\" label=\"zAxis\"></element>"
+				+ "<element type=\"conic\" label=\"xOyPlane\"></element>"
+				+ "<element type=\"numeric\" label=\"space\"> </element>"
+				+ "<element type=\"button\" label=\"xAxis\"></element>"
+				+ "<element type=\"point\" label=\"yAxis\"></element>"
+				+ "</construction></geogebra>", false);
+		assertEquals(GeoBoolean.class, app.getKernel().lookupLabel("zAxis").getClass());
+		assertEquals(GeoConic.class, app.getKernel().lookupLabel("xOyPlane").getClass());
+		assertEquals(GeoNumeric.class, app.getKernel().lookupLabel("space").getClass());
+		assertEquals(GeoButton.class, app.getKernel().lookupLabel("xAxis").getClass());
+		assertEquals(GeoPoint.class, app.getKernel().lookupLabel("yAxis").getClass());
+		app.setLanguage(new Locale("pt", "BR"));
+		assertEquals(GeoNumeric.class, app.getKernel().lookupLabel("space").getClass());
+		assertEquals(GeoSpace.class, app.getKernel().lookupLabel("esp").getClass());
+	}
+
+	@Test
+	@Issue("APPS-7282")
+	public void functionShouldNotSimplifyCoefficientsWhenLoadingOldFile() {
+		processAlgebraCommand("f(x)=1x+0x+1");
+		String xml = app.getXML();
+		xml = xml.replace("<simplifyCoefficients val=\"true\"/>", "");
+		app.setXML(xml, true);
+		assertEquals("1x + 0x + 1",
+				app.getKernel().lookupLabel("f").toValueString(StringTemplate.defaultTemplate));
+	}
+
+	@Test
+	@Issue("APPS-7345")
+	public void oldFilesShouldNotDisplayLargeNumbersUsingScientificNotation() {
+		processAlgebraCommand("a = " + MyMath.LARGEST_INTEGER);
+
+		String xml = app.getXML();
+		xml = xml.replace("version=\"" + GeoGebraConstants.VERSION_STRING + "\"",
+				"version=\"5.4.923.0\"");
+		app.setXML(xml, true);
+
+		String largestInteger = app.getKernel().lookupLabel("a")
+				.toValueString(StringTemplate.defaultTemplate);
+		assertEquals("9007199254740992", largestInteger);
+	}
+
+	@Test
+	@Issue("APPS-7345")
+	public void newFilesShouldDisplayLargeNumbersUsingScientificNotation() {
+		processAlgebraCommand("a = " + MyMath.LARGEST_INTEGER);
+		app.setXML(app.getXML(), true);
+
+		String largestInteger = app.getKernel().lookupLabel("a")
+				.toValueString(StringTemplate.defaultTemplate);
+		assertEquals("9.00719925474099 " + Unicode.CENTER_DOT + " 10"
+				+ Unicode.SUPERSCRIPT_1 + Unicode.SUPERSCRIPT_5, largestInteger);
+	}
+
+	private GeoElementND processAlgebraCommand(String input) {
+		return ap.processAlgebraCommand(input, true)[0];
+	}
 }

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.batch;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -35,21 +51,21 @@ public class BatchedUpdateWrapperTest extends BaseUnitTest {
 
 	private BatchedUpdateWrapper wrapper;
 
-	static abstract private class WrappedViewTest
-			implements WrappableView {
+	private interface WrappedViewTest
+			extends WrappableView {
 
 		@Override
-		public boolean needsUpdateVisualstyle(GProperty property) {
+		default boolean needsUpdateVisualstyle(GProperty property) {
 			return true;
 		}
 
 		@Override
-		public boolean show(GeoElement geo) {
+		default boolean show(GeoElement geo) {
 			return true;
 		}
 
 		@Override
-		public boolean getIsWrapped() {
+		default boolean getIsWrapped() {
 			return true;
 		}
 

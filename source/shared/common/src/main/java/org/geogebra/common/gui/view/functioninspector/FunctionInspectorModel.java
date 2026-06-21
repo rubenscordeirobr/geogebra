@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.gui.view.functioninspector;
@@ -330,9 +334,6 @@ public class FunctionInspectorModel {
 		highPoint.getCoords(coords);
 		xMax = coords[0];
 
-		ExtremumFinderI ef = kernel.getExtremumFinder();
-		UnivariateFunction fun = selectedGeo.getUnivariateFunctionY();
-
 		// value of x that gives min y at endpoints
 		double yMinXval;
 		// value of x that gives max y at endpoints
@@ -356,7 +357,8 @@ public class FunctionInspectorModel {
 			yMin = y2;
 			yMax = y1;
 		}
-
+		ExtremumFinderI ef = kernel.getExtremumFinder();
+		UnivariateFunction fun = selectedGeo.getUnivariateFunctionY();
 		// find (local) extremums in the range
 		double xMinInt = ef.findMinimum(xMin, xMax, fun, 5.0E-8);
 		double xMaxInt = ef.findMaximum(xMin, xMax, fun, 5.0E-8);
@@ -455,30 +457,30 @@ public class FunctionInspectorModel {
 			value2.add(null);
 		}
 		// get the table
-		final double integral = ((GeoNumeric) integralGeo).getDouble();
-		final double area = ((GeoNumeric) areaGeo).getDouble();
-		final double mean = integral / (xMax - xMin);
-		final double length = ((GeoNumeric) lengthGeo).getDouble();
 
 		property.add(null);
 		values.add(null);
 		value2.add(null);
 
+		final double integral = ((GeoNumeric) integralGeo).getDouble();
 		property.add(loc.getCommand("Integral"));
 		values.add(format(integral));
 		Double[] in = { integral };
 		value2.add(in);
 
+		final double area = ((GeoNumeric) areaGeo).getDouble();
 		property.add(loc.getCommand("Area"));
 		values.add(format(area));
 		Double[] a = { area };
 		value2.add(a);
 
+		final double mean = integral / (xMax - xMin);
 		property.add(loc.getCommand("Mean"));
 		values.add(format(mean));
 		Double[] m = { mean };
 		value2.add(m);
 
+		final double length = ((GeoNumeric) lengthGeo).getDouble();
 		property.add(loc.getCommand("Length"));
 		values.add(format(length));
 		Double[] l = { length };
@@ -749,14 +751,11 @@ public class FunctionInspectorModel {
 			testPoint.getCoords(coords);
 			this.start = coords[0];
 			listener.changeTableSelection();
-			return;
 		}
 
 		else if (!isPoints && (lowPoint.equals(geo) || highPoint.equals(geo))) {
 			listener.updateHighAndLow(lowPoint.x > highPoint.x,
 					lowPoint.equals(geo));
-
-			return;
 		}
 	}
 

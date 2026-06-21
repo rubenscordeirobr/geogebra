@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.view.spreadsheet;
 
 import java.awt.BorderLayout;
@@ -39,9 +55,7 @@ import org.geogebra.common.kernel.ModeSetter;
 import org.geogebra.common.kernel.geos.GProperty;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.geos.GeoElementSpreadsheet;
-import org.geogebra.common.kernel.kernelND.GeoElementND;
 import org.geogebra.common.main.App;
-import org.geogebra.common.main.settings.AbstractSettings;
 import org.geogebra.common.main.settings.SettingListener;
 import org.geogebra.common.main.settings.SpreadsheetSettings;
 import org.geogebra.common.spreadsheet.core.SpreadsheetCoords;
@@ -55,8 +69,8 @@ import org.geogebra.desktop.main.AppD;
 import org.geogebra.desktop.main.SpreadsheetTableModelD;
 import org.geogebra.desktop.util.GuiResourcesD;
 
-public class SpreadsheetViewD implements SpreadsheetViewInterface,
-		ComponentListener, FocusListener, Gridable, SettingListener, SetLabels {
+public class SpreadsheetViewD implements SpreadsheetViewInterface, ComponentListener,
+		FocusListener, Gridable, SettingListener<SpreadsheetSettings>, SetLabels {
 
 	// ggb fields
 	protected AppD app;
@@ -295,7 +309,6 @@ public class SpreadsheetViewD implements SpreadsheetViewInterface,
 	@Override
 	public void add(GeoElement geo) {
 		update(geo);
-		scrollIfNeeded(geo, null);
 	}
 
 	@Override
@@ -303,7 +316,7 @@ public class SpreadsheetViewD implements SpreadsheetViewInterface,
 		SpreadsheetCoords location = geo.getSpreadsheetCoords();
 
 		if (labelNew != null && location == null) {
-			location = GeoElementSpreadsheet.spreadsheetIndices(labelNew);
+			location = GeoElementSpreadsheet.getSpreadsheetCoordsSafe(labelNew);
 		}
 
 		if (location == null || (location.column == -1 && location.row == -1)) {
@@ -922,19 +935,19 @@ public class SpreadsheetViewD implements SpreadsheetViewInterface,
 	}
 
 	@Override
-	public void settingsChanged(AbstractSettings settings0) {
+	public void settingsChanged(SpreadsheetSettings settings0) {
 
 		allowSettingUpdate = false;
 
 		// layout
-		setShowColumnHeader(settings().showColumnHeader());
-		setShowRowHeader(settings().showRowHeader());
-		setShowVScrollBar(settings().showVScrollBar());
-		setShowHScrollBar(settings().showHScrollBar());
-		setShowGrid(settings().showGrid());
-		setShowFormulaBar(settings().showFormulaBar());
-		setEqualsRequired(settings().equalsRequired());
-		setEnableAutoComplete(settings().isEnableAutoComplete());
+		setShowColumnHeader(settings0.showColumnHeader());
+		setShowRowHeader(settings0.showRowHeader());
+		setShowVScrollBar(settings0.showVScrollBar());
+		setShowHScrollBar(settings0.showHScrollBar());
+		setShowGrid(settings0.showGrid());
+		setShowFormulaBar(settings0.showFormulaBar());
+		setEqualsRequired(settings0.equalsRequired());
+		setEnableAutoComplete(settings0.isEnableAutoComplete());
 
 		// row height and column widths
 		setColumnWidthsFromSettings();
@@ -942,12 +955,12 @@ public class SpreadsheetViewD implements SpreadsheetViewInterface,
 
 		// cell format
 		getSpreadsheetTable().getCellFormatHandler()
-				.processXMLString(settings().cellFormat());
+				.processXMLString(settings0.cellFormat());
 		spreadsheetWrapper.repaint();
-		table.repaintAll();
+		table.repaint();
 		// preferredSize
 		spreadsheetWrapper.setPreferredSize(
-				GDimensionD.getAWTDimension(settings().preferredSize()));
+				GDimensionD.getAWTDimension(settings0.preferredSize()));
 
 		// initial position
 		// TODO not working yet ...

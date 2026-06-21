@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.view.spreadsheet;
 
 import java.awt.Rectangle;
@@ -105,7 +121,8 @@ public class SpreadsheetMouseListenerD
 				if (point != null) {
 					int column = point.column;
 					int row = point.row;
-					GeoElement geo = RelativeCopy.getValue(app, column, row);
+					GeoElement geo =
+							RelativeCopy.getValue(app.getSpreadsheetTableModel(), column, row);
 					if (geo != null) {
 						e.consume();
 					}
@@ -122,8 +139,7 @@ public class SpreadsheetMouseListenerD
 			GeoElement geo = (GeoElement) model.getValueAt(row, col);
 			// let euclidianView know about the click
 			AbstractEvent event = MouseEventD.wrapEvent(e);
-			app.getActiveEuclidianView().clickedGeo(geo,
-					app.isControlDown(event));
+			app.getActiveEuclidianView().clickedGeo(geo, event.isControlDown());
 			event.release();
 		}
 
@@ -261,8 +277,8 @@ public class SpreadsheetMouseListenerD
 						int column = point.column;
 						int row = point.row;
 
-						GeoElement geo = RelativeCopy.getValue(app, column,
-								row);
+						GeoElement geo =
+								RelativeCopy.getValue(app.getSpreadsheetTableModel(), column, row);
 						if (geo != null) {
 							GeoClass geoType = geo.getGeoClassType();
 							if (geoType == GeoClass.BUTTON
@@ -449,7 +465,7 @@ public class SpreadsheetMouseListenerD
 
 			// create and show context menu
 			SpreadsheetContextMenuD contextMenu = new SpreadsheetContextMenuD(
-					table);
+					table, table.getToolProcessor(app));
 			JPopupMenu popup = contextMenu.getMenuContainer();
 			popup.show(e.getComponent(), e.getX(), e.getY());
 		}

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.io;
 
 import static org.geogebra.common.kernel.geos.GeoButton.DEFAULT_BUTTON_HEIGHT;
@@ -5,20 +21,20 @@ import static org.geogebra.common.kernel.geos.GeoButton.DEFAULT_BUTTON_HEIGHT;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.awt.GFont;
 import org.geogebra.common.awt.GPoint2D;
 import org.geogebra.common.awt.GRectangle2D;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.LinearEquationRepresentable;
 import org.geogebra.common.kernel.Locateable;
 import org.geogebra.common.kernel.MacroConstruction;
+import org.geogebra.common.kernel.MyPoint;
 import org.geogebra.common.kernel.QuadraticEquationRepresentable;
 import org.geogebra.common.kernel.SetRandomValue;
 import org.geogebra.common.kernel.algos.ChartStyle;
@@ -132,6 +148,7 @@ public class ConsElementXMLHandler {
 	private final LinkedList<GeoElement> animatingList = new LinkedList<>();
 	private final LinkedList<GeoNumericMinMax> minMaxList = new LinkedList<>();
 	private boolean lineStyleTagProcessed;
+	private boolean lineOpacityTagProcessed;
 	private boolean symbolicTagProcessed;
 	private boolean sliderTagProcessed;
 	private boolean fontTagProcessed;
@@ -203,12 +220,11 @@ public class ConsElementXMLHandler {
 		this.needsConstructionDefaults = needsConstructionDefaults;
 	}
 
-	private boolean handleCurveParam(LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof GeoVec3D)) {
+	private boolean handleCurveParam(Map<String, String> attrs) {
+		if (!(geo instanceof GeoVec3D v)) {
 			Log.debug("wrong element type for <curveParam>: " + geo.getClass());
 			return false;
 		}
-		GeoVec3D v = (GeoVec3D) geo;
 
 		try {
 			String tAttr = attrs.get("t");
@@ -227,14 +243,14 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleCoords(LinkedHashMap<String, String> attrs) {
+	private boolean handleCoords(Map<String, String> attrs) {
 		ExpressionNode def = geo.getDefinition();
 		boolean success = xmlHandler.kernel.handleCoords(geo, attrs);
 		geo.setDefinition(def);
 		return success;
 	}
 
-	private boolean handleDimensions(LinkedHashMap<String, String> attrs) {
+	private boolean handleDimensions(Map<String, String> attrs) {
 		String width = attrs.get("width");
 		String height = attrs.get("height");
 		String angle = attrs.get("angle");
@@ -288,7 +304,7 @@ public class ConsElementXMLHandler {
 		return false;
 	}
 
-	private boolean handleScript(LinkedHashMap<String, String> attrs,
+	private boolean handleScript(Map<String, String> attrs,
 			ScriptType type) {
 		try {
 			handleScript(attrs, type, "val", EventType.CLICK);
@@ -301,16 +317,16 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private void handleScript(LinkedHashMap<String, String> attrs, ScriptType type,
+	private void handleScript(Map<String, String> attrs, ScriptType type,
 			String attrName, EventType evtType) {
 		String text = attrs.get(attrName);
-		if (text != null && text.length() > 0) {
+		if (text != null && !text.isEmpty()) {
 			Script script = app.createScript(type, text, false);
 			geo.setScript(script, evtType);
 		}
 	}
 
-	private boolean handleCondition(LinkedHashMap<String, String> attrs) {
+	private boolean handleCondition(Map<String, String> attrs) {
 		try {
 			// condition for visibility of object
 			String strShowObjectCond = attrs.get("showObject");
@@ -328,7 +344,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleCheckbox(LinkedHashMap<String, String> attrs) {
+	private boolean handleCheckbox(Map<String, String> attrs) {
 		if (!geo.isGeoBoolean()) {
 			Log.error("wrong element type for <checkbox>: " + geo.getClass());
 			return false;
@@ -344,17 +360,16 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private void handleContentParam(LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof GeoInline)) {
+	private void handleContentParam(Map<String, String> attrs) {
+		if (!(geo instanceof GeoInline inlineText)) {
 			Log.error("wrong element type for <content>: " + geo.getClass());
 			return;
 		}
 
-		GeoInline inlineText = (GeoInline) geo;
 		inlineText.setContent(attrs.get("val"));
 	}
 
-	private boolean handleValue(LinkedHashMap<String, String> attrs,
+	private boolean handleValue(Map<String, String> attrs,
 			ArrayList<String> errors) {
 		boolean isBoolean = geo.isGeoBoolean();
 		boolean isNumber = geo.isGeoNumeric();
@@ -410,8 +425,8 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleVariables(LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof GeoSymbolic)) {
+	private boolean handleVariables(Map<String, String> attrs) {
+		if (!(geo instanceof GeoSymbolic symbolic)) {
 			return false;
 		}
 		String variableString = attrs.get("val");
@@ -423,16 +438,16 @@ public class ConsElementXMLHandler {
 		for (int i = 0; i < variables.length; i++) {
 			fVars[i] = new FunctionVariable(xmlHandler.kernel, variables[i]);
 		}
-		GeoSymbolic symbolic = (GeoSymbolic) geo;
 		symbolic.setVariables(Arrays.asList(fVars));
 		return true;
 	}
 
-	protected void init(LinkedHashMap<String, String> attrs) {
+	protected void init(Map<String, String> attrs) {
 		sliderTagProcessed = false;
 		fontTagProcessed = false;
 		symbolicTagProcessed = false;
 		lineStyleTagProcessed = false;
+		lineOpacityTagProcessed = false;
 		geo = getGeoElement(attrs);
 		if (needsConstructionDefaults) {
 			// don't set auxiliary prop here, it will be loaded from XML
@@ -448,6 +463,9 @@ public class ConsElementXMLHandler {
 			geo.setVisibleInView3D(false);
 		} else if (geo instanceof GeoFunction || geo instanceof EquationValue) {
 			geo.setFixed(false);
+			if (geo instanceof GeoFunction function) {
+				function.setSimplifyCoefficients(false);
+			}
 		} else if (geo instanceof GeoAngle) {
 			((GeoAngle) geo).setEmphasizeRightAngle(true);
 		} else if (geo instanceof GeoText) {
@@ -462,12 +480,11 @@ public class ConsElementXMLHandler {
 	}
 
 	// for point or vector
-	private boolean handleCoordStyle(LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof CoordStyle)) {
+	private boolean handleCoordStyle(Map<String, String> attrs) {
+		if (!(geo instanceof CoordStyle v)) {
 			Log.error("wrong element type for <coordStyle>: " + geo.getClass());
 			return false;
 		}
-		CoordStyle v = (CoordStyle) geo;
 		String style = attrs.get("style");
 		switch (style) {
 		case "cartesian":
@@ -492,7 +509,7 @@ public class ConsElementXMLHandler {
 		return true;
 	}
 
-	private boolean handleListeners(LinkedHashMap<String, String> attrs) {
+	private boolean handleListeners(Map<String, String> attrs) {
 		try {
 			ScriptManager scriptManager = app.getScriptManager();
 			if ("objectUpdate".equals(attrs.get("type"))) {
@@ -510,7 +527,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleCaption(LinkedHashMap<String, String> attrs) {
+	private boolean handleCaption(Map<String, String> attrs) {
 		try {
 			geo.setCaption(attrs.get("val"));
 			return true;
@@ -519,19 +536,18 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handlePointSize(LinkedHashMap<String, String> attrs) {
+	private boolean handlePointSize(Map<String, String> attrs) {
 		if (geo.isGeoNumeric()) {
 			((GeoNumeric) geo).setSliderBlobSize(
 					StringUtil.parseDouble(attrs.get("val")));
 			return true;
 		}
-		if (!(geo instanceof PointProperties)) {
+		if (!(geo instanceof PointProperties p)) {
 			Log.debug("wrong element type for <pointSize>: " + geo.getClass());
 			return false;
 		}
 
 		try {
-			PointProperties p = (PointProperties) geo;
 			p.setPointSize(Integer.parseInt(attrs.get("val")));
 			return true;
 		} catch (RuntimeException e) {
@@ -539,14 +555,13 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handlePointStyle(LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof PointProperties)) {
+	private boolean handlePointStyle(Map<String, String> attrs) {
+		if (!(geo instanceof PointProperties p)) {
 			Log.debug("wrong element type for <pointStyle>: " + geo.getClass());
 			return false;
 		}
 
 		try {
-			PointProperties p = (PointProperties) geo;
 
 			int style = Integer.parseInt(attrs.get("val"));
 
@@ -560,7 +575,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleLayer(LinkedHashMap<String, String> attrs) {
+	private boolean handleLayer(Map<String, String> attrs) {
 
 		try {
 			geo.setLayer(Integer.parseInt(attrs.get("val")));
@@ -570,7 +585,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleAnimation(LinkedHashMap<String, String> attrs) {
+	private boolean handleAnimation(Map<String, String> attrs) {
 		try {
 
 			String strStep = attrs.get("step");
@@ -579,7 +594,7 @@ public class ConsElementXMLHandler {
 				animationStepList.add(geo, strStep);
 			}
 			String strSpeed = attrs.get("speed");
-			if (strSpeed != null) {
+			if (strSpeed != null && !strSpeed.equals("1")) {
 				// store speed expression to be processed later
 				animationSpeedList.add(geo, strSpeed);
 			}
@@ -607,7 +622,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleFixed(LinkedHashMap<String, String> attrs) {
+	private boolean handleFixed(Map<String, String> attrs) {
 		try {
 			geo.setFixed(MyXMLHandler.parseBoolean(attrs.get("val")));
 			return true;
@@ -616,7 +631,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleIsMask(LinkedHashMap<String, String> attrs) {
+	private boolean handleIsMask(Map<String, String> attrs) {
 		try {
 			geo.setIsMask(MyXMLHandler.parseBoolean(attrs.get("val")));
 			return true;
@@ -625,7 +640,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleBreakpoint(LinkedHashMap<String, String> attrs) {
+	private boolean handleBreakpoint(Map<String, String> attrs) {
 		try {
 			geo.setConsProtocolBreakpoint(
 					MyXMLHandler.parseBoolean(attrs.get("val")));
@@ -635,7 +650,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleFile(LinkedHashMap<String, String> attrs) {
+	private boolean handleFile(Map<String, String> attrs) {
 		if (!(geo.isGeoImage() || geo.isGeoButton() || geo.isGeoTurtle())) {
 			Log.error("wrong element type for <file>: " + geo.getClass());
 			return false;
@@ -649,7 +664,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleSerifContent(LinkedHashMap<String, String> attrs) {
+	private boolean handleSerifContent(Map<String, String> attrs) {
 		if (!(geo instanceof GeoInputBox)) {
 			Log.error("wrong element type for <contentSerif>: " + geo.getClass());
 			return false;
@@ -663,17 +678,16 @@ public class ConsElementXMLHandler {
 	}
 
 	// <font serif="false" size="12" style="0">
-	private boolean handleTextFont(LinkedHashMap<String, String> attrs) {
+	private boolean handleTextFont(Map<String, String> attrs) {
 		this.fontTagProcessed = true;
-		if (!(geo instanceof TextProperties)) {
+		if (!(geo instanceof TextProperties text)) {
 			Log.error("wrong element type for <font>: " + geo.getClass());
 			return false;
 		}
-		Object serif = attrs.get("serif");
-		Object style = attrs.get("style");
+		String serif = attrs.get("serif");
+		String style = attrs.get("style");
 
 		try {
-			TextProperties text = (TextProperties) geo;
 
 			String oldSize = attrs.get("size");
 			// multiplier, new from ggb42
@@ -689,10 +703,10 @@ public class ConsElementXMLHandler {
 				text.setFontSizeMultiplier(StringUtil.parseDouble(size));
 			}
 			if (serif != null) {
-				text.setSerifFont(MyXMLHandler.parseBoolean((String) serif));
+				text.setSerifFont(MyXMLHandler.parseBoolean(serif));
 			}
 			if (style != null) {
-				text.setFontStyle(Integer.parseInt((String) style));
+				text.setFontStyle(Integer.parseInt(style));
 			}
 			return true;
 		} catch (RuntimeException e) {
@@ -700,14 +714,13 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleTextDecimals(LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof TextProperties)) {
+	private boolean handleTextDecimals(Map<String, String> attrs) {
+		if (!(geo instanceof TextProperties text)) {
 			Log.error("wrong element type for <decimals>: " + geo.getClass());
 			return false;
 		}
 
 		try {
-			TextProperties text = (TextProperties) geo;
 			text.setPrintDecimals(Integer.parseInt(attrs.get("val")), true);
 			return true;
 		} catch (RuntimeException e) {
@@ -715,14 +728,13 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleTextFigures(LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof TextProperties)) {
+	private boolean handleTextFigures(Map<String, String> attrs) {
+		if (!(geo instanceof TextProperties text)) {
 			Log.error("wrong element type for <decimals>: " + geo.getClass());
 			return false;
 		}
 
 		try {
-			TextProperties text = (TextProperties) geo;
 			text.setPrintFigures(Integer.parseInt(attrs.get("val")), true);
 			return true;
 		} catch (RuntimeException e) {
@@ -730,7 +742,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleInBackground(LinkedHashMap<String, String> attrs) {
+	private boolean handleInBackground(Map<String, String> attrs) {
 		if (!geo.isGeoImage()) {
 			Log.error(
 					"wrong element type for <inBackground>: " + geo.getClass());
@@ -746,7 +758,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleCentered(LinkedHashMap<String, String> attrs) {
+	private boolean handleCentered(Map<String, String> attrs) {
 		if (!geo.isGeoImage()) {
 			Log.error("wrong element type for <centered>: " + geo.getClass());
 			return false;
@@ -761,7 +773,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleInterpolate(LinkedHashMap<String, String> attrs) {
+	private boolean handleInterpolate(Map<String, String> attrs) {
 		if (!geo.isGeoImage()) {
 			Log.error(
 					"wrong element type for <interpolate>: " + geo.getClass());
@@ -777,7 +789,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleAuxiliary(LinkedHashMap<String, String> attrs) {
+	private boolean handleAuxiliary(Map<String, String> attrs) {
 		try {
 			geo.setAuxiliaryObject(MyXMLHandler.parseBoolean(attrs.get("val"))
 							? Auxiliary.YES_SAVE
@@ -788,7 +800,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleAutocolor(LinkedHashMap<String, String> attrs) {
+	private boolean handleAutocolor(Map<String, String> attrs) {
 		try {
 			geo.setAutoColor(MyXMLHandler.parseBoolean(attrs.get("val")));
 			return true;
@@ -797,7 +809,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleHeadStyle(LinkedHashMap<String, String> attrs) {
+	private boolean handleHeadStyle(Map<String, String> attrs) {
 		if (!(geo instanceof GeoVector)) {
 			Log.error("wrong element type for <headStyle>: " + geo.getClass());
 			return false;
@@ -811,7 +823,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleIsLaTeX(LinkedHashMap<String, String> attrs) {
+	private boolean handleIsLaTeX(Map<String, String> attrs) {
 		try {
 			((GeoText) geo).setLaTeX(
 					MyXMLHandler.parseBoolean(attrs.get("val")), false);
@@ -821,18 +833,17 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private void handleVerticalIncrement(LinkedHashMap<String, String> attrs) {
+	private void handleVerticalIncrement(Map<String, String> attrs) {
 		verticalIncrementList.add(geo, attrs.get("val"));
 	}
 
-	private boolean handleArcSize(LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof AngleProperties)) {
+	private boolean handleArcSize(Map<String, String> attrs) {
+		if (!(geo instanceof AngleProperties angle)) {
 			Log.error("wrong element type for <arcSize>: " + geo.getClass());
 			return false;
 		}
 
 		try {
-			AngleProperties angle = (AngleProperties) geo;
 			angle.setArcSize(Integer.parseInt(attrs.get("val")));
 			return true;
 		} catch (RuntimeException e) {
@@ -841,18 +852,17 @@ public class ConsElementXMLHandler {
 	}
 
 	private boolean handleAbsoluteScreenLocation(
-			LinkedHashMap<String, String> attrs, boolean absolute) {
+			Map<String, String> attrs, boolean absolute) {
 		if (geo.isDefaultGeo()) {
 			return false;
 		}
-		if (!(geo instanceof AbsoluteScreenLocateable)) {
+		if (!(geo instanceof AbsoluteScreenLocateable absLoc)) {
 			Log.error("wrong element type for <absoluteScreenLocation>: "
 					+ geo.getClass());
 			return false;
 		}
 
 		try {
-			AbsoluteScreenLocateable absLoc = (AbsoluteScreenLocateable) geo;
 			double x = Double.parseDouble(attrs.get("x"));
 			double y = Double.parseDouble(attrs.get("y"));
 			if (absolute) {
@@ -869,15 +879,14 @@ public class ConsElementXMLHandler {
 	}
 
 	private boolean handleAllowReflexAngle(
-			LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof AngleProperties)) {
+			Map<String, String> attrs) {
+		if (!(geo instanceof AngleProperties angle)) {
 			Log.error("wrong element type for <allowReflexAngle>: "
 					+ geo.getClass());
 			return false;
 		}
 
 		try {
-			AngleProperties angle = (AngleProperties) geo;
 			angle.setAllowReflexAngle(
 					MyXMLHandler.parseBoolean(attrs.get("val")));
 			return true;
@@ -888,15 +897,14 @@ public class ConsElementXMLHandler {
 	}
 
 	private boolean handleEmphasizeRightAngle(
-			LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof AngleProperties)) {
+			Map<String, String> attrs) {
+		if (!(geo instanceof AngleProperties angle)) {
 			Log.error("wrong element type for <emphasizeRightAngle>: "
 					+ geo.getClass());
 			return false;
 		}
 
 		try {
-			AngleProperties angle = (AngleProperties) geo;
 			angle.setEmphasizeRightAngle(
 					MyXMLHandler.parseBoolean(attrs.get("val")));
 			return true;
@@ -906,7 +914,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleComboBox(LinkedHashMap<String, String> attrs) {
+	private boolean handleComboBox(Map<String, String> attrs) {
 		if (!geo.isGeoList()) {
 			Log.error("wrong element type for <comboBox>: " + geo.getClass());
 			return false;
@@ -922,14 +930,13 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleCropBox(LinkedHashMap<String, String> attrs) {
+	private boolean handleCropBox(Map<String, String> attrs) {
 		if (!geo.isGeoImage()) {
 			Log.error("wrong element type for <cropBox>: " + geo.getClass());
 			return false;
 		}
 
 		try {
-			GeoImage img = (GeoImage) geo;
 			double x = Double.parseDouble(attrs.get("x"));
 			double y = Double.parseDouble(attrs.get("y"));
 			double w = Double.parseDouble(attrs.get("width"));
@@ -937,6 +944,7 @@ public class ConsElementXMLHandler {
 			boolean cropped = MyXMLHandler.parseBoolean(attrs.get("cropped"));
 			GRectangle2D rect = AwtFactory.getPrototype().newRectangle2D();
 			rect.setRect(x, y, w, h);
+			GeoImage img = (GeoImage) geo;
 			img.setCropBoxRelative(rect);
 			img.setCropped(cropped);
 			return true;
@@ -945,14 +953,13 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleAngleStyle(LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof AngleProperties)) {
+	private boolean handleAngleStyle(Map<String, String> attrs) {
+		if (!(geo instanceof AngleProperties angle)) {
 			Log.error("wrong element type for <angleStyle>: " + geo.getClass());
 			return false;
 		}
 
 		try {
-			AngleProperties angle = (AngleProperties) geo;
 			angle.setAngleStyle(Integer.parseInt(attrs.get("val")));
 			return true;
 		} catch (RuntimeException e) {
@@ -961,13 +968,12 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleAudio(LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof GeoAudio)) {
+	private boolean handleAudio(Map<String, String> attrs) {
+		if (!(geo instanceof GeoAudio audio)) {
 			Log.error("wrong element type for <audio>: " + geo.getClass());
 			return false;
 		}
 		try {
-			GeoAudio audio = (GeoAudio) geo;
 			audio.setSrc(attrs.get("src"));
 			return true;
 		} catch (RuntimeException e) {
@@ -975,7 +981,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleAlgebra(LinkedHashMap<String, String> attrs) {
+	private boolean handleAlgebra(Map<String, String> attrs) {
 		try {
 			geo.setAlgebraLabelVisible(MyXMLHandler
 					.parseBooleanRev(attrs.get("labelVisible")));
@@ -986,7 +992,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleTableView(LinkedHashMap<String, String> attrs) {
+	private boolean handleTableView(Map<String, String> attrs) {
 		try {
 			((GeoEvaluatable) geo).setTableColumn(
 					(int) MyXMLHandler.parseDoubleNaN(attrs.get("column")));
@@ -1000,13 +1006,12 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleVideo(LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof GeoVideo)) {
+	private boolean handleVideo(Map<String, String> attrs) {
+		if (!(geo instanceof GeoVideo video)) {
 			Log.error("wrong element type for <video>: " + geo.getClass());
 			return false;
 		}
 		try {
-			GeoVideo video = (GeoVideo) geo;
 			video.setSrc(attrs.get("src"), attrs.get("type"));
 			video.setSize(Integer.parseInt(attrs.get("width")),
 					Integer.parseInt(attrs.get("height")));
@@ -1020,15 +1025,14 @@ public class ConsElementXMLHandler {
 	 * needed for old files (4.2 and earlier)
 	 */
 	private boolean handleForceReflexAngle(
-			LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof AngleProperties)) {
+			Map<String, String> attrs) {
+		if (!(geo instanceof AngleProperties angle)) {
 			Log.error("wrong element type for <forceReflexAngle>: "
 					+ geo.getClass());
 			return false;
 		}
 
 		try {
-			AngleProperties angle = (AngleProperties) geo;
 			angle.setForceReflexAngle(
 					MyXMLHandler.parseBoolean(attrs.get("val")));
 			return true;
@@ -1039,15 +1043,14 @@ public class ConsElementXMLHandler {
 	}
 
 	private boolean handleOutlyingIntersections(
-			LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof LimitedPath)) {
+			Map<String, String> attrs) {
+		if (!(geo instanceof LimitedPath lpath)) {
 			Log.debug("wrong element type for <outlyingIntersections>: "
 					+ geo.getClass());
 			return false;
 		}
 
 		try {
-			LimitedPath lpath = (LimitedPath) geo;
 			lpath.setAllowOutlyingIntersections(
 					MyXMLHandler.parseBoolean(attrs.get("val")));
 			return true;
@@ -1057,15 +1060,14 @@ public class ConsElementXMLHandler {
 	}
 
 	private boolean handleKeepTypeOnTransform(
-			LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof LimitedPath)) {
+			Map<String, String> attrs) {
+		if (!(geo instanceof LimitedPath lpath)) {
 			Log.debug("wrong element type for <outlyingIntersections>: "
 					+ geo.getGeoClassType());
 			return false;
 		}
 
 		try {
-			LimitedPath lpath = (LimitedPath) geo;
 			lpath.setKeepTypeOnGeometricTransform(
 					MyXMLHandler.parseBoolean(attrs.get("val")));
 			return true;
@@ -1074,7 +1076,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleSegmentStartStyle(LinkedHashMap<String, String> attrs) {
+	private boolean handleSegmentStartStyle(Map<String, String> attrs) {
 		if (!(geo instanceof HasSegmentStyle)) {
 			Log.debug("wrong element type for segment style: "
 					+ geo.getGeoClassType());
@@ -1089,7 +1091,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleSegmentEndStyle(LinkedHashMap<String, String> attrs) {
+	private boolean handleSegmentEndStyle(Map<String, String> attrs) {
 		if (!(geo instanceof HasSegmentStyle)) {
 			Log.debug("wrong element type for segment style: "
 					+ geo.getGeoClassType());
@@ -1104,15 +1106,14 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleSymbolic(LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof HasSymbolicMode)) {
+	private boolean handleSymbolic(Map<String, String> attrs) {
+		if (!(geo instanceof HasSymbolicMode hasSymbolicMode)) {
 			Log.error("wrong element type for <symbolic>: " + geo.getClass());
 			return false;
 		}
 		symbolicTagProcessed = true;
 		try {
-			HasSymbolicMode num = (HasSymbolicMode) geo;
-			num.setSymbolicMode(MyXMLHandler.parseBoolean(attrs.get("val")),
+			hasSymbolicMode.setSymbolicMode(MyXMLHandler.parseBoolean(attrs.get("val")),
 					false);
 			return true;
 		} catch (RuntimeException e) {
@@ -1121,7 +1122,7 @@ public class ConsElementXMLHandler {
 	}
 
 	private boolean handleSlopeTriangleSize(
-			LinkedHashMap<String, String> attrs) {
+			Map<String, String> attrs) {
 		if (!geo.isGeoNumeric()) {
 			Log.error("wrong element type for <slopeTriangleSize>: "
 					+ geo.getClass());
@@ -1137,7 +1138,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleExtraTag(LinkedHashMap<String, String> attrs) {
+	private boolean handleExtraTag(Map<String, String> attrs) {
 		ChartStyle algo = ((ChartStyleGeo) geo).getStyle();
 		if (!"".equals(attrs.get("key")) && !"".equals(attrs.get("value"))
 				&& !"".equals(attrs.get("barNumber"))) {
@@ -1188,7 +1189,7 @@ public class ConsElementXMLHandler {
 	 * 
 	 * @see #processStartPointList()
 	 */
-	private void handleStartPoint(LinkedHashMap<String, String> attrs) {
+	private void handleStartPoint(Map<String, String> attrs) {
 		if (geo instanceof RectangleTransformable && !geo.isGeoImage()) {
 			double x = 0;
 			double y = 0;
@@ -1202,8 +1203,7 @@ public class ConsElementXMLHandler {
 
 			// old GeoEmbeds are represented by three rw points
 			String number = attrs.get("number");
-			if (geo instanceof GeoEmbed && number != null) {
-				GeoEmbed embed = (GeoEmbed) geo;
+			if (geo instanceof GeoEmbed embed && number != null) {
 
 				if ("0".equals(number)) {
 					embedY = y;
@@ -1222,12 +1222,11 @@ public class ConsElementXMLHandler {
 			return;
 		}
 
-		if (!(geo instanceof Locateable)) {
+		if (!(geo instanceof Locateable locGeo)) {
 			Log.error("wrong element type for <startPoint>: " + geo.getClass());
 			return;
 		}
 
-		Locateable locGeo = (Locateable) geo;
 		if (locGeo instanceof AbsoluteScreenLocateable) {
 			((AbsoluteScreenLocateable) locGeo).setAbsoluteScreenLocActive(
 					MyXMLHandler.parseBoolean(attrs.get("absolute")));
@@ -1273,7 +1272,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleLength(LinkedHashMap<String, String> attrs) {
+	private boolean handleLength(Map<String, String> attrs) {
 
 		// name of linked geo
 		String val = attrs.get("val");
@@ -1287,14 +1286,13 @@ public class ConsElementXMLHandler {
 		return true;
 	}
 
-	private boolean handleTempUserInput(LinkedHashMap<String, String> attrs) {
+	private boolean handleTempUserInput(Map<String, String> attrs) {
 
 		// name of linked geo
 		String eval = attrs.get("eval");
 		String display = attrs.get("display");
 
-		if (geo instanceof GeoInputBox) {
-			GeoInputBox inputBox = (GeoInputBox) geo;
+		if (geo instanceof GeoInputBox inputBox) {
 
 			if (inputBox.getLinkedGeo().isGeoText() && !inputBox.getLinkedGeo().isLabelSet()) {
 				((GeoText) inputBox.getLinkedGeo()).setTextString(eval);
@@ -1308,7 +1306,7 @@ public class ConsElementXMLHandler {
 		return true;
 	}
 
-	private void handleTextAlign(LinkedHashMap<String, String> attrs) {
+	private void handleTextAlign(Map<String, String> attrs) {
 		HorizontalAlignment align = HorizontalAlignment.fromString(attrs.get("val"));
 
 		if (align != null && geo instanceof HasAlignment) {
@@ -1318,7 +1316,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private void handleVerticalAlign(LinkedHashMap<String, String> attrs) {
+	private void handleVerticalAlign(Map<String, String> attrs) {
 		VerticalAlignment align = VerticalAlignment.fromString(attrs.get("val"));
 
 		if (align != null && geo instanceof HasVerticalAlignment) {
@@ -1328,7 +1326,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleListType(LinkedHashMap<String, String> attrs) {
+	private boolean handleListType(Map<String, String> attrs) {
 
 		// name of geo type, eg "point"
 		String val = attrs.get("val");
@@ -1352,7 +1350,7 @@ public class ConsElementXMLHandler {
 	 * 
 	 * @see #processLinkedGeoList()
 	 */
-	private boolean handleLinkedGeo(LinkedHashMap<String, String> attrs) {
+	private boolean handleLinkedGeo(Map<String, String> attrs) {
 
 		// name of linked geo
 		String exp = attrs.get("exp");
@@ -1368,7 +1366,7 @@ public class ConsElementXMLHandler {
 		return true;
 	}
 
-	private boolean handleLineStyle(LinkedHashMap<String, String> attrs) {
+	private boolean handleLineStyle(Map<String, String> attrs) {
 		try {
 			lineStyleTagProcessed = true;
 			geo.setLineType(Integer.parseInt(attrs.get("type")));
@@ -1381,6 +1379,7 @@ public class ConsElementXMLHandler {
 			}
 			String opacity = attrs.get("opacity");
 			if (opacity != null) {
+				lineOpacityTagProcessed = true;
 				geo.setLineOpacity(Integer.parseInt(opacity));
 			}
 			String drawArrows = attrs.get("drawArrow");
@@ -1395,7 +1394,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleDecoration(LinkedHashMap<String, String> attrs) {
+	private boolean handleDecoration(Map<String, String> attrs) {
 		try {
 			geo.setDecorationType(Integer.parseInt(attrs.get("type")));
 			return true;
@@ -1404,7 +1403,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleEqnStyle(LinkedHashMap<String, String> attrs) {
+	private boolean handleEqnStyle(Map<String, String> attrs) {
 		String style = attrs.get("style");
 		String parameter = attrs.get("parameter");
 		if (geo instanceof LinearEquationRepresentable) {
@@ -1424,7 +1423,7 @@ public class ConsElementXMLHandler {
 		return true;
 	}
 
-	private void handleEmbed(LinkedHashMap<String, String> attrs) {
+	private void handleEmbed(Map<String, String> attrs) {
 		if (geo instanceof GeoEmbed) {
 			try {
 				((GeoEmbed) geo).setEmbedId(Integer.parseInt(attrs.get("id")));
@@ -1438,7 +1437,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private void handleEmbedSettings(LinkedHashMap<String, String> attrs) {
+	private void handleEmbedSettings(Map<String, String> attrs) {
 		if (geo instanceof GeoEmbed) {
 			for (Map.Entry<String, String> entry: attrs.entrySet()) {
 				((GeoEmbed) geo).attr(entry.getKey(), entry.getValue());
@@ -1446,7 +1445,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleSlider(LinkedHashMap<String, String> attrs) {
+	private boolean handleSlider(Map<String, String> attrs) {
 		if (!geo.isGeoNumeric()) {
 			Log.error("wrong element type for <slider>: " + geo.getClass());
 			return false;
@@ -1499,14 +1498,13 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleTrace(LinkedHashMap<String, String> attrs) {
-		if (!(geo instanceof Traceable)) {
+	private boolean handleTrace(Map<String, String> attrs) {
+		if (!(geo instanceof Traceable t)) {
 			Log.error("wrong element type for <trace>: " + geo.getClass());
 			return false;
 		}
 
 		try {
-			Traceable t = (Traceable) geo;
 			t.setTrace(MyXMLHandler.parseBoolean(attrs.get("val")));
 			return true;
 		} catch (RuntimeException e) {
@@ -1515,7 +1513,7 @@ public class ConsElementXMLHandler {
 	}
 
 	private boolean handleSpreadsheetTrace(
-			LinkedHashMap<String, String> attrs) {
+			Map<String, String> attrs) {
 
 		// XML handling for new tracing code
 		if (!geo.isSpreadsheetTraceable()) {
@@ -1567,7 +1565,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleShowTrimmed(LinkedHashMap<String, String> attrs) {
+	private boolean handleShowTrimmed(Map<String, String> attrs) {
 		try {
 			geo.setShowTrimmedIntersectionLines(
 					MyXMLHandler.parseBoolean(attrs.get("val")));
@@ -1578,7 +1576,7 @@ public class ConsElementXMLHandler {
 	}
 
 	private boolean handleSelectionAllowed(
-			LinkedHashMap<String, String> attrs) {
+			Map<String, String> attrs) {
 		try {
 			geo.setSelectionAllowed(
 					MyXMLHandler.parseBoolean(attrs.get("val")));
@@ -1588,7 +1586,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleSelectedIndex(LinkedHashMap<String, String> attrs) {
+	private boolean handleSelectedIndex(Map<String, String> attrs) {
 		try {
 			if (geo.isGeoList()) {
 				((GeoList) geo).setSelectedIndex(
@@ -1600,7 +1598,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleFading(LinkedHashMap<String, String> attrs) {
+	private boolean handleFading(Map<String, String> attrs) {
 		try {
 			float fading = Float.parseFloat(attrs.get("val"));
 			((GeoPlaneND) geo).setFading(fading);
@@ -1611,7 +1609,7 @@ public class ConsElementXMLHandler {
 	}
 
 	private boolean handleLevelOfDetailQuality(
-			LinkedHashMap<String, String> attrs) {
+			Map<String, String> attrs) {
 		try {
 			boolean lod = MyXMLHandler.parseBoolean(attrs.get("val"));
 			if (lod) {
@@ -1624,7 +1622,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleBgColor(LinkedHashMap<String, String> attrs) {
+	private boolean handleBgColor(Map<String, String> attrs) {
 		GColor col = handleColorAlphaAttrs(attrs);
 		if (col == null) {
 			return false;
@@ -1634,7 +1632,7 @@ public class ConsElementXMLHandler {
 		return true;
 	}
 
-	private void handleBorderColor(LinkedHashMap<String, String> attrs) {
+	private void handleBorderColor(Map<String, String> attrs) {
 		if (!(geo instanceof GeoInline)) {
 			return;
 		}
@@ -1645,7 +1643,7 @@ public class ConsElementXMLHandler {
 		((GeoInline) geo).setBorderColor(col);
 	}
 
-	private void handleBoundingBox(LinkedHashMap<String, String> attrs) {
+	private void handleBoundingBox(Map<String, String> attrs) {
 		if (geo instanceof GeoText && geo.isIndependent()) {
 			try {
 				GeoInlineText ret = new GeoInlineText((GeoText) geo);
@@ -1661,7 +1659,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleMatrix(LinkedHashMap<String, String> attrs) {
+	private boolean handleMatrix(Map<String, String> attrs) {
 		if (!geo.isGeoConic() && !geo.isGeoQuadric()) {
 			Log.error("wrong element type for <matrix>: " + geo.getClass());
 			return false;
@@ -1680,7 +1678,7 @@ public class ConsElementXMLHandler {
 	 * @param attrs
 	 *            attributes
 	 */
-	private void handleMatrixConicOrQuadric(LinkedHashMap<String, String> attrs) {
+	private void handleMatrixConicOrQuadric(Map<String, String> attrs) {
 		if (geo.isGeoQuadric()) {
 			if (geo.isDefaultGeo()) { // avoid setting for default geo
 				return;
@@ -1725,7 +1723,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleLabelOffset(LinkedHashMap<String, String> attrs) {
+	private boolean handleLabelOffset(Map<String, String> attrs) {
 		try {
 			geo.labelOffsetX = Integer.parseInt(attrs.get("x"));
 			geo.labelOffsetY = Integer.parseInt(attrs.get("y"));
@@ -1736,7 +1734,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleLabelMode(LinkedHashMap<String, String> attrs) {
+	private boolean handleLabelMode(Map<String, String> attrs) {
 		try {
 			geo.setLabelMode(Integer.parseInt(attrs.get("val")));
 			return true;
@@ -1745,7 +1743,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleTooltipMode(LinkedHashMap<String, String> attrs) {
+	private boolean handleTooltipMode(Map<String, String> attrs) {
 		try {
 			geo.setTooltipMode(Integer.parseInt(attrs.get("val")));
 			return true;
@@ -1754,7 +1752,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleCoefficients(LinkedHashMap<String, String> attrs) {
+	private boolean handleCoefficients(Map<String, String> attrs) {
 		if (!geo.isGeoImplicitCurve()) {
 			Log.warn(
 					"wrong element type for <coefficients>: " + geo.getClass());
@@ -1779,7 +1777,7 @@ public class ConsElementXMLHandler {
 						// do nothing
 						break;
 					case '[':
-						if (newRow.size() > 0) {
+						if (!newRow.isEmpty()) {
 							return false;
 						}
 						start = c + 1;
@@ -1823,7 +1821,7 @@ public class ConsElementXMLHandler {
 		return false;
 	}
 
-	private boolean handleUserInput(LinkedHashMap<String, String> attrs) {
+	private boolean handleUserInput(Map<String, String> attrs) {
 		if (!(geo instanceof GeoImplicit)) {
 			Log.warn("wrong element type for <userinput>: " + geo.getClass());
 			return false;
@@ -1856,7 +1854,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private void handleOrdering(LinkedHashMap<String, String> attrs) {
+	private void handleOrdering(Map<String, String> attrs) {
 		try {
 			geo.setOrdering(Double.parseDouble(attrs.get("val")));
 		} catch (RuntimeException e) {
@@ -1864,7 +1862,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleObjColor(LinkedHashMap<String, String> attrs) {
+	private boolean handleObjColor(Map<String, String> attrs) {
 		GColor col = MyXMLHandler.handleColorAttrs(attrs);
 		if (col == null) {
 			return false;
@@ -1881,14 +1879,14 @@ public class ConsElementXMLHandler {
 
 		if (red != null && green != null && blue != null) {
 			try {
-				if (!"".equals(red) || !"".equals(green) || !"".equals(blue)) {
-					if ("".equals(red)) {
+				if (!red.isEmpty() || !green.isEmpty() || !blue.isEmpty()) {
+					if (red.isEmpty()) {
 						red = "0";
 					}
-					if ("".equals(green)) {
+					if (green.isEmpty()) {
 						green = "0";
 					}
-					if ("".equals(blue)) {
+					if (blue.isEmpty()) {
 						blue = "0";
 					}
 
@@ -1899,7 +1897,7 @@ public class ConsElementXMLHandler {
 					sb.append(green);
 					sb.append(',');
 					sb.append(blue);
-					if (alpha != null && !"".equals(alpha)) {
+					if (alpha != null && !alpha.isEmpty()) {
 						sb.append(',');
 						sb.append(alpha);
 					}
@@ -1965,7 +1963,7 @@ public class ConsElementXMLHandler {
 	 * @return success
 	 */
 	private boolean handleEigenvectorsConic(
-			LinkedHashMap<String, String> attrs) {
+			Map<String, String> attrs) {
 		if (!geo.isGeoConic()) {
 			Log.error(
 					"wrong element type for <eigenvectors>: " + geo.getClass());
@@ -1995,7 +1993,7 @@ public class ConsElementXMLHandler {
 				|| (geo.getParentAlgorithm() instanceof SetRandomValue);
 	}
 
-	private void handleEigenvectors(LinkedHashMap<String, String> attrs) {
+	private void handleEigenvectors(Map<String, String> attrs) {
 		if (!geo.isGeoQuadric()) {
 			handleEigenvectorsConic(attrs);
 			return;
@@ -2035,6 +2033,15 @@ public class ConsElementXMLHandler {
 			geo.setLineThickness(0);
 		}
 
+		if (!lineOpacityTagProcessed && sliderTagProcessed && geo.isGeoNumeric()) {
+			GColor bgColor = geo.getBackgroundColor();
+			if (bgColor != null) {
+				geo.setLineOpacity(bgColor.getAlpha());
+				geo.setBackgroundColor(bgColor.deriveWithAlpha(255));
+			} else {
+				geo.setLineOpacity(GeoNumeric.DEFAULT_SLIDER_LINE_OPACITY);
+			}
+		}
 		if (!symbolicTagProcessed && (geo.isGeoText() || geo.isGeoInputBox() || geo.isGeoList())) {
 			((HasSymbolicMode) geo).setSymbolicMode(false, false);
 		}
@@ -2053,7 +2060,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private boolean handleShow(LinkedHashMap<String, String> attrs) {
+	private boolean handleShow(Map<String, String> attrs) {
 		try {
 			if (isUndefinedGeoNumber()) {
 				geo.setEuclidianVisible(false);
@@ -2121,18 +2128,28 @@ public class ConsElementXMLHandler {
 		return Double.isNaN(numeric.value);
 	}
 
-	private boolean handleShowOnAxis(LinkedHashMap<String, String> attrs) {
+	private boolean handleShowOnAxis(Map<String, String> attrs) {
 		try {
 			if (!(geo instanceof GeoFunction)) {
 				return false;
 			}
-			((GeoFunction) geo)
-					.setShowOnAxis(MyXMLHandler.parseBoolean(attrs.get("val")));
+			((GeoFunction) geo).setShowOnAxis(MyXMLHandler.parseBoolean(attrs.get("val")));
 			return true;
 
 		} catch (RuntimeException e) {
 			Log.debug(e);
 			return false;
+		}
+	}
+
+	private void handleSimplifyCoefficients(Map<String, String> attrs) {
+		try {
+			if (!(geo instanceof GeoFunction function)) {
+				return;
+			}
+			function.setSimplifyCoefficients(MyXMLHandler.parseBoolean(attrs.get("val")));
+		} catch (RuntimeException e) {
+			Log.debug(e);
 		}
 	}
 
@@ -2145,7 +2162,7 @@ public class ConsElementXMLHandler {
 	 *            attributes
 	 */
 	protected void startGeoElement(String eName,
-			LinkedHashMap<String, String> attrs, ArrayList<String> errors) {
+			Map<String, String> attrs, ArrayList<String> errors) {
 		if (geo == null) {
 			Log.error("no element set for <" + eName + ">");
 			return;
@@ -2366,6 +2383,9 @@ public class ConsElementXMLHandler {
 			case "showOnAxis":
 				handleShowOnAxis(attrs);
 				break;
+			case "simplifyCoefficients":
+				handleSimplifyCoefficients(attrs);
+				break;
 			case "startPoint":
 				handleStartPoint(attrs);
 				break;
@@ -2386,6 +2406,9 @@ public class ConsElementXMLHandler {
 				break;
 			case "startStyle":
 				handleSegmentStartStyle(attrs);
+				break;
+			case "strokeBezierCoords":
+				handleStrokeBezierCoords(attrs);
 				break;
 			case "strokeCoords":
 				handleStrokeCoords(attrs);
@@ -2436,23 +2459,37 @@ public class ConsElementXMLHandler {
 				Log.error("unknown tag in <element>: " + eName);
 			}
 		}
-
 	}
 
-	private void handleStrokeCoords(LinkedHashMap<String, String> attrs) {
+	private void handleStrokeBezierCoords(Map<String, String> attrs) {
 		String coords = attrs.get("val");
-		if (!StringUtil.empty(coords) && geo instanceof GeoLocusStroke) {
-			String[] coordsRaw = coords.split(",");
-			double[] coordValues = new double[coordsRaw.length];
-			for (int i = 0; i < coordsRaw.length; i++) {
-				coordValues[i] = Double.parseDouble(coordsRaw[i]);
-			}
-			((GeoLocusStroke) geo).setDefined(true);
-			((GeoLocusStroke) geo).setCoords(coordValues);
+		if (!StringUtil.empty(coords) && geo instanceof GeoLocusStroke stroke) {
+			stroke.setBezierCoords(StringUtil.parseDoubleArray(coords));
 		}
 	}
 
-	private void handleDynamicCaption(LinkedHashMap<String, String> attrs) {
+	private void handleStrokeCoords(Map<String, String> attrs) {
+		String coords = attrs.get("val");
+		if (!StringUtil.empty(coords) && geo instanceof GeoLocusStroke stroke) {
+			if (!stroke.getPoints().isEmpty()) {
+				return; // Already handled by handleStrokeBezierCoords
+			}
+			stroke.setDefined(true);
+
+			double[] numCoords = StringUtil.parseDoubleArray(coords);
+			List<MyPoint> pathPoints = new ArrayList<>(numCoords.length / 2);
+			for (int i = 0; i < numCoords.length; i++) {
+				if (i < numCoords.length - 1) {
+					pathPoints.add(new MyPoint(numCoords[i],
+							numCoords[i + 1]));
+					i++;
+				}
+			}
+			stroke.appendVertexPointArray(pathPoints);
+		}
+	}
+
+	private void handleDynamicCaption(Map<String, String> attrs) {
 		try {
 			String dynamicCaption = attrs.get("val");
 			if (dynamicCaption != null) {
@@ -2464,7 +2501,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private void handleContentSize(LinkedHashMap<String, String> attrs) {
+	private void handleContentSize(Map<String, String> attrs) {
 		if (!(geo instanceof GeoEmbed || geo instanceof GeoInline)) {
 			Log.error("wrong element type for <contentSize>: " + geo.getClass());
 			return;
@@ -2478,8 +2515,7 @@ public class ConsElementXMLHandler {
 			Log.error("malformed <contentSize>");
 		}
 
-		if (geo instanceof GeoEmbed) {
-			GeoEmbed geoEmbed = (GeoEmbed) geo;
+		if (geo instanceof GeoEmbed geoEmbed) {
 			geoEmbed.setContentWidth(width);
 			geoEmbed.setContentHeight(height);
 		} else {
@@ -2490,7 +2526,7 @@ public class ConsElementXMLHandler {
 		}
 	}
 
-	private void handleParent(LinkedHashMap<String, String> attrs) {
+	private void handleParent(Map<String, String> attrs) {
 		if (!(geo instanceof GeoMindMapNode)) {
 			Log.error("wrong element type for <parent>: " + geo.getClass());
 			return;
@@ -2507,13 +2543,13 @@ public class ConsElementXMLHandler {
 		((GeoMindMapNode) geo).setParent((GeoMindMapNode) parent, alignment);
 	}
 
-	private void handleParentLabel(LinkedHashMap<String, String> attrs) {
+	private void handleParentLabel(Map<String, String> attrs) {
 		if (geo instanceof GeoLocusStroke) {
 			((GeoLocusStroke) geo).setSplitParentLabel(attrs.get("val"));
 		}
 	}
 
-	protected void initDefault(LinkedHashMap<String, String> attrs) {
+	protected void initDefault(Map<String, String> attrs) {
 		geo = getGeoElement(attrs);
 		geo.setLineOpacity(255);
 	}
@@ -2552,10 +2588,8 @@ public class ConsElementXMLHandler {
 	}
 
 	private void processLinkedGeoList() {
-		linkedGeoList.process((geo, str) -> {
-			((GeoInputBox) geo)
-					.setLinkedGeo(xmlHandler.kernel.lookupLabel(str));
-		});
+		linkedGeoList.process((geo, str) -> ((GeoInputBox) geo)
+				.setLinkedGeo(xmlHandler.kernel.lookupLabel(str)));
 	}
 
 	private void processDynamicCaptionList() {
@@ -2716,6 +2750,7 @@ public class ConsElementXMLHandler {
 		sliderTagProcessed = false;
 		fontTagProcessed = false;
 		lineStyleTagProcessed = false;
+		lineOpacityTagProcessed = false;
 		symbolicTagProcessed = false;
 		setEigenvectorsCalled = false;
 	}
@@ -2724,7 +2759,7 @@ public class ConsElementXMLHandler {
 	 * expects r, g, b, alpha attributes to build a color
 	 */
 	private static GColor handleColorAlphaAttrs(
-			LinkedHashMap<String, String> attrs) {
+			Map<String, String> attrs) {
 		try {
 			int red = Integer.parseInt(attrs.get("r"));
 			int green = Integer.parseInt(attrs.get("g"));
@@ -2738,7 +2773,7 @@ public class ConsElementXMLHandler {
 
 	// called when <element> is encountered
 	// e.g. for <element type="point" label="P">
-	private GeoElement getGeoElement(LinkedHashMap<String, String> attrs) {
+	private GeoElement getGeoElement(Map<String, String> attrs) {
 		GeoElement geo1 = null;
 		String label = attrs.get("label");
 		String type = attrs.get("type");
@@ -2758,14 +2793,20 @@ public class ConsElementXMLHandler {
 			if (geo1 == null) {
 				geo1 = xmlHandler.kernel.lookupCasCellLabel(label);
 			}
-			if (geo1 == null) {
 
+			if (geo1 == null || xmlHandler.kernel.getConstruction().isConstantElement(geo1)) {
+				if (geo1 != null) {
+					// In case one of the constant elements need to be overwritten,
+					// make sure to get the localized label
+					// (issue with file loading after language change)
+					xmlHandler.kernel.getConstruction().getGeoTable().remove(
+							app.getLocalization().getMenu(geo1.getLabelSimple()));
+				}
 				// try to find an algo on which this label depends
 				// geo = cons.resolveLabelDependency(label,
 				// kernel.getClassType(type));
 				// if none, create new geo
-				geo1 = xmlHandler.kernel.createGeoElement(xmlHandler.cons,
-						type);
+				geo1 = xmlHandler.kernel.createGeoElement(xmlHandler.cons, type);
 				pendingLabel = label;
 
 				// independent GeoElements should be hidden by default
@@ -2782,8 +2823,7 @@ public class ConsElementXMLHandler {
 				// wrong default setting, act as if there were no default set
 				geo1 = xmlHandler.kernel.lookupLabel(label);
 				if (geo1 == null) {
-					geo1 = xmlHandler.kernel.createGeoElement(xmlHandler.cons,
-							type);
+					geo1 = xmlHandler.kernel.createGeoElement(xmlHandler.cons, type);
 					geo1.setLoadedLabel(label);
 					geo1.setEuclidianVisible(false);
 				}
@@ -2811,7 +2851,7 @@ public class ConsElementXMLHandler {
 		return geo1;
 	}
 
-	protected void updatePointStyle(LinkedHashMap<String, String> attrs) {
+	protected void updatePointStyle(Map<String, String> attrs) {
 		// if there is a point style given save it
 		if (xmlHandler.ggbFileFormat < 3.3) {
 			String strPointStyle = attrs.get("pointStyle");
@@ -2831,7 +2871,7 @@ public class ConsElementXMLHandler {
 	 * parse list of geos in a group
 	 * @param attrs - labels of geos in the group
 	 */
-	public void handleGroup(LinkedHashMap<String, String> attrs) {
+	public void handleGroup(Map<String, String> attrs) {
 		ArrayList<GeoElement> geosInGroup = new ArrayList<>();
 		for (String label : attrs.values()) {
 			GeoElement geo = xmlHandler.kernel.lookupLabel(label);

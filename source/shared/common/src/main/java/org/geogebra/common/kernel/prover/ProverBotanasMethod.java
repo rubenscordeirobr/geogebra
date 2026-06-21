@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.prover;
 
 import java.math.BigInteger;
@@ -250,9 +266,6 @@ public class ProverBotanasMethod {
 	private static HashMap<PVariable, BigInteger> fixValues(Prover prover,
 			int coords) throws NoSymbolicParametersException {
 
-		BigInteger[] fixCoords = {BigInteger.ZERO, BigInteger.ZERO,
-				BigInteger.ZERO, BigInteger.ONE};
-
 		GeoElement statement = prover.getStatement();
 		List<GeoElement> freePoints = getFreePoints(statement);
 		List<GeoElement> fixedPoints = new ArrayList<>();
@@ -265,6 +278,8 @@ public class ProverBotanasMethod {
 
 		Iterator<GeoElement> it = fixedPoints.iterator();
 		GeoElement[] geos = new GeoElement[2];
+		BigInteger[] fixCoords = {BigInteger.ZERO, BigInteger.ZERO,
+				BigInteger.ZERO, BigInteger.ONE};
 		int i = 0, j = 0;
 		while (it.hasNext() && i < 2 && j < coords) {
 			GeoElement geo = it.next();
@@ -904,7 +919,7 @@ public class ProverBotanasMethod {
 								}
 							}
 							boolean useThisPoly = true;
-							if (algo != null && algo instanceof AlgoPointOnPath
+							if (algo instanceof AlgoPointOnPath
 									&& geoProver
 									.getProverEngine() == ProverEngine.LOCUS_EXPLICIT) {
 								/*
@@ -1442,12 +1457,8 @@ public class ProverBotanasMethod {
 	 * @return if the statement is true
 	 */
 	public ProofResult prove(Prover prover) {
-
-		boolean investigateNonGeometricMaximalIndependentSet = false;
-
 		GeoElement statement = prover.getStatement();
 		ProverSettings proverSettings = ProverSettings.get();
-		Kernel k = statement.getKernel();
 		/*
 		 * Decide quickly if proving this kind of statement is already
 		 * implemented at all:
@@ -1513,6 +1524,7 @@ public class ProverBotanasMethod {
 		 * Giac cannot permute the variables at
 		 * the moment.
 		 */
+		Kernel k = statement.getKernel();
 		while (!found && permutation < MAX_PERMUTATIONS) {
 
 			eliminationIdeal = PPolynomial.eliminate(
@@ -1525,17 +1537,17 @@ public class ProverBotanasMethod {
 				return ProofResult.UNKNOWN;
 			}
 
-			Iterator<Set<PPolynomial>> ndgSet = eliminationIdeal.iterator();
-
 			List<HashSet<GeoPoint>> xEqualSet = new ArrayList<>();
 			// xEqualSet.add(new HashSet<GeoPoint>());
 			List<HashSet<GeoPoint>> yEqualSet = new ArrayList<>();
 			// yEqualSet.add(new HashSet<GeoPoint>());
-			boolean xyRewrite = (eliminationIdeal.size() == 2);
+			boolean xyRewrite = eliminationIdeal.size() == 2;
 
 			List<NDGCondition> bestNdgSet = new ArrayList<>();
 			double bestScore = Double.POSITIVE_INFINITY;
 			int ndgI = 0;
+			boolean investigateNonGeometricMaximalIndependentSet = false;
+			Iterator<Set<PPolynomial>> ndgSet = eliminationIdeal.iterator();
 			while (ndgSet.hasNext()) {
 				ndgI++;
 				Log.debug("Considering NDG " + ndgI + "...");
@@ -1655,8 +1667,8 @@ public class ProverBotanasMethod {
 							 * Check if this elimination ideal equals to
 							 * {xM-xN,yM-yN}:
 							 */
-							xyRewrite = (xyRewrite
-									&& thisNdgSet.size() == 1);
+							xyRewrite = xyRewrite
+									&& thisNdgSet.size() == 1;
 							/*
 							 * Note that in some cases the CAS may return
 							 * (xM-xN)*(-1) which consists of two factors,

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.cas;
 
 import java.util.ArrayList;
@@ -181,18 +197,19 @@ public class GeoGebraCAS implements GeoGebraCasInterface {
 	final public String evaluateGeoGebraCAS(String exp,
 			ArbitraryConstantRegistry arbconst, StringTemplate tpl, Kernel kernel)
 			throws CASException {
+		String ret = null;
 		try {
 			ValidExpression inVE = casParser.parseGeoGebraCASInput(exp, null);
-			String ret = evaluateGeoGebraCAS(inVE, arbconst, tpl, null, kernel);
-			if (ret == null) {
-				throw new CASException(new Exception(
-						Errors.CASGeneralErrorMessage.getError(app.getLocalization())));
-			}
-			return ret;
+			ret = evaluateGeoGebraCAS(inVE, arbconst, tpl, null, kernel);
 		} catch (Throwable t) {
 			Log.debug(t);
 			throw new CASException(t);
 		}
+		if (ret == null) {
+			throw new CASException(new Exception(
+					Errors.CASGeneralErrorMessage.getError(app.getLocalization())));
+		}
+		return ret;
 	}
 
 	@Override
@@ -929,8 +946,7 @@ public class GeoGebraCAS implements GeoGebraCasInterface {
 			ArrayList<ExpressionNode> args, StringBuilder sbCASCommand) {
 		ExpressionValue value = args.get(0).unwrap();
 		sbCASCommand.setLength(0);
-		if (value instanceof VarString) {
-			VarString f = (VarString) value;
+		if (value instanceof VarString f && f.getFunctionVariables().length > 0) {
 			args.set(0, value.wrap());
 			FunctionVariable[] functionVariables = f.getFunctionVariables();
 			args.add(functionVariables[0].wrap());

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.html5.main;
 
 import java.util.function.Supplier;
@@ -13,19 +29,17 @@ import org.geogebra.common.kernel.geos.TextProperties;
 import org.geogebra.common.kernel.kernelND.GeoElementND;
 import org.geogebra.common.main.App;
 import org.geogebra.ggbjdk.java.awt.geom.Dimension;
-import org.geogebra.web.html5.awt.GGraphics2DW;
+import org.geogebra.web.awt.GGraphics2DW;
+import org.geogebra.web.awt.JLMContext2D;
+import org.geogebra.web.awt.JLMContextHelper;
 import org.gwtproject.canvas.client.Canvas;
 import org.gwtproject.dom.style.shared.Unit;
 
 import com.himamis.retex.renderer.share.TeXFont;
 import com.himamis.retex.renderer.share.TeXIcon;
-import com.himamis.retex.renderer.share.platform.graphics.Color;
 import com.himamis.retex.renderer.share.platform.graphics.Image;
 import com.himamis.retex.renderer.web.FactoryProviderGWT;
-import com.himamis.retex.renderer.web.graphics.ColorW;
 import com.himamis.retex.renderer.web.graphics.Graphics2DW;
-import com.himamis.retex.renderer.web.graphics.JLMContext2d;
-import com.himamis.retex.renderer.web.graphics.JLMContextHelper;
 
 /**
  * Web LaTeX helper class
@@ -43,14 +57,12 @@ public class DrawEquationW extends DrawEquation {
 
 	@Override
 	public GDimension drawEquation(App app1, GeoElementND geo,
-			final GGraphics2D g2, int x, int y, String latexString0, GFont font,
+			final GGraphics2D g2, int x, int y, String eqstring, GFont font,
 			boolean serif, final GColor fgColor, GColor bgColor,
 			boolean useCache, boolean updateAgain, final Runnable callback) {
 
-		String eqstring = latexString0;
-
-		TeXIcon icon = createIcon(eqstring, convertColor(fgColor), font,
-				font.getLaTeXStyle(serif), null, null);
+		TeXIcon icon = createIcon(eqstring, fgColor, font,
+				getLaTeXStyle(font, serif), null, null);
 
 		Graphics2DW g3 = new Graphics2DW(((GGraphics2DW) g2).getContext());
 		g3.setDrawingFinishedCallback(async -> {
@@ -59,11 +71,10 @@ public class DrawEquationW extends DrawEquation {
 				callback.run();
 			}
 		});
-		icon.paintIcon(() -> convertColor(fgColor), g3, x, y);
+		icon.paintIcon(() -> fgColor, g3, x, y);
 		g2.updateCanvasColor();
 		g3.maybeNotifyDrawingFinishedCallback(false);
 		return new Dimension(icon.getIconWidth(), icon.getIconHeight());
-
 	}
 
 	/**
@@ -86,7 +97,7 @@ public class DrawEquationW extends DrawEquation {
 	 * @return canvas
 	 */
 	public static Canvas paintOnCanvas(GeoElementND geo, String text0,
-			Canvas c0, int fontSize) {
+			Canvas c0, double fontSize) {
 		Canvas c = makeCleanCanvas(c0);
 		if (geo != null) {
 			DrawEquationW current =
@@ -108,7 +119,7 @@ public class DrawEquationW extends DrawEquation {
 	 * @return canvas
 	 */
 	public static Canvas paintOnCanvasOutput(GeoElementND geo, String text0,
-			Canvas c0, int fontSize) {
+			Canvas c0, double fontSize) {
 		final GColor fgColor = geo.getAlgebraColor();
 		Canvas c = makeCleanCanvas(c0);
 		DrawEquationW current = (DrawEquationW) geo.getKernel().getApplication().getDrawEquation();
@@ -157,12 +168,12 @@ public class DrawEquationW extends DrawEquation {
 	 * @return graphics
 	 */
 	public Graphics2DW paintOnCleanCanvas(String text0, @Nonnull Canvas c,
-			int fontSize, final GColor fgColor, boolean serif) {
-		JLMContext2d ctx = JLMContextHelper.as(c.getContext2d());
+			double fontSize, final GColor fgColor, boolean serif) {
+		JLMContext2D ctx = JLMContextHelper.as(c.getContext2d());
 
 		checkFirstCall();
 		TeXIcon icon = createIcon(text0,
-				convertColor(fgColor), fontSize,
+				fgColor, fontSize,
 				serif ? 0 : TeXFont.SANSSERIF);
 		Graphics2DW g3 = new Graphics2DW(ctx);
 
@@ -173,11 +184,9 @@ public class DrawEquationW extends DrawEquation {
 		c.setCoordinateSpaceHeight((int) (height * ratio));
 		c.getElement().getStyle().setWidth(width, Unit.PX);
 		c.getElement().getStyle().setHeight(height, Unit.PX);
-
-		// c.getElement().getStyle().setMargin(4, Unit.PX);
 		ctx.scale2(ratio, ratio);
 
-		icon.paintIcon(() -> convertColor(fgColor), g3, 0, 0);
+		icon.paintIcon(() -> fgColor, g3, 0, 0);
 		return g3;
 	}
 
@@ -200,13 +209,8 @@ public class DrawEquationW extends DrawEquation {
 	}
 
 	@Override
-	public Color convertColor(GColor color) {
-		return new ColorW(color.getRed(), color.getGreen(), color.getBlue());
-	}
-
-	@Override
 	public Image getCachedDimensions(String text, GeoElementND geo,
-			Color fgColor, GFont font, int style, int[] ret) {
+			GColor fgColor, GFont font, int style, int[] ret) {
 		// TODO JLaTeXMathCache uses
 		// import java.lang.ref.Reference;
 		// import java.lang.ref.ReferenceQueue;

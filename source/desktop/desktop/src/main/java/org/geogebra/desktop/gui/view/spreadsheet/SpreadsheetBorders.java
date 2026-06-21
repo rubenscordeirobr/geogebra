@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.view.spreadsheet;
 
 import java.awt.BasicStroke;
@@ -71,17 +87,10 @@ public class SpreadsheetBorders {
 
 			// if the format includes right or left border then draw borders for
 			// each cell individually
-			if (!CellFormat.isZeroBit(v, 0) || !CellFormat.isZeroBit(v, 2)) {
+			if (CellFormat.isOneBit(v, CellFormat.BORDER_LEFT)
+					|| CellFormat.isOneBit(v, CellFormat.BORDER_RIGHT)) {
 				for (int c = 0; c < table.getColumnCount(); c++) {
 					drawPartialBorder(g2, table, c, row, c + 1, row + 1, v);
-				}
-
-				// if no row borders are given then this must be an inside
-				// border
-				// so inside row lines need to be drawn
-				if (!CellFormat.isZeroBit(v, 1)
-						|| !CellFormat.isZeroBit(v, 3)) {
-					// how?
 				}
 
 			}
@@ -89,11 +98,11 @@ public class SpreadsheetBorders {
 			// otherwise just draw a border line for an entire row
 			else {
 				// top bar
-				if (!CellFormat.isZeroBit(v, 1)) {
+				if (CellFormat.isOneBit(v, CellFormat.BORDER_TOP)) {
 					drawRowBorder(g2, table, row);
 				}
 				// bottom bar
-				if (!CellFormat.isZeroBit(v, 3)) {
+				if (CellFormat.isOneBit(v, CellFormat.BORDER_BOTTOM)) {
 					drawRowBorder(g2, table, row + 1);
 				}
 			}
@@ -104,7 +113,8 @@ public class SpreadsheetBorders {
 
 			// if the format includes row borders then draw each cell
 			// individually
-			if (!CellFormat.isZeroBit(v, 1) || !CellFormat.isZeroBit(v, 3)) {
+			if (CellFormat.isOneBit(v, CellFormat.BORDER_TOP)
+					|| CellFormat.isOneBit(v, CellFormat.BORDER_BOTTOM)) {
 				for (int r = 0; r < table.getRowCount(); r++) {
 					drawPartialBorder(g2, table, col, r, col + 1, r + 1, v);
 				}
@@ -113,11 +123,11 @@ public class SpreadsheetBorders {
 			// otherwise just draw a border line for an entire column
 			else {
 				// left column
-				if (!CellFormat.isZeroBit(v, 0)) {
+				if (CellFormat.isOneBit(v, CellFormat.BORDER_LEFT)) {
 					drawColumnBorder(g2, table, col);
 				}
 				// right column
-				if (!CellFormat.isZeroBit(v, 2)) {
+				if (CellFormat.isOneBit(v, CellFormat.BORDER_RIGHT)) {
 					drawColumnBorder(g2, table, col + 1);
 				}
 			}
@@ -154,19 +164,19 @@ public class SpreadsheetBorders {
 		// 3
 		//
 		// left bar, 0
-		if (!CellFormat.isZeroBit(v, 0)) {
+		if (CellFormat.isOneBit(v, CellFormat.BORDER_LEFT)) {
 			g2.drawLine(r1, c1, r1, c2);
 		}
 		// top bar, 1
-		if (!CellFormat.isZeroBit(v, 1)) {
+		if (CellFormat.isOneBit(v, CellFormat.BORDER_TOP)) {
 			g2.drawLine(r1, c1, r2, c1);
 		}
 		// right bar, 2
-		if (!CellFormat.isZeroBit(v, 2)) {
+		if (CellFormat.isOneBit(v, CellFormat.BORDER_RIGHT)) {
 			g2.drawLine(r2, c1, r2, c2);
 		}
 		// bottom bar, 3
-		if (!CellFormat.isZeroBit(v, 3)) {
+		if (CellFormat.isOneBit(v, CellFormat.BORDER_BOTTOM)) {
 			g2.drawLine(r1, c2, r2, c2);
 		}
 

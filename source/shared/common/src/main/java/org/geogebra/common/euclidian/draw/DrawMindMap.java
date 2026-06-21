@@ -1,11 +1,29 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian.draw;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GBasicStroke;
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.awt.GGeneralPath;
@@ -13,7 +31,6 @@ import org.geogebra.common.awt.GGraphics2D;
 import org.geogebra.common.awt.GPoint2D;
 import org.geogebra.common.euclidian.EuclidianBoundingBoxHandler;
 import org.geogebra.common.euclidian.EuclidianView;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.geos.GeoMindMapNode;
 import org.geogebra.common.kernel.geos.GeoMindMapNode.NodeAlignment;
@@ -62,7 +79,7 @@ public class DrawMindMap extends DrawInlineText {
 		private final double y0;
 		private final double y1;
 
-		public MindMapEdge(DrawMindMap parent, DrawMindMap child, NodeAlignment alignment) {
+		MindMapEdge(DrawMindMap parent, DrawMindMap child, NodeAlignment alignment) {
 			x0 = parent.rectangle.getLeft() + alignment.dx0 * parent.rectangle.getWidth();
 			y0 = parent.rectangle.getTop() + alignment.dy0 * parent.rectangle.getHeight();
 			x1 = child.rectangle.getLeft() + alignment.dx1 * child.rectangle.getWidth();
@@ -92,7 +109,7 @@ public class DrawMindMap extends DrawInlineText {
 			return path;
 		}
 
-		public double getLength() {
+		double getLength() {
 			return (x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1);
 		}
 	}
@@ -308,7 +325,7 @@ public class DrawMindMap extends DrawInlineText {
 		List<DrawMindMap> intersectableChildren = node.getChildren().stream()
 				.filter(node -> node.getAlignment() != newAlignment)
 				.map(node -> (DrawMindMap) view.getDrawableFor(node))
-				.filter(e -> e != null)
+				.filter(Objects::nonNull)
 				.sorted(intersectionComparator)
 				.collect(Collectors.toList());
 
@@ -389,7 +406,7 @@ public class DrawMindMap extends DrawInlineText {
 		} else {
 			double toMove = marginTop(newAlignment, children.size())
 					+ GeoMindMapNode.CHILD_HEIGHT - spaceGained;
-			MoveGeos.moveObjects(childGeos, new Coords(0, view.getInvYscale() * toMove / 2,  0),
+			MoveGeos.moveObjects(childGeos, new Coords(0, view.getInvYscale() * toMove / 2, 0),
 					null, null, view);
 		}
 	}

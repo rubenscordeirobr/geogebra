@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.desktop.gui.dialog;
@@ -79,7 +83,6 @@ import org.geogebra.desktop.awt.GColorD;
 import org.geogebra.desktop.gui.DynamicTextInputPane;
 import org.geogebra.desktop.gui.DynamicTextInputPane.DynamicTextField;
 import org.geogebra.desktop.gui.GuiManagerD;
-import org.geogebra.desktop.gui.util.GeoGebraIconD;
 import org.geogebra.desktop.gui.util.HelpAction;
 import org.geogebra.desktop.gui.util.LatexTable;
 import org.geogebra.desktop.gui.util.PopupMenuButtonD;
@@ -251,6 +254,7 @@ public class TextInputDialogD extends InputDialogD
 		isTextMode = app.getMode() == EuclidianConstants.MODE_TEXT;
 		updatePreviewText();
 		editor.requestFocus();
+		setVisible(true);
 	}
 
 	private void createAdditionalGUI() {
@@ -344,7 +348,7 @@ public class TextInputDialogD extends InputDialogD
 
 		btInsertUnicode.setKeepVisible(false);
 		btInsertUnicode.setStandardButton(true);
-		btInsertUnicode.setFixedIcon(GeoGebraIconD.createDownTriangleIcon(10));
+		btInsertUnicode.setFixedIcon(app.getScaledIcon(GuiResourcesD.TRIANGLE_DOWN));
 		// btInsertUnicode.setText("Symbols");
 
 		String[][] map = TableSymbols.basicSymbolsMap(loc);
@@ -405,7 +409,7 @@ public class TextInputDialogD extends InputDialogD
 
 		btInsertLaTeX.setKeepVisible(false);
 		btInsertLaTeX.setStandardButton(true);
-		btInsertLaTeX.setFixedIcon(GeoGebraIconD.createDownTriangleIcon(10));
+		btInsertLaTeX.setFixedIcon(app.getScaledIcon(GuiResourcesD.TRIANGLE_DOWN));
 		btInsertLaTeX.setVisible(false);
 
 		laTexButtonTitleMap = new HashMap<>();
@@ -570,7 +574,7 @@ public class TextInputDialogD extends InputDialogD
 		btInsertGeo.addPopupMenuItem(scroller);
 		btInsertGeo.setKeepVisible(false);
 		btInsertGeo.setStandardButton(true);
-		btInsertGeo.setFixedIcon(GeoGebraIconD.createDownTriangleIcon(10));
+		btInsertGeo.setFixedIcon(app.getScaledIcon(GuiResourcesD.TRIANGLE_DOWN));
 	}
 
 	// =============================================================

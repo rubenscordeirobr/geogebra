@@ -1,19 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * MyError.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 04. October 2001, 09:29
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.main;
@@ -36,7 +34,7 @@ public class MyError extends Error {
 	protected String commandName = null;
 	private String[] strs;
 	// Used for localization
-	private Errors message;
+	private Errors messageKey;
 	// Used for identification
 	private Errors errorType;
 
@@ -122,7 +120,7 @@ public class MyError extends Error {
 	public MyError(Localization loc0, Errors message0, String... strs0) {
 		super(message0.key);
 		this.loc = loc0;
-		this.message = message0;
+		this.messageKey = message0;
 		this.strs = strs0;
 	}
 
@@ -137,7 +135,7 @@ public class MyError extends Error {
 	public MyError(Localization loc0, Throwable cause, Errors message0, String... strs0) {
 		super(message0.key, cause);
 		this.loc = loc0;
-		this.message = message0;
+		this.messageKey = message0;
 		this.strs = strs0;
 	}
 
@@ -157,7 +155,7 @@ public class MyError extends Error {
 			ExpressionValue rt) {
 		super(message0.key);
 		this.loc = loc0;
-		this.message = message0;
+		this.messageKey = message0;
 
 		strs = new String[3];
 		strs[0] = toErrorString(lt);
@@ -189,7 +187,7 @@ public class MyError extends Error {
 	/**
 	 * @return associated command name
 	 */
-	public String getcommandName() {
+	public String getCommandName() {
 		return commandName;
 	}
 
@@ -202,13 +200,13 @@ public class MyError extends Error {
 	}
 
 	@Override
-	public String getLocalizedMessage() {
+	public String getMessage() {
 		StringBuilder sb = new StringBuilder();
 		// space needed in case error is displayed on one line
 		sb.append(getError());
 
 		// only needed for old "string" errors, not new enum errors
-		if (message == null && strs != null) {
+		if (messageKey == null && strs != null) {
 			sb.append(" \n");
 			for (String part : strs) {
 				sb.append(part);
@@ -221,39 +219,12 @@ public class MyError extends Error {
 	private String getError() {
 		
 		// using new Errors enum
-		if (message != null) {
-			String ret = message.getError(loc, strs);
-			return ret;
+		if (messageKey != null) {
+			return messageKey.getError(loc, strs);
 		}
 		
 		// using old string method
-		return getError(getMessage());
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-
-		sb.append(getClass().toString());
-		sb.append(": ");
-		sb.append(getError());
-		if (strs != null) {
-			for (int i = 0; i < strs.length; i++) {
-				sb.append(" : ");
-				sb.append(getError(strs[i]));
-			}
-		}
-		return sb.toString();
-	}
-
-	/**
-	 * @param s
-	 *            key
-	 * @return localized error
-	 */
-	private String getError(String s) {
-		String ret = loc == null ? s : loc.getError(s);
-		return ret;
+		return super.getMessage();
 	}
 
 	/**
@@ -343,7 +314,9 @@ public class MyError extends Error {
 
 		UnknownCommand("UnknownCommand", "Unknown command"),
 		NameUsed("NameUsed", "This label is already in use"),
+		LabelAlreadyUsed("LabelAlreadyUsed", "This label is already used."),
 		ChangeDependent("ChangeDependent", "Dependent objects may not be changed"),
+		IncompleteEquation("IncompleteEquation", "Incomplete equation"),
 
 		// IllegalArgumentAinCustomToolB("IllegalArgumentAinCustomToolB", "Illegal
 		// Argument %0 in Custom Tool %1"),

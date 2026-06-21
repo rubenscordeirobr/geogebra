@@ -1,19 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * GeoVec2D.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 31. August 2001, 11:34
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.geos;
@@ -39,6 +37,7 @@ import org.geogebra.common.kernel.commands.EvalInfo;
 import org.geogebra.common.kernel.kernelND.GeoPointND;
 import org.geogebra.common.kernel.kernelND.GeoVecInterface;
 import org.geogebra.common.kernel.matrix.Coords;
+import org.geogebra.common.main.Localization;
 import org.geogebra.common.util.DoubleUtil;
 import org.geogebra.common.util.MyMath;
 import org.geogebra.common.util.debug.Log;
@@ -1055,12 +1054,12 @@ final public class GeoVec2D extends ValidExpression
 		} else if (mode == Kernel.COORD_COMPLEX) {
 			initStringBuilder();
 			sbToString.setLength(0);
-			sbToString.append(tpl.leftBracket());
+			sbToString.append(tpl.leftBracket(kernel.getLocalization()));
 			sbToString.append(kernel.format(x, tpl));
 			sbToString.append(" ");
 			kernel.formatSignedCoefficient(y, sbToString, tpl);
 			sbToString.append(tpl.getImaginary());
-			sbToString.append(tpl.rightBracket());
+			sbToString.append(tpl.rightBracket(kernel.getLocalization()));
 			return sbToString.toString();
 		}
 		initStringBuilder();
@@ -1279,8 +1278,7 @@ final public class GeoVec2D extends ValidExpression
 			zz = 0;
 			vector = true;
 
-		} else if (rt instanceof GeoPointND) { // 3D point
-			GeoPointND p = (GeoPointND) rt;
+		} else if (rt instanceof GeoPointND p) { // 3D point
 			// use inhomogeneous coordinates
 			xx = p.getInhomX();
 			yy = p.getInhomY();
@@ -1367,6 +1365,11 @@ final public class GeoVec2D extends ValidExpression
 	 */
 	public Kernel getKernel() {
 		return kernel;
+	}
+
+	@Override
+	public Localization getLocalization() {
+		return kernel.getLocalization();
 	}
 
 	@Override

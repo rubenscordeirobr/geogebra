@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.implicit;
 
 import java.util.ArrayList;
@@ -12,6 +28,7 @@ import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.DecompositionSolver;
 import org.apache.commons.math3.linear.LUDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.EuclidianViewCE;
 import org.geogebra.common.kernel.Kernel;
@@ -57,10 +74,8 @@ import org.geogebra.common.plugin.GeoClass;
 import org.geogebra.common.plugin.Operation;
 import org.geogebra.common.util.DoubleUtil;
 import org.geogebra.common.util.ExtendedBoolean;
-import org.geogebra.common.util.StringUtil;
 import org.geogebra.common.util.debug.Log;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * GeoElement representing an implicit curve.
@@ -851,14 +866,14 @@ public class GeoImplicitCurve extends GeoElement implements EuclidianViewCE,
 	}
 
 	@Override
-	protected void getExpressionXML(StringBuilder sb) {
+	protected void getExpressionXML(XMLStringBuilder sb) {
 		if (isIndependent() && getDefaultGeoType() < 0 && isDefined()) {
-			sb.append("<expression label=\"");
-			sb.append(label);
-			sb.append("\" exp=\"");
-			StringUtil.encodeXML(sb, getXmlString());
+			sb.startTag("expression", 0);
+			sb.attr("label", label);
+			sb.attr("exp", getXmlString());
 			// expression
-			sb.append("\" type=\"implicitpoly\"/>\n");
+			sb.attr("type", "implicitpoly");
+			sb.endTag();
 		}
 	}
 
@@ -868,10 +883,10 @@ public class GeoImplicitCurve extends GeoElement implements EuclidianViewCE,
 	}
 
 	@Override
-	protected void getXMLtags(StringBuilder sb) {
-		super.getXMLtags(sb);
+	protected void getXMLTags(XMLStringBuilder builder) {
+		super.getXMLTags(builder);
 		if (coeff != null) {
-			sb.append("\t<coefficients rep=\"array\" data=\"");
+			StringBuilder sb = new StringBuilder();
 			sb.append("[");
 			for (int i = 0; i < coeff.length; i++) {
 				if (i > 0) {
@@ -887,18 +902,19 @@ public class GeoImplicitCurve extends GeoElement implements EuclidianViewCE,
 				sb.append("]");
 			}
 			sb.append("]");
-			sb.append("\" />\n");
+			builder.startTag("coefficients")
+					.attr("rep", "array")
+					.attr("data", sb)
+					.endTag();
 		}
 
 	}
 
 	@Override
-	protected void getStyleXML(StringBuilder sb) {
+	protected void getStyleXML(XMLStringBuilder sb) {
 		super.getStyleXML(sb);
 		getLineStyleXML(sb);
-		sb.append("\t<userinput show=\"");
-		sb.append(isInputForm());
-		sb.append("\"/>");
+		sb.startTag("userinput").attr("show", isInputForm()).endTag();
 	}
 
 	/**
@@ -1206,7 +1222,6 @@ public class GeoImplicitCurve extends GeoElement implements EuclidianViewCE,
 	 */
 	public void plugInRatPoly(double[][] pX, double[][] pY, double[][] qX,
 			double[][] qY) {
-		int degXpX = pX.length - 1;
 		int degYpX = 0;
 		for (int i = 0; i < pX.length; i++) {
 			if (pX[i].length - 1 > degYpX) {
@@ -1223,7 +1238,6 @@ public class GeoImplicitCurve extends GeoElement implements EuclidianViewCE,
 				}
 			}
 		}
-		int degXpY = pY.length - 1;
 		int degYpY = 0;
 		for (int i = 0; i < pY.length; i++) {
 			if (pY[i].length - 1 > degYpY) {
@@ -1257,6 +1271,8 @@ public class GeoImplicitCurve extends GeoElement implements EuclidianViewCE,
 			// find the "common" degree, e.g. x^4+y^4->4, but x^4 y^4->8
 			commDeg = getDeg();
 		}
+		int degXpX = pX.length - 1;
+		int degXpY = pY.length - 1;
 		int newDegX = Math.max(degXpX, degXqX) * degX
 				+ Math.max(degXpY, degXqY) * degY;
 		int newDegY = Math.max(degYpX, degYqX) * degX
@@ -1266,14 +1282,6 @@ public class GeoImplicitCurve extends GeoElement implements EuclidianViewCE,
 		double[][] tmpCoeff = new double[newDegX + 1][newDegY + 1];
 		double[][] ratXCoeff = new double[newDegX + 1][newDegY + 1];
 		double[][] ratYCoeff = new double[newDegX + 1][newDegY + 1];
-		int tmpCoeffDegX = 0;
-		int tmpCoeffDegY = 0;
-		int newCoeffDegX = 0;
-		int newCoeffDegY = 0;
-		int ratXCoeffDegX = 0;
-		int ratXCoeffDegY = 0;
-		int ratYCoeffDegX = 0;
-		int ratYCoeffDegY = 0;
 
 		for (int i = 0; i < newDegX; i++) {
 			for (int j = 0; j < newDegY; j++) {
@@ -1284,7 +1292,15 @@ public class GeoImplicitCurve extends GeoElement implements EuclidianViewCE,
 			}
 		}
 		ratXCoeff[0][0] = 1;
+		int newCoeffDegX = 0;
+		int newCoeffDegY = 0;
+		int ratXCoeffDegX = 0;
+		int ratXCoeffDegY = 0;
+		int ratYCoeffDegX = 0;
+		int ratYCoeffDegY = 0;
 		for (int x = coeff.length - 1; x >= 0; x--) {
+			int tmpCoeffDegX = 0;
+			int tmpCoeffDegY = 0;
 			if (qY != null) {
 				ratYCoeff[0][0] = 1;
 				ratYCoeffDegX = 0;
@@ -1342,8 +1358,6 @@ public class GeoImplicitCurve extends GeoElement implements EuclidianViewCE,
 			}
 			newCoeffDegX = Math.max(newCoeffDegX, tmpCoeffDegX);
 			newCoeffDegY = Math.max(newCoeffDegY, tmpCoeffDegY);
-			tmpCoeffDegX = 0;
-			tmpCoeffDegY = 0;
 			if (x > 0) {
 				polyMult(newCoeff, pX, newCoeffDegX, newCoeffDegY, degXpX,
 						degYpX);
@@ -1580,16 +1594,14 @@ public class GeoImplicitCurve extends GeoElement implements EuclidianViewCE,
 	public static List<Coords> probableInitialPoints(FunctionNVar f1,
 			FunctionNVar f2, double xMin, double yMin, double xMax, double yMax,
 			int n) {
-
-		int root = (int) (Math.sqrt(n) + 1);
 		List<Coords> out = new ArrayList<>();
 		if (xMin >= xMax || yMin >= yMax) {
 			// empty intersecting rectangle
 			return out;
 		}
-
-		double inx = (xMax - xMin) / (root + 1), inx2 = 0.5 * inx;
-		double iny = (yMax - yMin) / (root + 1), iny2 = 0.5 * iny;
+		int root = (int) (Math.sqrt(n) + 1);
+		final double inx = (xMax - xMin) / (root + 1), inx2 = 0.5 * inx;
+		final double iny = (yMax - yMin) / (root + 1), iny2 = 0.5 * iny;
 		double[] y1 = new double[root + 1];
 		double[] y2 = new double[root + 1];
 		boolean[] present = new boolean[n + 1];
@@ -1752,13 +1764,11 @@ public class GeoImplicitCurve extends GeoElement implements EuclidianViewCE,
 		}
 
 		int degree = (int) (0.5 * Math.sqrt(8 * (1 + points.size()))) - 1;
-		int realDegree = degree;
-
 		RealMatrix extendMatrix = new Array2DRowRealMatrix(points.size(),
 				points.size() + 1);
 		RealMatrix matrix = new Array2DRowRealMatrix(points.size(),
 				points.size());
-		double[][] coeffMatrix = new double[degree + 1][degree + 1];
+		final double[][] coeffMatrix = new double[degree + 1][degree + 1];
 
 		DecompositionSolver solver;
 
@@ -1778,7 +1788,7 @@ public class GeoImplicitCurve extends GeoElement implements EuclidianViewCE,
 		}
 
 		int solutionColumn = 0, noPoints = points.size();
-
+		int realDegree = degree;
 		do {
 			if (solutionColumn > noPoints) {
 				noPoints = noPoints - realDegree - 1;

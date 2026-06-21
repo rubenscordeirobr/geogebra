@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.layout.panels;
 
 import java.util.ArrayList;
@@ -11,7 +27,6 @@ import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.main.App;
 import org.geogebra.common.main.Localization;
 import org.geogebra.common.main.OptionType;
-import org.geogebra.common.main.settings.AbstractSettings;
 import org.geogebra.common.main.settings.AlgebraSettings;
 import org.geogebra.common.main.settings.AlgebraStyle;
 import org.geogebra.common.main.settings.SettingListener;
@@ -25,7 +40,7 @@ import org.geogebra.web.html5.main.AppW;
 /**
  * StyleBar for AlgebraView
  */
-public class AlgebraStyleBarW extends StyleBarW2 implements SettingListener {
+public class AlgebraStyleBarW extends StyleBarW2 implements SettingListener<AlgebraSettings> {
 
 	/** button to open the popup with the supported tree-modes */
 	PopupMenuButtonW treeModeButton;
@@ -186,7 +201,7 @@ public class AlgebraStyleBarW extends StyleBarW2 implements SettingListener {
 	}
 
 	@Override
-	public void settingsChanged(AbstractSettings settings) {
+	public void settingsChanged(AlgebraSettings settings) {
 		//
 	}
 

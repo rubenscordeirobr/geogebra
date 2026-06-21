@@ -1,19 +1,22 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
-
-//
 
 package org.geogebra.common.kernel.algos;
 
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.geos.GeoElement;
@@ -181,74 +184,57 @@ public abstract class AlgoPolygonOperation extends AlgoElement {
 	}
 
 	@Override
-	protected void getCmdOutputXML(StringBuilder sb, StringTemplate tpl) {
-
-		sb.append("\t<outputSizes val=\"");
-		sb.append(outputPolygons.size());
-		sb.append(",");
-		sb.append(outputPoints.size());
-		sb.append(",");
-		sb.append(outputSegments.size());
-		sb.append("\"");
-		sb.append("/>\n");
-
+	protected void getCmdOutputXML(XMLStringBuilder sb, StringTemplate tpl) {
+		String sizes = outputPolygons.size() + "," + outputPoints.size() + ","
+				+ outputSegments.size();
+		sb.startTag("outputSizes").attr("val", sizes).endTag();
 		// common method
 		super.getCmdOutputXML(sb, tpl);
-
 	}
 
 	/**
 	 * create outputHandlers for output polygons, points, and segments and
 	 * initiate them
 	 */
-	private final void createOutput() {
+	private void createOutput() {
 
 		outputPolygons = new OutputHandler<>(
-				new ElementFactory<GeoPolygon>() {
-					@Override
-					public GeoPolygon newElement() {
-						GeoPolygon p = new GeoPolygon(cons, true);
-						p.setParentAlgorithm(AlgoPolygonOperation.this);
-						if (outputPolygons.size() > 0) {
-							p.setAllVisualProperties(
-									outputPolygons.getElement(0), false);
-						}
-						p.setViewFlags(inPoly0.getViewSet());
-						p.setNotFixedPointsLength(true);
-						return p;
+				() -> {
+					GeoPolygon p = new GeoPolygon(cons, true);
+					p.setParentAlgorithm(this);
+					if (outputPolygons.size() > 0) {
+						p.setAllVisualProperties(
+								outputPolygons.getElement(0), false);
 					}
+					p.setViewFlags(inPoly0.getViewSet());
+					p.setNotFixedPointsLength(true);
+					return p;
 				});
 
 		outputPolygons.adjustOutputSize(1, false);
 
 		outputPoints = new OutputHandler<>(
-				new ElementFactory<GeoPoint>() {
-					@Override
-					public GeoPoint newElement() {
-						GeoPoint newPoint = new GeoPoint(cons);
-						newPoint.setCoords(0, 0, 1);
-						newPoint.setParentAlgorithm(AlgoPolygonOperation.this);
-						newPoint.setAuxiliaryObject(true);
-						newPoint.setViewFlags(inPoly0.getViewSet());
+				() -> {
+					GeoPoint newPoint = new GeoPoint(cons);
+					newPoint.setCoords(0, 0, 1);
+					newPoint.setParentAlgorithm(this);
+					newPoint.setAuxiliaryObject(true);
+					newPoint.setViewFlags(inPoly0.getViewSet());
 
-						return newPoint;
-					}
+					return newPoint;
 				});
 
 		outputPoints.adjustOutputSize(1, false);
 
 		outputSegments = new OutputHandler<>(
-				new ElementFactory<GeoSegment>() {
-					@Override
-					public GeoSegment newElement() {
-						GeoSegment segment = (GeoSegment) outputPolygons
-								.getElement(0)
-								.createSegment(cons, outputPoints.getElement(0),
-										outputPoints.getElement(0), true);
-						segment.setAuxiliaryObject(true);
-						segment.setViewFlags(inPoly0.getViewSet());
-						return segment;
-					}
+				() -> {
+					GeoSegment segment = (GeoSegment) outputPolygons
+							.getElement(0)
+							.createSegment(cons, outputPoints.getElement(0),
+									outputPoints.getElement(0), true);
+					segment.setAuxiliaryObject(true);
+					segment.setViewFlags(inPoly0.getViewSet());
+					return segment;
 				});
 
 	}

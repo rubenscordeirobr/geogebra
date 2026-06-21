@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.statistics;
 
 import org.geogebra.common.kernel.Kernel;
@@ -154,28 +170,26 @@ public class CmdFrequency extends CommandProcessor {
 	/**
 	 * Frequency[dataList] G. Sturr
 	 */
-	final private GeoList frequency(GeoList dataList) {
+	private GeoList frequency(GeoList dataList) {
 		AlgoFrequency algo = new AlgoFrequency(cons, null, null,
 				dataList);
-		GeoList list = algo.getResult();
-		return list;
+		return algo.getResult();
 	}
 
 	/**
 	 * Frequency[isCumulative, dataList] G. Sturr
 	 */
-	final private GeoList frequency(GeoBoolean isCumulative,
+	private GeoList frequency(GeoBoolean isCumulative,
 			GeoList dataList) {
 		AlgoFrequency algo = new AlgoFrequency(cons, isCumulative, null,
 				dataList);
-		GeoList list = algo.getResult();
-		return list;
+		return algo.getResult();
 	}
 
 	/**
 	 * Frequency[classList, dataList] G. Sturr
 	 */
-	final private GeoList frequency(GeoList classList,
+	private GeoList frequency(GeoList classList,
 			GeoList dataList) {
 		AlgoFrequency algo;
 
@@ -184,64 +198,58 @@ public class CmdFrequency extends CommandProcessor {
 		} else {
 			algo = new AlgoFrequency(cons, null, classList, dataList);
 		}
-		GeoList list = algo.getResult();
-		return list;
+		return algo.getResult();
 	}
 
 	/**
 	 * Frequency[classList, dataList, useDensity] G. Sturr
 	 */
-	final private GeoList frequency(GeoList classList,
+	private GeoList frequency(GeoList classList,
 			GeoList dataList, GeoBoolean useDensity) {
 		AlgoFrequency algo = new AlgoFrequency(cons, null, classList,
 				dataList, useDensity, null);
-		GeoList list = algo.getResult();
-		return list;
+		return algo.getResult();
 	}
 
 	/**
 	 * Frequency[classList, dataList, useDensity, scaleFactor] G. Sturr
 	 */
-	final private GeoList frequency(GeoList classList,
+	private GeoList frequency(GeoList classList,
 			GeoList dataList, GeoBoolean useDensity, GeoNumeric scaleFactor) {
 		AlgoFrequency algo = new AlgoFrequency(cons, null, classList,
 				dataList, useDensity, scaleFactor);
-		GeoList list = algo.getResult();
-		return list;
+		return algo.getResult();
 	}
 
 	/**
 	 * Frequency[isCumulative, classList, dataList] G. Sturr
 	 */
-	final private GeoList frequency(GeoBoolean isCumulative,
+	private GeoList frequency(GeoBoolean isCumulative,
 			GeoList classList, GeoList dataList) {
 		AlgoFrequency algo = new AlgoFrequency(cons, isCumulative,
 				classList, dataList, null, null);
-		GeoList list = algo.getResult();
-		return list;
+		return algo.getResult();
 	}
 
 	/**
 	 * Frequency[isCumulative, classList, dataList, useDensity] G. Sturr
 	 */
-	final private GeoList frequency(GeoBoolean isCumulative,
+	private GeoList frequency(GeoBoolean isCumulative,
 			GeoList classList, GeoList dataList, GeoBoolean useDensity) {
 		AlgoFrequency algo = new AlgoFrequency(cons, isCumulative,
 				classList, dataList, useDensity, null);
-		GeoList list = algo.getResult();
-		return list;
+		return algo.getResult();
 	}
 
 	/**
 	 * Frequency[isCumulative, classList, dataList, useDensity, scaleFactor] G.
 	 * Sturr
 	 */
-	final private GeoList frequency(GeoBoolean isCumulative,
+	private GeoList frequency(GeoBoolean isCumulative,
 			GeoList classList, GeoList dataList, GeoBoolean useDensity,
 			GeoNumeric scaleFactor) {
 		AlgoFrequency algo = new AlgoFrequency(cons, isCumulative,
 				classList, dataList, useDensity, scaleFactor);
-		GeoList list = algo.getResult();
-		return list;
+		return algo.getResult();
 	}
 }

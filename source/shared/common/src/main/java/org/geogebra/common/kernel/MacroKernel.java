@@ -1,18 +1,24 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel;
 
-import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.annotation.Nonnull;
 
 import org.geogebra.common.io.MyXMLHandler;
 import org.geogebra.common.io.XMLParseException;
@@ -23,15 +29,14 @@ import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.kernelND.GeoDirectionND;
 import org.geogebra.common.kernel.kernelND.GeoPlaneND;
 import org.geogebra.common.main.MyError;
-import org.geogebra.common.util.MaxSizeHashMap;
 
 /**
  * Kernel with its own construction for macros.
  */
 public class MacroKernel extends Kernel {
 
-	private Kernel parentKernel;
-	private MacroConstruction macroCons;
+	private final @Nonnull Kernel parentKernel;
+	private final @Nonnull MacroConstruction macroCons;
 
 	/**
 	 * Creates new kernel for macro
@@ -40,10 +45,9 @@ public class MacroKernel extends Kernel {
 	 *            kernel of construction in which we want to use this macro
 	 */
 	public MacroKernel(Kernel parentKernel) {
-		super(parentKernel.getGeoFactory());
+		super(parentKernel.getGeoFactory(), parentKernel.getApplication());
 		this.parentKernel = parentKernel;
 
-		app = parentKernel.getApplication();
 		setUndoActive(false);
 		setAllowVisibilitySideEffects(false);
 
@@ -75,8 +79,8 @@ public class MacroKernel extends Kernel {
 
 		Kernel k = parentKernel;
 
-		while (k instanceof MacroKernel) {
-			k = ((MacroKernel) k).getParentKernel();
+		while (k instanceof MacroKernel macroKernel) {
+			k = macroKernel.getParentKernel();
 		}
 
 		return k;
@@ -191,8 +195,7 @@ public class MacroKernel extends Kernel {
 	}
 
 	@Override
-	public boolean handleCoords(GeoElement geo,
-			LinkedHashMap<String, String> attrs) {
+	public boolean handleCoords(GeoElement geo, Map<String, String> attrs) {
 		return parentKernel.handleCoords(geo, attrs);
 	}
 
@@ -217,7 +220,7 @@ public class MacroKernel extends Kernel {
 	 * @return Hash map for caching CAS results from parent kernel.
 	 */
 	@Override
-	public MaxSizeHashMap<String, String> getCasCache() {
+	public Map<String, String> getCasCache() {
 		return parentKernel.getCasCache();
 	}
 

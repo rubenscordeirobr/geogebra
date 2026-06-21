@@ -1,16 +1,20 @@
-package org.geogebra.desktop.gui.view.consprotocol;
-
-/* 
- GeoGebra - Dynamic Mathematics for Everyone
- http://www.geogebra.org
-
- This file is part of GeoGebra.
-
- This program is free software; you can redistribute it and/or modify it 
- under the terms of the GNU General Public License as published by 
- the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
+
+package org.geogebra.desktop.gui.view.consprotocol;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -37,7 +41,7 @@ import java.util.ArrayList;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -86,11 +90,10 @@ import org.geogebra.desktop.javax.swing.GImageIconD;
 import org.geogebra.desktop.main.AppD;
 import org.geogebra.desktop.main.LocalizationD;
 import org.geogebra.desktop.util.GuiResourcesD;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 public class ConstructionProtocolViewD extends ConstructionProtocolView
-		implements Printable, SettingListener, SetLabels {
+		implements Printable, SettingListener<ConstructionProtocolSettings>, SetLabels {
 
 	static Color COLOR_STEP_HIGHLIGHT = AppD.COLOR_SELECTION;
 	private static final Color COLOR_DRAG_HIGHLIGHT = new Color(250, 250, 200);
@@ -679,8 +682,6 @@ public class ConstructionProtocolViewD extends ConstructionProtocolView
 			} else {
 				colData.setVisible(false);
 				model.removeColumn(column);
-				// setSize(getWidth() - column.getWidth(), getHeight());
-				// setSize(view.getWidth(), getHeight());
 			}
 			table.tableChanged(new TableModelEvent(
 					((ConstructionTableDataD) data).getImpl()));
@@ -688,6 +689,8 @@ public class ConstructionProtocolViewD extends ConstructionProtocolView
 			// reinit view to update possible breakpoint changes
 			data.initView();
 			SwingUtilities.updateComponentTreeUI(view.scrollPane);
+			// make sure row heights fit icons
+			data.updateAll();
 		}
 	}
 
@@ -736,7 +739,6 @@ public class ConstructionProtocolViewD extends ConstructionProtocolView
 		private static final long serialVersionUID = -9165858653728142643L;
 
 		private JCheckBox cbTemp = new JCheckBox();
-		private JLabel iTemp = new JLabel();
 
 		public ConstructionTableCellRenderer() {
 			setOpaque(true);
@@ -751,14 +753,12 @@ public class ConstructionProtocolViewD extends ConstructionProtocolView
 			// Boolean value: show as checkbox
 			boolean isBoolean = value instanceof Boolean;
 
-			boolean isImage = value instanceof ImageIcon;
+			boolean isImage = value instanceof Icon;
 
 			Component comp;
 
 			if (isBoolean) {
 				comp = cbTemp;
-			} else if (isImage) {
-				comp = iTemp;
 			} else {
 				comp = this;
 			}
@@ -794,21 +794,13 @@ public class ConstructionProtocolViewD extends ConstructionProtocolView
 			comp.setFont(table1.getFont());
 
 			if (isBoolean) {
-				cbTemp.setSelected(((Boolean) value).booleanValue());
+				cbTemp.setSelected((Boolean) value);
 				cbTemp.setEnabled(true);
 				return cbTemp;
 			}
 			if (isImage) {
-				/*
-				 * Scaling does not work yet. I wonder why. Image miniImage =
-				 * ((ImageIcon) value).getImage().getScaledInstance(16,16,0);
-				 * ImageIcon miniIcon = new ImageIcon();
-				 * miniIcon.setImage(miniImage); iTemp.setIcon((ImageIcon)
-				 * value); iTemp.setHorizontalAlignment(JLabel.CENTER);
-				 * iTemp.setMaximumSize(new Dimension(16,16)); return iTemp;
-				 */
-				iTemp.setIcon((ImageIcon) value);
-				return iTemp;
+				this.setIcon((Icon) value);
+				return this;
 			}
 
 			setText((value == null) ? "" : value.toString());
@@ -1130,9 +1122,7 @@ public class ConstructionProtocolViewD extends ConstructionProtocolView
 		return r;
 	}
 
-	/***************
-	 * HTML export *
-	 ***************/
+	/* -- HTML EXPORT -- */
 
 	/**
 	 * @param app
@@ -1180,10 +1170,8 @@ public class ConstructionProtocolViewD extends ConstructionProtocolView
 	 */
 
 	@Override
-	public void settingsChanged(AbstractSettings settings) {
-		ConstructionProtocolSettings cps = (ConstructionProtocolSettings) settings;
-
-		boolean[] gcv = cps.getColsVisibility();
+	public void settingsChanged(ConstructionProtocolSettings settings) {
+		boolean[] gcv = settings.getColsVisibility();
 		if (gcv != null) {
 			if (gcv.length > 0) {
 				setColsVisibility(gcv);
@@ -1191,9 +1179,8 @@ public class ConstructionProtocolViewD extends ConstructionProtocolView
 		}
 
 		update();
-		((ConstructionTableDataD) getData()).initView();
+		getData().initView();
 		repaintScrollpane();
-
 	}
 
 	private void setColsVisibility(boolean[] colsVisibility) {

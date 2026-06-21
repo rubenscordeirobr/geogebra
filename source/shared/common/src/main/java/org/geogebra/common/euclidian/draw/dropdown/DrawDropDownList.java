@@ -1,19 +1,24 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.euclidian.draw.dropdown;
 
 import javax.annotation.CheckForNull;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.awt.GDimension;
 import org.geogebra.common.awt.GFont;
@@ -25,7 +30,6 @@ import org.geogebra.common.euclidian.DrawableND;
 import org.geogebra.common.euclidian.EuclidianStatic;
 import org.geogebra.common.euclidian.EuclidianView;
 import org.geogebra.common.euclidian.draw.CanvasDrawable;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.gui.util.DrawSelectedItem;
 import org.geogebra.common.gui.util.DropDownList;
 import org.geogebra.common.gui.util.DropDownListener;
@@ -33,9 +37,9 @@ import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.geos.GeoList;
 import org.geogebra.common.main.App;
+import org.geogebra.common.main.GeoGebraColorConstants;
 import org.geogebra.common.util.StringUtil;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * Draw a GeoList containing drawable objects
@@ -183,16 +187,15 @@ public final class DrawDropDownList extends CanvasDrawable
 	@Override
 	protected void drawWidget(GGraphics2D g2) {
 		updateMetrics();
-		int textLeft = boxLeft + COMBO_TEXT_MARGIN;
-		GColor bgColor = geo.getBackgroundColor() != null
-				? geo.getBackgroundColor() : GColor.WHITE;
+		final int textLeft = boxLeft + COMBO_TEXT_MARGIN;
+		GColor bgColor = geo.getBackgroundColor() != null ? geo.getBackgroundColor() : GColor.WHITE;
 
-		drawSelected.drawBounds(geoList, g2, bgColor, boxLeft, boxTop, boxWidth,
-				boxHeight);
+		drawSelected.drawBounds(geoList, g2, bgColor, boxLeft, boxTop, boxWidth, boxHeight);
 
 		g2.setPaint(GColor.LIGHT_GRAY);
 		highlightLabel(g2, latexLabel);
-		g2.setPaint(geo.getObjectColor());
+		g2.setPaint(geoList.usesDisabledStyle(null)
+				? GeoGebraColorConstants.NEUTRAL_500 : geoList.getObjectColor());
 
 		// Draw the selected line
 		int textBottom;
@@ -204,7 +207,7 @@ public final class DrawDropDownList extends CanvasDrawable
 		}
 
 		drawSelectedText(g2, textLeft, textBottom, true);
-		drawSelected.drawOpenControl(g2, boxLeft, boxTop, boxWidth, boxHeight);
+		drawSelected.drawOpenControl(g2, boxLeft, boxTop, boxWidth, boxHeight, geoList);
 
 		if (geo.isLabelVisible()) {
 			drawLabel(g2, geoList, getLabelText());
@@ -243,7 +246,8 @@ public final class DrawDropDownList extends CanvasDrawable
 						getCaptionY(true, labelSize.y));
 			} else {
 				int textBottom = getCaptionY(false, labelSize.y);
-				g2.setPaint(geo.getObjectColor());
+				g2.setPaint(geoList.usesDisabledStyle(null)
+						? GeoGebraColorConstants.NEUTRAL_500 : geoList.getObjectColor());
 				g2.setFont(getLabelFont());
 				EuclidianStatic.drawIndexedString(view.getApplication(), g2, text,
 						xLabel, textBottom, false);

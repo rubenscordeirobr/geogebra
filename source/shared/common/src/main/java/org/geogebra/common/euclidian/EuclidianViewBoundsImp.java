@@ -1,11 +1,29 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian;
 
 import org.geogebra.common.euclidian.plot.interval.EuclidianViewBounds;
 import org.geogebra.common.gui.EdgeInsets;
 import org.geogebra.common.kernel.interval.Interval;
 import org.geogebra.common.kernel.interval.IntervalConstants;
+import org.geogebra.common.util.DoubleUtil;
 
 public class EuclidianViewBoundsImp implements EuclidianViewBounds {
+	public static final int OFFSCREEN_Y_MARGIN = 25;
 	private final EuclidianView view;
 
 	public EuclidianViewBoundsImp(EuclidianView view) {
@@ -68,16 +86,20 @@ public class EuclidianViewBoundsImp implements EuclidianViewBounds {
 			return new Interval(toScreenCoordYd(view.getYmin()));
 		}
 
-		if (y.isPositiveInfinity()) {
-			return IntervalConstants.zero();
+		if (DoubleUtil.isEqual(y.getLow(), Double.POSITIVE_INFINITY)
+				&& DoubleUtil.isEqual(y.getHigh(), y.getLow())) {
+			return new Interval(-OFFSCREEN_Y_MARGIN);
 		}
 
 		double screenYLow = y.getHigh() == Double.POSITIVE_INFINITY
-				? 0
+				? -OFFSCREEN_Y_MARGIN
 				: toScreenCoordYd(y.getHigh());
 		double screenYHigh = y.getLow() == Double.NEGATIVE_INFINITY
-				? getHeight()
+				? getHeight() + OFFSCREEN_Y_MARGIN
 				: toScreenCoordYd(y.getLow());
+		if (screenYHigh < screenYLow) {
+			return IntervalConstants.undefined();
+		}
 		return new Interval(screenYLow, screenYHigh);
 	}
 

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.view.spreadsheet;
 
 import java.awt.BorderLayout;
@@ -13,7 +29,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -212,7 +228,7 @@ public class SpreadsheetColumnControllerD
 
 			// show contextMenu
 			SpreadsheetContextMenuD contextMenu = new SpreadsheetContextMenuD(
-					table);
+					table, table.getToolProcessor(app));
 			JPopupMenu popup = contextMenu.getMenuContainer();
 			popup.show(e.getComponent(), e.getX(), e.getY());
 
@@ -458,9 +474,9 @@ public class SpreadsheetColumnControllerD
 		private JButton btnTrace;
 		private BorderLayout layout;
 
-		private ImageIcon pauseIcon = app
+		private Icon pauseIcon = app
 				.getScaledIcon(GuiResourcesD.SPREADSHEETTRACE_PAUSE);
-		private ImageIcon recordIcon = app
+		private Icon recordIcon = app
 				.getScaledIcon(GuiResourcesD.SPREADSHEETTRACE_RECORD);
 
 		public ColumnHeaderRenderer() {

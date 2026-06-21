@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.inputfield;
 
 import java.util.ArrayList;
@@ -152,7 +168,7 @@ public class ColorProvider {
 		} else {
 			labels = kernel.getConstruction().getAllGeoLabels();
 		}
-		locals = new HashSet();
+		locals = new HashSet<>();
 		definedObjectsIntervals.clear();
 		undefinedObjectsIntervals.clear();
 		ignoreIntervals.clear();
@@ -250,48 +266,48 @@ public class ColorProvider {
 
 	// MyMatchResult and LabelParamRegExp are
 	// inner classes used for matching labels/functions/commands
-	private static class CommandOrFunctionMatchResult {
+	private static final class CommandOrFunctionMatchResult {
 
 		int index;
 		List<String> groups;
 		private boolean isCommand;
 
-		public CommandOrFunctionMatchResult(int index, List<String> groups,
+		private CommandOrFunctionMatchResult(int index, List<String> groups,
 				boolean isCommand) {
 			this.index = index;
 			this.groups = groups;
 			setCommand(isCommand);
 		}
 
-		public boolean isCommand() {
+		boolean isCommand() {
 			return isCommand;
 		}
 
-		public void setCommand(boolean isCommand) {
+		void setCommand(boolean isCommand) {
 			this.isCommand = isCommand;
 		}
 
-		public int getIndex() {
+		int getIndex() {
 			return index;
 		}
 
-		public String getGroup(int i) {
+		String getGroup(int i) {
 			return groups.get(i);
 		}
 
 	}
 
-	private static class LabelParamRegExp {
+	private static final class LabelParamRegExp {
 
 		RegExp regExp = RegExp.compile(LABEL_PARAM);
 		String text;
 		int index;
 
-		public LabelParamRegExp(String text) {
+		private LabelParamRegExp(String text) {
 			setText(text);
 		}
 
-		public CommandOrFunctionMatchResult exec() {
+		private CommandOrFunctionMatchResult exec() {
 			MatchResult res = regExp.exec(text);
 			if (res == null) {
 				return null;
@@ -299,7 +315,7 @@ public class ColorProvider {
 
 			String label = res.getGroup(1);
 			String openingBracket = res.getGroup(8);
-			List groups = new ArrayList(2);
+			List<String> groups = new ArrayList<>(2);
 			groups.add(label);
 			CommandOrFunctionMatchResult ret;
 			int step = 0;
@@ -335,7 +351,7 @@ public class ColorProvider {
 			return ret;
 		}
 
-		public void setText(String text) {
+		private void setText(String text) {
 			this.text = text;
 			index = 0;
 		}

@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.statistics;
@@ -149,7 +153,6 @@ public abstract class AlgoStats2D extends AlgoElement {
 		double sumxx = 0;
 		double sumxy = 0;
 		double sumyy = 0;
-		double valx, valy;
 		int sizex = geoListx.size();
 		int sizey = sizex;
 		if (mode == MODE_DOUBLELIST) {
@@ -165,8 +168,8 @@ public abstract class AlgoStats2D extends AlgoElement {
 				GeoElement geoy = geoListy.get(i);
 				if (geox instanceof NumberValue
 						&& geoy instanceof NumberValue) {
-					valx = geox.evaluateDouble();
-					valy = geoy.evaluateDouble();
+					double valx = geox.evaluateDouble();
+					double valy = geoy.evaluateDouble();
 					sumx += valx;
 					sumy += valy;
 					sumxx += valx * valx;
@@ -185,13 +188,11 @@ public abstract class AlgoStats2D extends AlgoElement {
 					double x = coords.getX();
 					double y = coords.getY();
 
-					valx = x;
-					valy = y;
-					sumx += valx;
-					sumy += valy;
-					sumxx += valx * valx;
-					sumyy += valy * valy;
-					sumxy += valx * valy;
+					sumx += x;
+					sumy += y;
+					sumxx += x * x;
+					sumyy += y * y;
+					sumxy += x * y;
 				} else {
 					result.setUndefined();
 					return;

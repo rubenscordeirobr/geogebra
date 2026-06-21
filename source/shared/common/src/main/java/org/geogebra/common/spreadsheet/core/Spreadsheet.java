@@ -1,6 +1,23 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.spreadsheet.core;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -12,6 +29,7 @@ import org.geogebra.common.util.MouseCursor;
 import org.geogebra.common.util.MulticastEvent;
 import org.geogebra.common.util.shape.Point;
 import org.geogebra.common.util.shape.Rectangle;
+import org.geogebra.editor.share.controller.ExpressionReader;
 
 /**
  * A spreadsheet (of arbitrary size). This class provides public API  for both rendering
@@ -19,13 +37,15 @@ import org.geogebra.common.util.shape.Rectangle;
  *
  * @apiNote This type is not designed to be thread-safe.
  */
-public final class Spreadsheet implements TabularDataChangeListener {
+public final class Spreadsheet implements SpreadsheetControllerDelegate,
+		TabularDataChangeListener {
 
 	public final MulticastEvent<String> cellFormatXmlChanged = new MulticastEvent<>();
-	public final MulticastEvent<CellSizes> cellSizesChanged;
+	public final MulticastEvent<CellSizes> cellSizesChanged = new MulticastEvent<>();
 
 	public static final int MAX_COLUMNS = 9999;
 	public static final int MAX_ROWS = 9999;
+	public static final double DEFAULT_FONT_SIZE = 16.0;
 	private final SpreadsheetController controller;
 	private final SpreadsheetStyling styling;
 	private final SpreadsheetStyleBarModel styleBarModel;
@@ -52,10 +72,12 @@ public final class Spreadsheet implements TabularDataChangeListener {
 	/**
 	 * @param tabularData data source
 	 * @param rendererFactory converts custom data type to renderable objects
+	 * @param constructionDelegate delegate for creating construction elements
 	 * @param undoProvider undo provider, may be null
 	 */
 	public Spreadsheet(@Nonnull TabularData<?> tabularData,
 			@Nonnull CellRenderableFactory rendererFactory,
+			@CheckForNull SpreadsheetConstructionDelegate constructionDelegate,
 			@CheckForNull UndoProvider undoProvider) {
 
 		styling = new SpreadsheetStyling();
@@ -63,10 +85,10 @@ public final class Spreadsheet implements TabularDataChangeListener {
 		styling.stylingXmlChanged.addListener(cellFormatXmlChanged::notifyListeners);
 
 		controller = new SpreadsheetController(tabularData, styling);
+		controller.setDelegate(this);
 		controller.setUndoProvider(undoProvider);
+		controller.setSpreadsheetConstructionDelegate(constructionDelegate);
 		controller.selectionController.selectionsChanged.addListener(this::selectionsChanged);
-		controller.referencesChanged.addListener(this::referencesChanged);
-		cellSizesChanged = controller.cellSizesChanged;
 
 		// get notified when number or size of rows/columns changes
 		tabularData.addChangeListener(this);
@@ -80,6 +102,13 @@ public final class Spreadsheet implements TabularDataChangeListener {
 		setViewport(new Rectangle(0, 0, 0, 0));
 	}
 
+	/**
+	 * @return the controller.
+	 */
+	public @Nonnull SpreadsheetController getController() {
+		return controller;
+	}
+
 	// Delegates
 
 	/**
@@ -90,18 +119,33 @@ public final class Spreadsheet implements TabularDataChangeListener {
 	}
 
 	/**
+	 * @param accessibilityDelegate Delegate for accessibility announcements
+	 */
+	public void setAccessibilityDelegate(
+			@CheckForNull SpreadsheetAccessibilityDelegate accessibilityDelegate) {
+		controller.setAccessibilityDelegate(accessibilityDelegate);
+	}
+
+	/**
+	 * @param cellDescriptionBuilder {@link SpreadsheetCellDescriptionBuilder}
+	 */
+	public void setCellDescriptionBuilder(
+			@CheckForNull SpreadsheetCellDescriptionBuilder cellDescriptionBuilder) {
+		controller.setCellDescriptionBuilder(cellDescriptionBuilder);
+	}
+
+	/**
+	 * @param expressionReader ExpressionReader used to serialize content of the cell editor
+	 */
+	public void setExpressionReader(@CheckForNull ExpressionReader expressionReader) {
+		controller.setExpressionReader(expressionReader);
+	}
+
+	/**
 	 * @param spreadsheetDelegate delegate for repaint notifications
 	 */
 	public void setSpreadsheetDelegate(@CheckForNull SpreadsheetDelegate spreadsheetDelegate) {
 		this.spreadsheetDelegate = spreadsheetDelegate;
-	}
-
-	/**
-	 * @param constructionDelegate delegate for creating objects in the construction
-	 */
-	public void setSpreadsheetConstructionDelegate(
-			@CheckForNull SpreadsheetConstructionDelegate constructionDelegate) {
-		controller.setSpreadsheetConstructionDelegate(constructionDelegate);
 	}
 
 	/**
@@ -292,7 +336,7 @@ public final class Spreadsheet implements TabularDataChangeListener {
 		if (isSelected) {
 			graphics.setColor(styling.getSelectedTextColor());
 		} else {
-			graphics.setColor(styling.getDefaultTextColor());
+			graphics.setColor(SpreadsheetStyling.getDefaultTextColor());
 		}
 	}
 
@@ -364,12 +408,14 @@ public final class Spreadsheet implements TabularDataChangeListener {
 	// Key events
 
 	/**
-	 * @param keyCode keyboard code, see {@link com.himamis.retex.editor.share.util.JavaKeyCodes}
+	 * @param keyCode keyboard code, see {@link org.geogebra.editor.share.util.JavaKeyCodes}
 	 * @param key key typed if printable, empty otherwise (Alt, Ctrl, F1, Backspace)
 	 * @param modifiers alt/shift/ctrl modifiers
+	 * @return True if this input was handled by the {@link SpreadsheetController}, false iff
+	 * this is a global shortcut.
 	 */
-	public void handleKeyPressed(int keyCode, String key, @Nonnull Modifiers modifiers) {
-		controller.handleKeyPressed(keyCode, key, modifiers);
+	public boolean handleKeyPressed(int keyCode, String key, @Nonnull Modifiers modifiers) {
+		return controller.handleKeyPressed(keyCode, key, modifiers);
 	}
 
 	/**
@@ -390,6 +436,13 @@ public final class Spreadsheet implements TabularDataChangeListener {
 	}
 
 	/**
+	 * @return list of selections, may be empty
+	 */
+	public List<TabularRange> getSelections() {
+		return controller.getSelections().map(Selection::getRange).collect(Collectors.toList());
+	}
+
+	/**
 	 * Clears the selection only.
 	 */
 	public void clearSelectionOnly() {
@@ -398,6 +451,54 @@ public final class Spreadsheet implements TabularDataChangeListener {
 
 	private void selectionsChanged(MulticastEvent.Void unused) {
 		notifyRepaintNeeded();
+	}
+
+	// Misc
+
+	/**
+	 * Toggle grid visibility, without repainting the view.
+	 * @param showGrid whether to show grid
+	 */
+	public void setShowGrid(boolean showGrid) {
+		styling.setShowGrid(showGrid);
+	}
+
+	/**
+	 * @param width row header width in points, -1 for default
+	 */
+	public void setRowHeaderWidth(double width) {
+		controller.getLayout().setRowHeaderWidth(width);
+	}
+
+	/**
+	 * @param height column header height in points, -1 for default
+	 */
+	public void setColumnHeaderHeight(double height) {
+		controller.getLayout().setColumnHeaderHeight(height);
+	}
+
+	/**
+	 * @param width default cell width in points
+	 * @param height default cell height in points
+	 */
+	public void setDefaultCellSize(double width, double height) {
+		controller.getLayout().setDefaultCellSize(width, height);
+	}
+
+	/**
+	 * Invalidate all cached cells, repaint the view.
+	 */
+	public void invalidateAndRepaint() {
+		renderer.invalidateAll();
+		notifyRepaintNeeded();
+	}
+
+	/**
+	 * Scroll viewport so that given range of cells is visible.
+	 * @param tabularRange non-empty range of cells
+	 */
+	public void scrollRangeIntoView(TabularRange tabularRange) {
+		controller.scrollRangeIntoView(tabularRange);
 	}
 
 	// Editor
@@ -420,7 +521,26 @@ public final class Spreadsheet implements TabularDataChangeListener {
 		controller.saveContentAndHideCellEditor();
 	}
 
-	private void referencesChanged(MulticastEvent.Void unused) {
+	// Context Menu
+
+	/**
+	 * Returns the context menu items
+	 * @param identifier identifier
+	 * @return list of context menu items
+	 */
+	public List<ContextMenuItem> getMenuItems(ContextMenuItem.Identifier identifier) {
+		return controller.getMenuItems(identifier);
+	}
+
+	// -- SpreadsheetControllerDelegate
+
+	@Override
+	public void cellSizesChanged(CellSizes cellSizes) {
+		cellSizesChanged.notifyListeners(cellSizes);
+	}
+
+	@Override
+	public void repaintNeeded() {
 		notifyRepaintNeeded();
 	}
 
@@ -441,35 +561,36 @@ public final class Spreadsheet implements TabularDataChangeListener {
 		notifyRepaintNeeded();
 	}
 
-	// -- Context Menu --
+	// -- Test support API (DO NOT USE except for tests!)
 
 	/**
-	 * Returns the context menu items
-	 * @param identifier identifier
-	 * @return list of context menu items
+	 * @deprecated Test support API, do not use
 	 */
-	public List<ContextMenuItem> getMenuItems(ContextMenuItem.Identifier identifier) {
-		return controller.getMenuItems(identifier);
-	}
-
-	// Test support API (DO NOT USE except for tests!)
-
-	public SpreadsheetController getController() {
-		return controller;
-	}
-
+	@Deprecated
 	SpreadsheetStyling getStyling() {
 		return styling;
 	}
 
+	/**
+	 * @deprecated Test support API, DO NOT USE
+	 */
+	@Deprecated
 	void selectRow(int row, boolean extend, boolean add) {
 		controller.selectRow(row, extend, add);
 	}
 
+	/**
+	 * @deprecated Test support API, DO NOT USE
+	 */
+	@Deprecated
 	void selectColumn(int column, boolean extend, boolean add) {
 		controller.selectColumn(column, extend, add);
 	}
 
+	/**
+	 * @deprecated Test support API, DO NOT USE
+	 */
+	@Deprecated
 	void selectCell(int row, int column, boolean extend, boolean add) {
 		controller.selectCell(row, column, extend, add);
 	}

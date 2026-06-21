@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.openGL;
 
 import java.util.List;
@@ -16,8 +32,6 @@ public class GLBufferManagerPoints extends GLBufferManager {
 	// to 20 points = 11520 indices
 	static final private int INDICES_SIZE_START = 11520;
 
-	private ManagerShaders manager;
-
 	/**
 	 * constructor
 	 * 
@@ -25,7 +39,7 @@ public class GLBufferManagerPoints extends GLBufferManager {
 	 *            geometries manager
 	 */
 	public GLBufferManagerPoints(ManagerShaders manager) {
-		this.manager = manager;
+		super(manager);
 	}
 
 	@Override

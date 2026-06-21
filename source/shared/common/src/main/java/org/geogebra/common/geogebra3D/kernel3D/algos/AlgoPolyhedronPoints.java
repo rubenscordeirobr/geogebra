@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.kernel3D.algos;
 
 import org.geogebra.common.geogebra3D.kernel3D.geos.GeoPoint3D;
@@ -40,20 +56,10 @@ public abstract class AlgoPolyhedronPoints extends AlgoPolyhedron {
 	ChangeableParent heightChangeableParent = null;
 	private final int shift;
 
-	private class OutputPolygonsHandler extends OutputHandler<GeoPolygon3D> {
+	private final class OutputPolygonsHandler extends OutputHandler<GeoPolygon3D> {
 
-		public OutputPolygonsHandler() {
-			super(new ElementFactory<GeoPolygon3D>() {
-				@Override
-				public GeoPolygon3D newElement() {
-					GeoPolygon3D p = new GeoPolygon3D(cons);
-					// p.setParentAlgorithm(AlgoPolyhedron.this);
-					if (heightChangeableParent != null) {
-						p.setChangeableParent(heightChangeableParent);
-					}
-					return p;
-				}
-			});
+		private OutputPolygonsHandler(ElementFactory<GeoPolygon3D> factory) {
+			super(factory);
 		}
 
 		@Override
@@ -68,23 +74,20 @@ public abstract class AlgoPolyhedronPoints extends AlgoPolyhedron {
 
 	@Override
 	protected OutputHandler<GeoPolygon3D> createOutputPolygonsHandler() {
-		return new OutputPolygonsHandler();
+		return new OutputPolygonsHandler(() -> {
+			GeoPolygon3D p = new GeoPolygon3D(cons);
+			// p.setParentAlgorithm(AlgoPolyhedron.this);
+			if (heightChangeableParent != null) {
+				p.setChangeableParent(heightChangeableParent);
+			}
+			return p;
+		});
 	}
 
-	private class OutputSegmentsHandler extends OutputHandler<GeoSegment3D> {
+	private final class OutputSegmentsHandler extends OutputHandler<GeoSegment3D> {
 
-		public OutputSegmentsHandler() {
-			super(new ElementFactory<GeoSegment3D>() {
-				@Override
-				public GeoSegment3D newElement() {
-					GeoSegment3D s = new GeoSegment3D(cons);
-					if (heightChangeableParent != null) {
-						s.setChangeableParentIfNull(
-								heightChangeableParent);
-					}
-					return s;
-				}
-			});
+		private OutputSegmentsHandler(ElementFactory<GeoSegment3D> factory) {
+			super(factory);
 		}
 
 		@Override
@@ -99,12 +102,19 @@ public abstract class AlgoPolyhedronPoints extends AlgoPolyhedron {
 
 	@Override
 	protected OutputHandler<GeoSegment3D> createOutputSegmentsHandler() {
-		return new OutputSegmentsHandler();
+		return new OutputSegmentsHandler(() -> {
+			GeoSegment3D s = new GeoSegment3D(cons);
+			if (heightChangeableParent != null) {
+				s.setChangeableParentIfNull(
+						heightChangeableParent);
+			}
+			return s;
+		});
 	}
 
-	private class OutputPointsHandler extends OutputHandler<GeoPoint3D> {
+	private final class OutputPointsHandler extends OutputHandler<GeoPoint3D> {
 
-		public OutputPointsHandler() {
+		private OutputPointsHandler() {
 			super(new PointFactory() {
 				@Override
 				public GeoPoint3D newElement() {
@@ -365,7 +375,7 @@ public abstract class AlgoPolyhedronPoints extends AlgoPolyhedron {
 	/**
 	 * create the polyhedron (faces and edges)
 	 */
-	final private void createPolyhedron() {
+	private void createPolyhedron() {
 
 		GeoPointND[] bottomPoints1 = getBottomPoints();
 

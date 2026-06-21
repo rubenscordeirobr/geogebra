@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.openGL;
 
 import org.geogebra.common.awt.GColor;
@@ -41,7 +57,7 @@ public class PlotterCursor {
 		private boolean useLight;
 		private boolean hasAllGLAttributes;
 
-		private Type(int id, boolean useLight, boolean hasAllGLAttributes) {
+		Type(int id, boolean useLight, boolean hasAllGLAttributes) {
 			this.id = id;
 			this.useLight = useLight;
 			this.hasAllGLAttributes = hasAllGLAttributes;
@@ -547,25 +563,22 @@ public class PlotterCursor {
 	}
 
 	private void cursorCylinder() {
-
 		int latitude = 8;
 		float x1 = 4f;
 		float r1 = PlotterBrush.LINE3D_THICKNESS / 3f;
 		float r2 = (float) (r1 * Math.sqrt(2));
-		float x2 = x1 / 3;
 
 		float da = (float) (Math.PI / latitude);
 
-		float y1;
-		float z1;
 		float y0, z0;
 
 		// white parts
 		color(1, 1, 1);
 
 		// ring
-		y1 = 2 * r2 * (float) Math.sin(da);
-		z1 = 2 * r2 * (float) Math.cos(da);
+		float x2 = x1 / 3;
+		float y1 = 2 * r2 * (float) Math.sin(da);
+		float z1 = 2 * r2 * (float) Math.cos(da);
 
 		for (int i = 1; i <= latitude; i++) {
 			y0 = y1;
@@ -574,7 +587,6 @@ public class PlotterCursor {
 			z1 = 2 * r2 * (float) Math.cos((2 * i + 1) * da);
 
 			quad(-x2, y0, z0, x2, y0, z0, x2, y1, z1, -x2, y1, z1);
-
 		}
 
 		// caps
@@ -588,7 +600,6 @@ public class PlotterCursor {
 			z1 = 2 * r1 * (float) Math.cos((2 * i + 1) * da);
 
 			quadSymOz(x1, y0, z0, x1, -y0, z0, x1, -y1, z1, x1, y1, z1);
-
 		}
 
 		// black parts
@@ -606,9 +617,7 @@ public class PlotterCursor {
 
 			quadSymOz(x2, y0 * r2, z0 * r2, x1, y0 * r1, z0 * r1, x1, y1 * r1,
 					z1 * r1, x2, y1 * r2, z1 * r2);
-
 		}
-
 	}
 
 	private void cursorSphere(float gray, float alpha) {
@@ -638,8 +647,8 @@ public class PlotterCursor {
 
 			for (int i = 0; i < 4 * latitude; i++) {
 
-				float x1 = x2;
-				float y1 = y2;
+				final float x1 = x2;
+				final float y1 = y2;
 
 				float ci = (float) Math.cos((i + 1) * d);
 				float si = (float) Math.sin((i + 1) * d);

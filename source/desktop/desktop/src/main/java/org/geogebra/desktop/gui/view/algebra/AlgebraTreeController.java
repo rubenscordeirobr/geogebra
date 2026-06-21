@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.view.algebra;
 
 import java.awt.Rectangle;
@@ -231,7 +247,7 @@ public class AlgebraTreeController extends AlgebraController
 		e.consume();
 
 		// get GeoElement at mouse location
-		TreePath tp = tree.getPathForLocation(e.getX(), e.getY());
+		TreePath tp = getPathForLocation(e.getX(), e.getY());
 		GeoElement geo = AlgebraTree.getGeoElementForPath(tp);
 
 		// single selection: popup menu
@@ -239,7 +255,7 @@ public class AlgebraTreeController extends AlgebraController
 		if (geo == null) {
 
 			ArrayList<GeoElement> children = AlgebraTree.getGeoChildrenForPath(tp);
-			if (children == null || children.size() == 0) { // if click on e.g.
+			if (children == null || children.isEmpty()) { // if click on e.g.
 														// object type (like
 														// "Point"), then select
 														// all and popup menu
@@ -298,7 +314,7 @@ public class AlgebraTreeController extends AlgebraController
 		skipSelection = false; // flag to prevent duplicate selection in
 								// MouseClicked
 
-		TreePath tp = tree.getPathForLocation(e.getX(), e.getY());
+		TreePath tp = getPathForLocation(e.getX(), e.getY());
 		GeoElement geo = AlgebraTree.getGeoElementForPath(tp);
 
 		if (leftPressCanSelectGeo(e, geo)) {
@@ -313,6 +329,11 @@ public class AlgebraTreeController extends AlgebraController
 		}
 	}
 
+	private TreePath getPathForLocation(int x, int y) {
+		TreePath exact = tree.getPathForLocation(x, y);
+		return exact == null ? tree.getPathForLocation(20, y) : exact;
+	}
+
 	/**
 	 * 
 	 * @param e
@@ -322,15 +343,10 @@ public class AlgebraTreeController extends AlgebraController
 	 * @return true if left press can select the geo
 	 */
 	protected boolean leftPressCanSelectGeo(MouseEvent e, GeoElement geo) {
-
 		if (!AppD.isControlDown(e) && !e.isShiftDown()) {
-			if (!setSelectedGeo(geo)) {
-				return true;
-			}
+			return !setSelectedGeo(geo);
 		}
-
 		return false;
-
 	}
 
 	/**
@@ -443,7 +459,7 @@ public class AlgebraTreeController extends AlgebraController
 			if (!tree.isCollapsed(tp)) {
 				Rectangle rect = tree.getPathBounds(tp);
 				if (rect != null) { // mouse over group
-					if (e.getX() - rect.x > 16) { // collect geos of the group
+					if (e.getX() - rect.x > 16 && tp != null) { // collect geos of the group
 						DefaultMutableTreeNode node = (DefaultMutableTreeNode) tp
 								.getLastPathComponent();
 						ArrayList<GeoElement> groupedGeos = new ArrayList<>();

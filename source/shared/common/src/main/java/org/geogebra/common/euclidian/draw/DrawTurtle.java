@@ -1,19 +1,24 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.euclidian.draw;
 
 import java.util.ArrayList;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GAffineTransform;
 import org.geogebra.common.awt.GBasicStroke;
 import org.geogebra.common.awt.GColor;
@@ -25,7 +30,6 @@ import org.geogebra.common.awt.GShape;
 import org.geogebra.common.euclidian.Drawable;
 import org.geogebra.common.euclidian.EuclidianView;
 import org.geogebra.common.euclidian.GeneralPathClipped;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.kernel.geos.GeoTurtle;
 import org.geogebra.common.kernel.kernelND.GeoPointND;
 
@@ -82,27 +86,25 @@ public class DrawTurtle extends Drawable {
 		turtle.setCoords(turtle.inhomX, turtle.inhomY);
 	}
 
-	private static class PartialPath {
-		public GColor color;
-		public int thickness;
-		public GeneralPathClipped path1;
-		private GBasicStroke stroke;
+	private static final class PartialPath {
+		private final GColor color;
+		private final GeneralPathClipped path1;
+		private final GBasicStroke stroke;
 
-		public PartialPath(GColor c, int th, GeneralPathClipped p) {
+		private PartialPath(GColor c, int th, GeneralPathClipped p) {
 			color = c;
-			thickness = th;
 			path1 = p;
-			stroke = AwtFactory.getPrototype().newBasicStroke(thickness);
+			stroke = AwtFactory.getPrototype().newBasicStroke(th);
 		}
 
-		public void draw(GGraphics2D g2) {
+		private void draw(GGraphics2D g2) {
 			g2.setColor(color);
 			g2.setStroke(stroke);
-			g2.draw(path1);
+			path1.draw(g2);
 		}
 	}
 
-	private class DrawState implements GeoTurtle.DrawState {
+	private final class DrawState implements GeoTurtle.DrawState {
 		private boolean penDown = true;
 		private GColor penColor = GColor.BLACK;
 		private int penThickness = 1;
@@ -112,7 +114,7 @@ public class DrawTurtle extends Drawable {
 		// private GeoPointND currentPosition = turtle.getStartPoint();
 		double[] coords = new double[2];
 
-		public DrawState() {
+		private DrawState() {
 			currentPath = new GeneralPathClipped(getView());
 			currentPath.resetWithThickness(geo.getLineThickness());
 			penDown = false;
@@ -179,7 +181,7 @@ public class DrawTurtle extends Drawable {
 			}
 		}
 
-		public void finishPartialPath() {
+		private void finishPartialPath() {
 			if (nlines > 0) {
 				pathList.add(
 						new PartialPath(penColor, penThickness, currentPath));
@@ -264,7 +266,7 @@ public class DrawTurtle extends Drawable {
 				g2.setPaint(turtle.getSelColor());
 				g2.setStroke(selStroke);
 				for (PartialPath path : pathList) {
-					g2.draw(path.path1);
+					path.path1.draw(g2);
 				}
 			}
 

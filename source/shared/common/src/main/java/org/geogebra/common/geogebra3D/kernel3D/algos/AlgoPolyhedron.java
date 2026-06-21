@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.kernel3D.algos;
 
 import java.util.ArrayList;
@@ -6,6 +22,7 @@ import org.geogebra.common.geogebra3D.kernel3D.geos.GeoPoint3D;
 import org.geogebra.common.geogebra3D.kernel3D.geos.GeoPolygon3D;
 import org.geogebra.common.geogebra3D.kernel3D.geos.GeoPolyhedron;
 import org.geogebra.common.geogebra3D.kernel3D.geos.GeoSegment3D;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.algos.AlgoElement;
 import org.geogebra.common.kernel.geos.GeoElement;
@@ -45,14 +62,11 @@ public abstract class AlgoPolyhedron extends AlgoElement3D {
 		cons.addToAlgorithmList(this);
 
 		outputPolyhedron = new OutputHandler<>(
-				new ElementFactory<GeoPolyhedron>() {
-					@Override
-					public GeoPolyhedron newElement() {
-						GeoPolyhedron p = new GeoPolyhedron(cons,
-								getPolyhedronType());
-						p.setParentAlgorithm(AlgoPolyhedron.this);
-						return p;
-					}
+				() -> {
+					GeoPolyhedron p = new GeoPolyhedron(cons,
+							getPolyhedronType());
+					p.setParentAlgorithm(this);
+					return p;
 				});
 
 		outputPolyhedron.adjustOutputSize(1);
@@ -101,13 +115,10 @@ public abstract class AlgoPolyhedron extends AlgoElement3D {
 	 */
 	protected OutputHandler<GeoSegment3D> createOutputSegmentsHandler() {
 		return new OutputHandler<>(
-				new ElementFactory<GeoSegment3D>() {
-					@Override
-					public GeoSegment3D newElement() {
-						GeoSegment3D s = new GeoSegment3D(cons);
-						s.setAuxiliaryObject(Auxiliary.YES_DEFAULT);
-						return s;
-					}
+				() -> {
+					GeoSegment3D s = new GeoSegment3D(cons);
+					s.setAuxiliaryObject(Auxiliary.YES_DEFAULT);
+					return s;
 				});
 	}
 
@@ -121,13 +132,10 @@ public abstract class AlgoPolyhedron extends AlgoElement3D {
 	 */
 	protected OutputHandler<GeoPolygon3D> createOutputPolygonsHandler() {
 		return new OutputHandler<>(
-				new ElementFactory<GeoPolygon3D>() {
-					@Override
-					public GeoPolygon3D newElement() {
-						GeoPolygon3D p = new GeoPolygon3D(cons);
-						p.setAuxiliaryObject(Auxiliary.YES_DEFAULT);
-						return p;
-					}
+				() -> {
+					GeoPolygon3D p = new GeoPolygon3D(cons);
+					p.setAuxiliaryObject(Auxiliary.YES_DEFAULT);
+					return p;
 				});
 	}
 
@@ -280,7 +288,7 @@ public abstract class AlgoPolyhedron extends AlgoElement3D {
 	}
 
 	@Override
-	protected void getOutputXML(StringBuilder sb) {
+	protected void getOutputXML(XMLStringBuilder sb) {
 		super.getOutputXML(sb);
 		
 		// append XML for polygon and segments linked once more, to avoid

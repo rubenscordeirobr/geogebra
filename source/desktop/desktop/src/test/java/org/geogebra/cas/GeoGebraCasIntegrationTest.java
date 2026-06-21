@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.cas;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,13 +42,12 @@ import org.geogebra.common.kernel.kernelND.GeoElementND;
 import org.geogebra.common.plugin.GeoClass;
 import org.geogebra.common.util.debug.Log;
 import org.geogebra.desktop.main.AppD;
+import org.geogebra.editor.share.util.Unicode;
 import org.geogebra.test.TestErrorHandler;
 import org.geogebra.test.annotation.Issue;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
-
-import com.himamis.retex.editor.share.util.Unicode;
 
 @SuppressWarnings("javadoc")
 public class GeoGebraCasIntegrationTest extends BaseCASIntegrationTest {
@@ -2535,7 +2550,7 @@ public class GeoGebraCasIntegrationTest extends BaseCASIntegrationTest {
 	public void solveArbconst() {
 		t("a(t):=2t+3", "2 * t + 3");
 		t("v(t):=Integral[a(t),t]", "t^(2) + 3 * t + c_{1}");
-		t("Solve[v(0)=0,c_1]", "{c_{1} = 0}");
+		t("Solve[v(0)=0,c_1]", "{c_1 = 0}");
 	}
 
 	@Test
@@ -2622,6 +2637,16 @@ public class GeoGebraCasIntegrationTest extends BaseCASIntegrationTest {
 		t("E:=Plane[(1,-2,3), (-2, 0,1),(0,3,2)]", "8x - y - 13z = -29",
 				"x * 8 + y * (-1) + z * (-13) = -29");
 		t("PerpendicularVector[E]", "(8, -1, -13)");
+	}
+
+	@Test
+	@Issue("APPS-7288")
+	public void continuedFractionFallbackTest() {
+		getApp().setLanguage(Locale.US); // reset language to clear the table
+		t("ContinuedFraction(sqrt(3))", "1+\\frac{1}{1+\\frac{1}{2+\\frac{1}"
+				+ "{1+\\frac{1}{2+\\frac{1}{1+\\frac{1}{2+\\frac{1}{1+\\frac{1}{2+\\frac{1}"
+				+ "{1+\\frac{1}{2+\\frac{1}{1+\\frac{1}{2+\\frac{1}{1+\\frac{1}{2+\\cdots}"
+				+ "}}}}}}}}}}}}}");
 	}
 
 	@Test
@@ -2856,7 +2881,7 @@ public class GeoGebraCasIntegrationTest extends BaseCASIntegrationTest {
 	@Test
 	public void test3DLine() {
 		t("(x=5, y=3+z)", "X = (5, " + Unicode.lambda + " + 3, "
-				 + Unicode.lambda + ")");
+				+ Unicode.lambda + ")");
 	}
 
 	@Test

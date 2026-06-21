@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.desktop.gui.view.properties;
@@ -20,7 +24,7 @@ import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JPanel;
 
 import org.geogebra.common.euclidian.EuclidianConstants;
@@ -71,6 +75,7 @@ public class PropertiesViewD extends PropertiesView implements SetLabels {
 	private OptionsAdvancedD advancedPanel;
 	private OptionsLayoutD layoutPanel;
 	private OptionsAlgebraD algebraPanel;
+	private OptionsObjectD objectPanel;
 
 	private Object selectedOptionPanel = null;
 
@@ -156,6 +161,10 @@ public class PropertiesViewD extends PropertiesView implements SetLabels {
 	@Override
 	public void mousePressedForPropertiesView() {
 		getObjectPanel().forgetGeoAdded();
+	}
+
+	private OptionsObjectD getObjectPanel() {
+		return objectPanel;
 	}
 
 	/**
@@ -363,11 +372,11 @@ public class PropertiesViewD extends PropertiesView implements SetLabels {
 
 		case OBJECTS:
 			if (getObjectPanel() == null) {
-				setObjectPanel(new OptionsObjectD((AppD) app));
-				((OptionsObjectD) getObjectPanel()).setMinimumSize(
-						((OptionsObjectD) getObjectPanel()).getPreferredSize());
+				objectPanel = new OptionsObjectD((AppD) app);
+				objectPanel.setMinimumSize(
+						objectPanel.getPreferredSize());
 			}
-			return (OptionPanelD) getObjectPanel();
+			return objectPanel;
 		case ALGEBRA:
 			if (algebraPanel == null) {
 				algebraPanel = new OptionsAlgebraD((AppD) app);
@@ -741,7 +750,7 @@ public class PropertiesViewD extends PropertiesView implements SetLabels {
 	 * @param type properties view tab
 	 * @return icon
 	 */
-	public static ImageIcon getTypeIcon(AppD app, OptionType type) {
+	public static Icon getTypeIcon(AppD app, OptionType type) {
 		switch (type) {
 		case DEFAULTS:
 			return app.getScaledIcon(GuiResourcesD.PROPERTIES_DEFAULTS_3);
@@ -830,8 +839,8 @@ public class PropertiesViewD extends PropertiesView implements SetLabels {
 	 *            GeoText to be updated
 	 */
 	public void updateTextEditor(GeoElement geo) {
-		if (getObjectPanel() != null) {
-			((OptionsObjectD) getObjectPanel()).updateTextEditor(geo);
+		if (objectPanel != null) {
+			objectPanel.updateTextEditor(geo);
 		}
 	}
 
@@ -844,6 +853,58 @@ public class PropertiesViewD extends PropertiesView implements SetLabels {
 	public boolean suggestRepaint() {
 		return false;
 		// only for web
+	}
+
+	@Override
+	protected GeoElement getConsumedGeo() {
+		if (objectPanel == null) {
+			return null;
+		} else {
+			return objectPanel.consumeGeoAdded();
+		}
+	}
+
+	/**
+	 * @param type
+	 *            tab type
+	 * @return tab name
+	 */
+	public String getTypeString(OptionType type) {
+		switch (type) {
+		case DEFAULTS:
+			return app.isUnbundledOrWhiteboard()
+					? loc.getMenu("Defaults")
+					: loc.getPlain("PreferencesOfA", loc.getMenu("Defaults"));
+		case SPREADSHEET:
+			return loc.getPlain("PreferencesOfA", loc.getMenu("Spreadsheet"));
+		case EUCLIDIAN:
+			return app.isUnbundledOrWhiteboard()
+					? loc.getMenu("DrawingPad")
+					: loc.getPlain("PreferencesOfA", loc.getMenu("DrawingPad"));
+		case EUCLIDIAN2:
+			return loc.getPlain("PreferencesOfA", loc.getMenu("DrawingPad2"));
+		case EUCLIDIAN_FOR_PLANE:
+			return loc.getPlain("PreferencesOfA", loc.getMenu("ExtraViews"));
+		case EUCLIDIAN3D:
+			return loc.getPlain("PreferencesOfA",
+					loc.getMenu("GraphicsView3D"));
+		case CAS:
+			return loc.getPlain("PreferencesOfA", loc.getMenu("CAS"));
+		case GLOBAL:
+			return app.isUnbundledOrWhiteboard()
+					? loc.getMenu("Advanced")
+					: loc.getPlain("PreferencesOfA", loc.getMenu("Advanced"));
+		case ALGEBRA:
+			return app.isUnbundledOrWhiteboard()
+					? loc.getMenu("Algebra")
+					: loc.getPlain("PreferencesOfA", loc.getMenu("Algebra"));
+		case OBJECTS:
+			return objectPanel == null ? loc.getMenu("Objects") : objectPanel
+																  .getSelectionDescription(loc);
+		case LAYOUT:
+			return loc.getPlain("PreferencesOfA", loc.getMenu("Layout"));
+		}
+		return null;
 	}
 
 }

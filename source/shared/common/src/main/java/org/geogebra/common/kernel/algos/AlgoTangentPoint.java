@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.algos;
@@ -318,8 +322,6 @@ public class AlgoTangentPoint extends AlgoTangentPointND
 						botanaVarsThis = getBotanaVars(geo);
 					}
 
-					PPolynomial[] botanaPolynomialsThis = new PPolynomial[4];
-
 					PPolynomial m1 = new PPolynomial(botanaVarsThis[0]);
 					PPolynomial m2 = new PPolynomial(botanaVarsThis[1]);
 					// coordinates of focus point of parabola
@@ -333,6 +335,7 @@ public class AlgoTangentPoint extends AlgoTangentPointND
 					PPolynomial t_2p = new PPolynomial(t_2);
 
 					// M midpoint of FT'
+					PPolynomial[] botanaPolynomialsThis = new PPolynomial[4];
 					botanaPolynomialsThis[0] = new PPolynomial(2).multiply(m1)
 							.subtract(f1).subtract(t_1p);
 					botanaPolynomialsThis[1] = new PPolynomial(2).multiply(m2)

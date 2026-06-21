@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.algos;
@@ -115,22 +119,18 @@ public abstract class AlgoConicPartCircumcircleND extends AlgoConicPart {
 
 	@Override
 	public Commands getClassName() {
-		switch (type) {
-		case GeoConicNDConstants.CONIC_PART_ARC:
+		if (type == GeoConicNDConstants.CONIC_PART_ARC) {
 			return Commands.CircumcircleArc;
-		default:
-			return Commands.CircumcircleSector;
 		}
+		return Commands.CircumcircleSector;
 	}
 
 	@Override
 	public int getRelatedModeID() {
-		switch (type) {
-		case GeoConicNDConstants.CONIC_PART_ARC:
+		if (type == GeoConicNDConstants.CONIC_PART_ARC) {
 			return EuclidianConstants.MODE_CIRCUMCIRCLE_ARC_THREE_POINTS;
-		default:
-			return EuclidianConstants.MODE_CIRCUMCIRCLE_SECTOR_THREE_POINTS;
 		}
+		return EuclidianConstants.MODE_CIRCUMCIRCLE_SECTOR_THREE_POINTS;
 	}
 
 	// for AlgoElement
@@ -258,27 +258,27 @@ public abstract class AlgoConicPartCircumcircleND extends AlgoConicPart {
 	 */
 	abstract public GeoPoint getC();
 
-	final private double getAx() {
+	private double getAx() {
 		return getA().inhomX;
 	}
 
-	final private double getAy() {
+	private double getAy() {
 		return getA().inhomY;
 	}
 
-	final private double getBx() {
+	private double getBx() {
 		return getB().inhomX;
 	}
 
-	final private double getBy() {
+	private double getBy() {
 		return getB().inhomY;
 	}
 
-	final private double getCx() {
+	private double getCx() {
 		return getC().inhomX;
 	}
 
-	final private double getCy() {
+	private double getCy() {
 		return getC().inhomY;
 	}
 

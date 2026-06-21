@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.exam.restrictions;
 
 import static org.geogebra.common.SuiteSubApp.CAS;
@@ -131,7 +147,7 @@ import javax.annotation.Nonnull;
 
 import org.geogebra.common.contextmenu.AlgebraContextMenuItem;
 import org.geogebra.common.contextmenu.ContextMenuItemFilter;
-import org.geogebra.common.exam.ExamType;
+import org.geogebra.common.exam.restrictions.mms.MmsAlgebraOutputFilter;
 import org.geogebra.common.exam.restrictions.visibility.HiddenInequalityVisibilityRestriction;
 import org.geogebra.common.exam.restrictions.visibility.HiddenVectorVisibilityRestriction;
 import org.geogebra.common.exam.restrictions.visibility.VisibilityRestriction;
@@ -157,6 +173,7 @@ import org.geogebra.common.kernel.cas.AlgoIntegralDefinite;
 import org.geogebra.common.kernel.commands.CommandProcessor;
 import org.geogebra.common.kernel.commands.Commands;
 import org.geogebra.common.kernel.commands.filter.CommandArgumentFilter;
+import org.geogebra.common.kernel.commands.filter.ExamCommandArgumentFilter;
 import org.geogebra.common.kernel.commands.selector.CommandFilter;
 import org.geogebra.common.kernel.commands.selector.CommandNameFilter;
 import org.geogebra.common.kernel.geos.GeoConic;
@@ -177,15 +194,16 @@ import org.geogebra.common.main.syntax.Syntax;
 import org.geogebra.common.main.syntax.suggestionfilter.LineSelectorSyntaxFilter;
 import org.geogebra.common.main.syntax.suggestionfilter.SyntaxFilter;
 import org.geogebra.common.plugin.Operation;
+import org.geogebra.common.restrictions.FeatureRestriction;
+import org.geogebra.common.restrictions.Restrictions;
 
-public class MmsExamRestrictions extends ExamRestrictions {
+public class MmsExamRestrictions extends Restrictions {
 
 	/**
 	 * Restrictions for MMS
 	 */
-	protected MmsExamRestrictions() {
-		super(ExamType.MMS,
-				Set.of(GRAPHING, GEOMETRY, G3D, PROBABILITY, SCIENTIFIC),
+	public MmsExamRestrictions() {
+		super(Set.of(GRAPHING, GEOMETRY, G3D, PROBABILITY, SCIENTIFIC),
 				CAS,
 				createFeatureRestrictions(),
 				createInputExpressionFilters(),
@@ -201,18 +219,19 @@ public class MmsExamRestrictions extends ExamRestrictions {
 				null,
 				null,
 				createStatisticsFilter(),
-				createAlgebraOutputFormatFilters());
+				createAlgebraOutputFormatFilters(),
+				new MmsAlgebraOutputFilter());
 	}
 
-	private static Set<ExamFeatureRestriction> createFeatureRestrictions() {
+	private static Set<FeatureRestriction> createFeatureRestrictions() {
 		return Set.of(
-				ExamFeatureRestriction.HIDE_CALCULATED_EQUATION,
-				ExamFeatureRestriction.HIDE_SPECIAL_POINTS,
-				ExamFeatureRestriction.SPREADSHEET,
-				ExamFeatureRestriction.SURD,
-				ExamFeatureRestriction.RATIONALIZATION,
-				ExamFeatureRestriction.DISABLE_MIXED_NUMBERS,
-				ExamFeatureRestriction.CUSTOM_MMS_REGRESSION_MODELS);
+				FeatureRestriction.HIDE_CALCULATED_EQUATION,
+				FeatureRestriction.HIDE_SPECIAL_POINTS,
+				FeatureRestriction.SPREADSHEET,
+				FeatureRestriction.SURD,
+				FeatureRestriction.RATIONALIZATION,
+				FeatureRestriction.DISABLE_MIXED_NUMBERS,
+				FeatureRestriction.CUSTOM_MMS_REGRESSION_MODELS);
 	}
 
 	private static Set<ExpressionFilter> createInputExpressionFilters() {
@@ -248,7 +267,7 @@ public class MmsExamRestrictions extends ExamRestrictions {
 	}
 
 	private static Set<CommandArgumentFilter> createCommandArgumentFilters() {
-		return Set.of(new MmsCommandArgumentFilter());
+		return Set.of(new ExamCommandArgumentFilter(), new MmsCommandArgumentFilter());
 	}
 
 	private static OperationFilter createOperationFilter() {
@@ -300,7 +319,7 @@ public class MmsExamRestrictions extends ExamRestrictions {
 	 * <p>Example: {@code Normal(2, 0.5, 1)}</p>
 	 * <ul>
 	 *     <li>
-	 *         Restricted {@code (erf(-√2) + 1) / 2} output format
+	 *         Restricted {@code (erf(-sqrt(2)) + 1) / 2} output format
 	 *         ({@link AlgebraOutputFormat#EXACT})
 	 *     </li>
 	 *     <li>
@@ -311,7 +330,7 @@ public class MmsExamRestrictions extends ExamRestrictions {
 	 */
 	private static final class NormalCommandAlgebraOutputFormatFilter
 			implements AlgebraOutputFormatFilter {
-		@SuppressWarnings("PMD.SimplifyBooleanReturns")
+
 		@Override
 		public boolean isAllowed(GeoElement geoElement, AlgebraOutputFormat outputFormat) {
 			if (isNormalCommand(geoElement) && outputFormat != APPROXIMATION) {
@@ -336,10 +355,10 @@ public class MmsExamRestrictions extends ExamRestrictions {
 	 * <p>Examples: </p>
 	 * <ul>
 	 *     <li>
-	 *         {@code (3; π / 3)}
+	 *         {@code (3; pi / 3)}
 	 *         <ul>
 	 *             <li>
-	 *                 Restricted {@code (3 / 2, 3 * √3 / 2)} output format
+	 *                 Restricted {@code (3 / 2, 3 * sqrt(3) / 2)} output format
 	 *                 ({@link AlgebraOutputFormat#EXACT})
 	 *             </li>
 	 *             <li>
@@ -365,7 +384,7 @@ public class MmsExamRestrictions extends ExamRestrictions {
 	 */
 	private static final class PolarCoordinateCartesianFormatFilter
 			implements AlgebraOutputFormatFilter {
-		@SuppressWarnings("PMD.SimplifyBooleanReturns")
+
 		@Override
 		public boolean isAllowed(GeoElement geoElement, AlgebraOutputFormat outputFormat) {
 			GeoElementND unwrappedElement = geoElement.unwrapSymbolic();
@@ -480,7 +499,6 @@ public class MmsExamRestrictions extends ExamRestrictions {
 			return isLine(geoElement) ? HIDE : IGNORE;
 		}
 
-		@SuppressWarnings("PMD.SimplifyBooleanReturns")
 		private boolean isLine(GeoElementND geoElement) {
 			if (geoElement instanceof GeoSymbolic) {
 				return isLine(((GeoSymbolic) geoElement).getTwinGeo());
@@ -584,7 +602,6 @@ public class MmsExamRestrictions extends ExamRestrictions {
 		private static final Set<Operation> operations =
 				Set.of(PLUS, MINUS, MULTIPLY, DIVIDE, POWER);
 
-		@SuppressWarnings("PMD.SimplifyBooleanReturns")
 		@Override
 		protected boolean isExpressionNodeAllowed(@Nonnull ExpressionNode expressionNode) {
 			if (operations.stream().noneMatch(expressionNode::isOperation)) {
@@ -616,7 +633,6 @@ public class MmsExamRestrictions extends ExamRestrictions {
 		}
 	}
 
-	@SuppressWarnings("PMD.SimplifyBooleanReturns")
 	private static boolean isExplicitEquation(GeoElement geoElement) {
 		Equation equation = unwrapEquation(geoElement);
 		if (equation == null) {
@@ -671,7 +687,6 @@ public class MmsExamRestrictions extends ExamRestrictions {
 			return true;
 		}
 
-		@SuppressWarnings("PMD.SimplifyBooleanReturns")
 		private static boolean isParametricCurve(@CheckForNull GeoElementND geoElement) {
 			if (geoElement == null) {
 				return false;

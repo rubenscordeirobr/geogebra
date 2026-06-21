@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.algos;
@@ -201,6 +205,7 @@ public class AlgoPolygonRegular extends AlgoPolygonRegularND
 
 		// general case (GGB-2137)
 		GeoGebraCAS cas = (GeoGebraCAS) kernel.getGeoGebraCAS();
+		String parsable = null;
 		try {
 			String minpoly = cas.getCurrentCAS()
 					.evaluateRaw("cos2piOverNMinpoly(" + sides + ")");
@@ -209,18 +214,13 @@ public class AlgoPolygonRegular extends AlgoPolygonRegularND
 			PVariable y = new PVariable(kernel);
 			minpoly = minpoly.replace("x", x.getName());
 			// Ugly way of converting the CAS computation result into PPolynomial:
-			String parsable = "[1]: [1]: _[1]=1 _[2]=" + minpoly + " [2]: 1,1";
+			parsable = "[1]: [1]: _[1]=1 _[2]=" + minpoly + " [2]: 1,1";
 			HashSet<PVariable> v = new HashSet<>();
 			v.add(x);
 			TreeSet<PVariable> variables = new TreeSet<>(v);
 			Set<Set<PPolynomial>> parsed;
-			try {
-				parsed = PolynomialParser.parseFactoredPolynomialSet(parsable,
-						variables);
-			} catch (ParseException e) {
-				Log.debug("Cannot parse: " + parsable);
-				throw new NoSymbolicParametersException(e);
-			}
+			parsed = PolynomialParser.parseFactoredPolynomialSet(parsable,
+					variables);
 			Iterator<Set<PPolynomial>> polySet = parsed.iterator();
 			PPolynomial botanaMinpoly = new PPolynomial();
 			while (polySet.hasNext()) {
@@ -269,6 +269,9 @@ public class AlgoPolygonRegular extends AlgoPolygonRegularND
 			}
 			return botanaPolynomials;
 
+		} catch (ParseException e) {
+			Log.debug("Cannot parse: " + parsable);
+			throw new NoSymbolicParametersException(e);
 		} catch (Throwable e) {
 			Log.debug("Problem with computing minimal poly of cos(2pi/n)");
 			throw new NoSymbolicParametersException(e);

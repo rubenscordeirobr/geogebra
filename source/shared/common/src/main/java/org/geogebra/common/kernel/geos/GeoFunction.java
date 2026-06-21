@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.geos;
@@ -24,6 +28,7 @@ import javax.annotation.CheckForNull;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.geogebra.common.euclidian.EuclidianView;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.MyPoint;
@@ -76,8 +81,7 @@ import org.geogebra.common.util.DoubleUtil;
 import org.geogebra.common.util.ExtendedBoolean;
 import org.geogebra.common.util.StringUtil;
 import org.geogebra.common.util.debug.Log;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * Explicit function in one variable ("x"). This is actually a wrapper class for
@@ -136,6 +140,7 @@ public class GeoFunction extends GeoElement implements Translateable,
 	private AlgoDependentFunction dependentFunction;
 	private int tableViewColumn = -1;
 	private boolean pointsVisible = true;
+	private boolean simplifyCoefficients = true;
 	private ConditionalSerializer conditionalSerializer;
 
 	/**
@@ -712,6 +717,16 @@ public class GeoFunction extends GeoElement implements Translateable,
 		return fun.isPolynomialFunction(forRootFinding, symbolic);
 	}
 
+	@Override
+	public boolean hasPolynomialNumerator(boolean forRootFinding) {
+		// don't do root finding simplification here
+		// i.e. don't replace a factor "sqrt(x)" by "x"
+		if (!isDefined() || fun == null) {
+			return false;
+		}
+		return fun.hasPolynomialNumerator(forRootFinding);
+	}
+
 	/**
 	 * Returns true if this function is a polynomial.
 	 * 
@@ -724,6 +739,20 @@ public class GeoFunction extends GeoElement implements Translateable,
 	@Override
 	public boolean isPolynomialFunction(boolean forRootFinding) {
 		return isPolynomialFunction(forRootFinding, false);
+	}
+
+	/**
+	 * @param simplify Whether coefficients should be simplified.
+	 */
+	public void setSimplifyCoefficients(boolean simplify) {
+		simplifyCoefficients = simplify;
+	}
+
+	/**
+	 * @return Whether coefficients should be simplified when yielding the output of this function.
+	 */
+	public boolean hasSimplifiedCoefficients() {
+		return simplifyCoefficients;
 	}
 
 	/**
@@ -851,7 +880,7 @@ public class GeoFunction extends GeoElement implements Translateable,
 			stringBuilder.append(": ");
 		} else {
 			String var = fn.getVarString(tpl);
-			tpl.appendWithBrackets(stringBuilder, var);
+			tpl.appendWithBrackets(stringBuilder, var, fn.getKernel().getLocalization());
 			stringBuilder.append(tpl.getEqualsWithSpace());
 		}
 	}
@@ -859,7 +888,8 @@ public class GeoFunction extends GeoElement implements Translateable,
 	@Override
 	public String toValueString(StringTemplate tpl) {
 		if (isDefined() && fun != null) {
-			return fun.toValueString(tpl);
+			return fun.toValueString(simplifyCoefficients && tpl.allowsCoefficientSimplification()
+					? tpl.deriveWithSimplifiedCoefficients() : tpl);
 		}
 		return "?";
 	}
@@ -907,24 +937,22 @@ public class GeoFunction extends GeoElement implements Translateable,
 	}
 
 	@Override
-	public void getExpressionXML(StringBuilder sbxml) {
+	public void getExpressionXML(XMLStringBuilder sbxml) {
 		// an independent function needs to add
 		// its expression itself
 		// e.g. f(x) = x^2 - 3x
 		if (isIndependent() && getDefaultGeoType() < 0) {
-			sbxml.append("<expression label=\"");
-			sbxml.append(label);
-			sbxml.append("\" exp=\"");
-			StringUtil.encodeXML(sbxml, toString(StringTemplate.xmlTemplate));
-			sbxml.append("\" type=\"");
-			sbxml.append(getFunctionType());
-			sbxml.append("\"/>\n");
+			sbxml.startTag("expression", 0);
+			sbxml.attr("label", label);
+			sbxml.attr("exp", toString(StringTemplate.xmlTemplate));
+			sbxml.attr("type", getFunctionType());
+			sbxml.endTag();
 		}
 	}
 
 	@Override
-	public void getXMLtags(StringBuilder sbxml) {
-		super.getXMLtags(sbxml);
+	public void getXMLTags(XMLStringBuilder sbxml) {
+		super.getXMLTags(sbxml);
 		printCASEvalMapXML(sbxml);
 	}
 
@@ -941,14 +969,18 @@ public class GeoFunction extends GeoElement implements Translateable,
 	 * returns all class-specific xml tags for getXML
 	 */
 	@Override
-	protected void getStyleXML(StringBuilder sbxml) {
+	protected void getStyleXML(XMLStringBuilder sbxml) {
 		super.getStyleXML(sbxml);
 
 		// line thickness and type
 		getLineStyleXML(sbxml);
 		if (showOnAxis()) {
-			sbxml.append("<showOnAxis val=\"true\" />");
+			sbxml.startTag("showOnAxis").attr("val", true).endTag();
 		}
+		// simplifyCoefficients tag should always be present so old files can be loaded correctly
+		sbxml.startTag("simplifyCoefficients")
+				.attr("val", simplifyCoefficients)
+				.endTag();
 	}
 
 	/**
@@ -1305,7 +1337,7 @@ public class GeoFunction extends GeoElement implements Translateable,
 		sbToString.setLength(0);
 		sbToString.append(tpl.printVariableName(label));
 		if (this.getLabelDelimiter() != ':') {
-			tpl.appendWithBrackets(sbToString, getVarString(tpl));
+			tpl.appendWithBrackets(sbToString, getVarString(tpl), kernel.getLocalization());
 		}
 		return sbToString.toString();
 	}
@@ -1690,8 +1722,6 @@ public class GeoFunction extends GeoElement implements Translateable,
 	 */
 	public static FunctionNVar applyNumberSymb(Operation op, Evaluate2Var fun1,
 			ExpressionValue ev, boolean right) {
-		ExpressionValue nv = ev;
-
 		if (fun1.getFunction() == null) {
 			return null;
 		}
@@ -1709,7 +1739,7 @@ public class GeoFunction extends GeoElement implements Translateable,
 		}
 		ExpressionNode sum, myExpr;
 		myExpr = toExpr(fun1, varmap, kernel);
-
+		ExpressionValue nv = ev;
 		if (nv instanceof ExpressionNode) {
 			for (String name : varNames) {
 				((ExpressionNode) nv).replaceVariables(name, varmap.get(name));
@@ -2697,7 +2727,7 @@ public class GeoFunction extends GeoElement implements Translateable,
 	}
 
 	@Override
-	public void printCASEvalMapXML(StringBuilder sbXML) {
+	public void printCASEvalMapXML(XMLStringBuilder sbXML) {
 		if (fun != null) {
 			fun.printCASevalMapXML(sbXML);
 		}

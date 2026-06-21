@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.barycentric;
 
 /**
@@ -31,11 +47,11 @@ public class AlgoCubicSwitch {
 			}
 			double[] coeffR = getCoeff(n, sides[q], sides[p], sides[r]);
 			char A = "ABC".charAt(p), B = "ABC".charAt(q);
-			equation.append("+(" + coeff[0] + ")*" + A + "^3");
-			equation.append("+(" + coeff[1] + ")*" + A + "^2*" + B);
-			equation.append("+(" + coeffR[2] + ")*" + B + "^2*" + A);
+			equation.append("+(").append(coeff[0]).append(")*").append(A).append("^3");
+			equation.append("+(").append(coeff[1]).append(")*").append(A).append("^2*").append(B);
+			equation.append("+(").append(coeffR[2]).append(")*").append(B).append("^2*").append(A);
 			if (p == 0) {
-				equation.append("+(" + coeff[3] + ")*A*B*C");
+				equation.append("+(").append(coeff[3]).append(")*A*B*C");
 			}
 		}
 		return equation.toString();

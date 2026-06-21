@@ -1,18 +1,22 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.geogebra3D.kernel3D;
 
-import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.TreeSet;
 
 import org.geogebra.common.geogebra3D.io.MyXMLHandler3D;
@@ -61,7 +65,7 @@ import org.geogebra.common.plugin.GeoClass;
  * 
  * Class used for (3D) calculations
  * 
- * <h3>How to add a method for creating a {@link GeoElement3D}</h3>
+ * <h1>How to add a method for creating a {@link GeoElement3D}</h1>
  * 
  * <ul>
  * <li>simply call the element's constructor
@@ -192,10 +196,8 @@ public class Kernel3D extends Kernel {
 	 * *******************************************
 	 */
 	@Override
-	public boolean handleCoords(GeoElement geo,
-			LinkedHashMap<String, String> attrs) {
-
-		if (geo instanceof GeoLine3D) {
+	public boolean handleCoords(GeoElement geo, Map<String, String> attrs) {
+		if (geo instanceof GeoLine3D line) {
 			try {
 				// origin
 				double ox = Double.parseDouble(attrs.get("ox"));
@@ -209,7 +211,7 @@ public class Kernel3D extends Kernel {
 				double vz = Double.parseDouble(attrs.get("vz"));
 				double vw = Double.parseDouble(attrs.get("vw"));
 
-				((GeoLine3D) geo).setCoord(new Coords(ox, oy, oz, ow),
+				line.setCoord(new Coords(ox, oy, oz, ow),
 						new Coords(vx, vy, vz, vw));
 				return true;
 			} catch (Exception e) {
@@ -217,7 +219,7 @@ public class Kernel3D extends Kernel {
 			}
 		}
 
-		if (geo instanceof GeoConic3D && geo.isIndependent()) {
+		if (geo instanceof GeoConic3D conic && geo.isIndependent()) {
 			try {
 				double ox = Double.parseDouble(attrs.get("ox"));
 				double oy = Double.parseDouble(attrs.get("oy"));
@@ -231,7 +233,7 @@ public class Kernel3D extends Kernel {
 				double wx = Double.parseDouble(attrs.get("wx"));
 				double wy = Double.parseDouble(attrs.get("wy"));
 				double wz = Double.parseDouble(attrs.get("wz"));
-				CoordSys cs = ((GeoConic3D) geo).getCoordSys();
+				CoordSys cs = conic.getCoordSys();
 				if (cs == null) {
 					cs = new CoordSys(2);
 				}
@@ -240,14 +242,14 @@ public class Kernel3D extends Kernel {
 				cs.addVector(new Coords(wx, wy, wz));
 				cs.makeOrthoMatrix(false, false);
 				// cs.makeOrthoMatrix(true, true);
-				((GeoConic3D) geo).setCoordSys(cs);
+				conic.setCoordSys(cs);
 				return true;
 			} catch (Exception e) {
 				return false;
 			}
 		}
 
-		if (!(geo instanceof GeoCoords4D)) {
+		if (!(geo instanceof GeoCoords4D coords4D)) {
 			return super.handleCoords(geo, attrs);
 		}
 		if (geo.getParentAlgorithm() != null
@@ -260,7 +262,7 @@ public class Kernel3D extends Kernel {
 			double y = Double.parseDouble(attrs.get("y"));
 			double z = Double.parseDouble(attrs.get("z"));
 			double w = Double.parseDouble(attrs.get("w"));
-			((GeoCoords4D) geo).setCoords(x, y, z, w);
+			coords4D.setCoords(x, y, z, w);
 			return true;
 		} catch (Exception e) {
 			return false;

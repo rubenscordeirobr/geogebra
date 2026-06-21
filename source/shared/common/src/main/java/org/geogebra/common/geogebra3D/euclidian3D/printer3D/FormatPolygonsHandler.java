@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.printer3D;
 
 import java.util.ArrayList;
@@ -31,7 +47,7 @@ public class FormatPolygonsHandler {
 		final private int id;
 		final private boolean isFlat;
 
-		public Polygon(int id, boolean isFlat) {
+		Polygon(int id, boolean isFlat) {
 			this.id = id;
 			this.isFlat = isFlat;
 
@@ -44,11 +60,11 @@ public class FormatPolygonsHandler {
 			indices = new ArrayList<>();
 		}
 
-		public int getId() {
+		private int getId() {
 			return id;
 		}
 
-		public void setNormal(double x, double y, double z) {
+		private void setNormal(double x, double y, double z) {
 			if (isFlat) {
 				normal.set(x, y, z);
 			} else {
@@ -56,17 +72,17 @@ public class FormatPolygonsHandler {
 			}
 		}
 
-		public void addVertex(double x, double y, double z) {
+		private void addVertex(double x, double y, double z) {
 			vertices.add(new Coords(x, y, z));
 		}
 
-		public void addTriangle(int v1, int v2, int v3) {
+		private void addTriangle(int v1, int v2, int v3) {
 			indices.add(v1);
 			indices.add(v2);
 			indices.add(v3);
 		}
 
-		public int getRandomPointAndNormal(Coords retPoint, Coords retNormal,
+		private int getRandomPointAndNormal(Coords retPoint, Coords retNormal,
 				Coords tmp, Random r) {
 			int index = 3 * r.nextInt(indices.size() / 3);
 			double a = Math.random();
@@ -86,7 +102,7 @@ public class FormatPolygonsHandler {
 			return index;
 		}
 
-		public void swapNormals() {
+		private void swapNormals() {
 			if (isFlat) {
 				normal.mulInside(-1);
 			} else {
@@ -96,7 +112,7 @@ public class FormatPolygonsHandler {
 			}
 		}
 
-		public void setPosition(int sourceId, int sourceTriangle, Coords start,
+		private void setPosition(int sourceId, int sourceTriangle, Coords start,
 				Coords n, Coords tmp1, Coords tmp2, Coords tmpO,
 				Coords inPlaneCoords,
 				TreeMap<Double, PolygonWithTraversedNormal> sortedPolygons) {
@@ -139,7 +155,7 @@ public class FormatPolygonsHandler {
 			}
 		}
 
-		public void getTriangles(StringBuilder sb, FormatSTL format,
+		private void getTriangles(StringBuilder sb, FormatSTL format,
 				Coords tmp1, Coords tmp2) {
 			for (int i = 0; i < indices.size(); i += 3) {
 				Coords v1 = vertices.get(indices.get(i));
@@ -157,7 +173,7 @@ public class FormatPolygonsHandler {
 			}
 		}
 
-		final static private void getTriangle(StringBuilder sb,
+		static private void getTriangle(StringBuilder sb,
 				FormatSTL format, Coords v1, Coords v2, Coords v3,
 				Coords orientedNormal) {
 			format.getTriangle(sb, orientedNormal.getX(), orientedNormal.getY(),
@@ -171,7 +187,7 @@ public class FormatPolygonsHandler {
 			return toString(2, 2);
 		}
 
-		public String toString(int digits, int precision) {
+		private String toString(int digits, int precision) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("== id: ");
 			sb.append(id);
@@ -203,16 +219,16 @@ public class FormatPolygonsHandler {
 		private Polygon p;
 		private Coords traversedNormal;
 		
-		public PolygonWithTraversedNormal(Polygon p, Coords traversedNormal) {
+		PolygonWithTraversedNormal(Polygon p, Coords traversedNormal) {
 			this.p = p;
 			this.traversedNormal = traversedNormal;
 		}
 
-		public int getId() {
+		private int getId() {
 			return p.getId();
 		}
 
-		public void setOrientedNormal(double orientation, Coords direction) {
+		private void setOrientedNormal(double orientation, Coords direction) {
 			if (traversedNormal.dotproduct3(direction) * orientation < 0) {
 				p.swapNormals();
 			}

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.kernel3D.implicit3D;
 
 import org.geogebra.common.geogebra3D.euclidian3D.EuclidianView3D;
@@ -120,12 +136,12 @@ public class GeoImplicitCurve3D extends GeoImplicitCurve
 			return "?";
 		}
 		StringBuilder valueSb = new StringBuilder(50);
-		valueSb.append(tpl.leftBracket());
+		valueSb.append(tpl.leftBracket(kernel.getLocalization()));
 		appendSurfaceEquation(valueSb, tpl);
 		valueSb.append(",");
 		valueSb.append(
 				GeoPlane3D.buildValueString(tpl, kernel, planeEquation, false));
-		valueSb.append(tpl.rightBracket());
+		valueSb.append(tpl.rightBracket(kernel.getLocalization()));
 		return valueSb.toString();
 	}
 

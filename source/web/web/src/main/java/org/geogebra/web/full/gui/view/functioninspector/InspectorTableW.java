@@ -1,14 +1,28 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.view.functioninspector;
 
 import java.util.List;
 
-import org.geogebra.common.euclidian.event.KeyHandler;
 import org.geogebra.common.main.App;
 import org.geogebra.web.full.gui.view.algebra.InputPanelW;
 import org.geogebra.web.full.gui.view.functioninspector.GridModel.DataCell;
 import org.geogebra.web.full.gui.view.functioninspector.GridModel.IGridListener;
 import org.geogebra.web.html5.gui.inputfield.AutoCompleteTextFieldW;
-import org.gwtproject.event.dom.client.BlurHandler;
 import org.gwtproject.user.client.ui.FlexTable;
 import org.gwtproject.user.client.ui.Label;
 import org.gwtproject.user.client.ui.Widget;
@@ -18,16 +32,15 @@ public class InspectorTableW extends FlexTable implements IGridListener {
 	private GridModel model;
 	private int selectedRow;
 	private AutoCompleteTextFieldW cellEditor;
-	private KeyHandler keyHandler;
-	private BlurHandler blurHandler;
 	
 	/**
 	 * @param app
 	 *            application
 	 * @param col
 	 *            number of columns
+	 * @param blurAndEnterHandler called when Enter pressed or blur occurs while editing cells
 	 */
-	public InspectorTableW(App app, int col) {
+	public InspectorTableW(App app, int col, Runnable blurAndEnterHandler) {
 		super();
 		setStyleName("inspectorTable");
 		setWidth("100%");
@@ -38,8 +51,6 @@ public class InspectorTableW extends FlexTable implements IGridListener {
 		InputPanelW input = new InputPanelW(app, -1, false);
 		cellEditor = input.getTextComponent();
 		cellEditor.addStyleName("inspectorTableEditor");
-		keyHandler = null;
-		blurHandler = null;
 		
 		addClickHandler(event -> {
 			Cell cell = getCellForEvent(event);
@@ -49,17 +60,7 @@ public class InspectorTableW extends FlexTable implements IGridListener {
 			updateRowStyle(cell, "selected");
 		});
 		
-		cellEditor.addKeyHandler(e -> {
-			if (keyHandler != null) {
-				keyHandler.keyReleased(e);
-			}
-		});
-		
-		cellEditor.addBlurHandler(event -> {
-			if (blurHandler != null) {
-				blurHandler.onBlur(event);
-			}
-		});
+		cellEditor.addEnterPressHandler(blurAndEnterHandler);
 	}
 
 	/**
@@ -241,14 +242,6 @@ public class InspectorTableW extends FlexTable implements IGridListener {
 	public void setCellEditable(int row, int col) {
 		model.setCellEditable(row, col);
 		setEditorInCell(row + 1, col);
-	}
-
-	public void setKeyHandler(KeyHandler keyHandler) {
-		this.keyHandler = keyHandler;
-	}
-
-	public void setBlurHandler(BlurHandler blurHandler) {
-		this.blurHandler = blurHandler;
 	}
 
 }

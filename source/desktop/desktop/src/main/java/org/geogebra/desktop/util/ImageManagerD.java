@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.desktop.util;
@@ -31,10 +35,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Hashtable;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
-import org.geogebra.common.jre.gui.MyImageJre;
+import org.geogebra.common.awt.MyImage;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.geos.GProperty;
 import org.geogebra.common.kernel.geos.GeoElement;
@@ -59,7 +65,7 @@ import com.himamis.retex.renderer.desktop.graphics.Base64;
  */
 public class ImageManagerD extends ImageManager {
 
-	private final Hashtable<String, ImageIcon> iconTable = new Hashtable<>();
+	private final Hashtable<String, Image> iconTable = new Hashtable<>();
 	private final Hashtable<String, MyImageD> internalImageTable = new Hashtable<>();
 	private static final Hashtable<String, MyImageD> externalImageTable = new Hashtable<>();
 
@@ -89,7 +95,7 @@ public class ImageManagerD extends ImageManager {
 	 * 
 	 * @return icon for fileName or null
 	 */
-	public ImageIcon getImageIcon(ImageResourceD fileName) {
+	public Image getImageIcon(ImageResourceD fileName) {
 		return getImageIcon(fileName, null);
 	}
 
@@ -101,7 +107,7 @@ public class ImageManagerD extends ImageManager {
 	 *            if borderColor == null no border is added
 	 * @return icon
 	 */
-	public ImageIcon getImageIcon(ImageResourceD fileName, Color borderColor) {
+	public Image getImageIcon(ImageResourceD fileName, Color borderColor) {
 		return getImageIcon(fileName, borderColor, null);
 	}
 
@@ -111,18 +117,15 @@ public class ImageManagerD extends ImageManager {
 	 * @param background background color
 	 * @return image with border  and background
 	 */
-	public ImageIcon getImageIcon(ImageResourceD fileName, Color borderColor,
+	public Image getImageIcon(ImageResourceD fileName, Color borderColor,
 			Color background) {
-		ImageIcon icon = iconTable.get(fileName.getFilename());
-		if (icon == null) {
-			// load the icon
+		return iconTable.computeIfAbsent(fileName.getFilename(), fn -> {
 			Image im = getImageResourceGeoGebra(fileName);
 			if (im != null) {
-				icon = new ImageIcon(addBorder(im, borderColor, background));
-				iconTable.put(fileName.getFilename(), icon);
+				return addBorder(im, borderColor, background);
 			}
-		}
-		return icon;
+			return null;
+		});
 	}
 
 	/**
@@ -174,7 +177,7 @@ public class ImageManagerD extends ImageManager {
 	 * @param fileName0 filename
 	 * @param img image
 	 */
-	public void addExternalImage(String fileName0, MyImageJre img) {
+	public void addExternalImage(String fileName0, MyImage img) {
 		Log.error("adding " + fileName0);
 		if (fileName0 != null && img != null) {
 			String fileName = fileName0;
@@ -196,7 +199,7 @@ public class ImageManagerD extends ImageManager {
 	 * @param fileName0 file path
 	 * @return image
 	 */
-	public static MyImageD getExternalImage(String fileName0) {
+	public static MyImageD getStaticExternalImage(String fileName0) {
 		String fileName = fileName0;
 		// GIF saved as PNG in .ggb files so need to change extension
 		FileExtensions ext = StringUtil.getFileExtension(fileName);
@@ -205,6 +208,11 @@ public class ImageManagerD extends ImageManager {
 					FileExtensions.PNG);
 		}
 		return externalImageTable.get(fileName);
+	}
+
+	@Override
+	public @CheckForNull MyImage getExternalImage(@Nonnull String path) {
+		return getStaticExternalImage(path);
 	}
 
 	/**
@@ -476,7 +484,7 @@ public class ImageManagerD extends ImageManager {
 			// "a04c62e6a065b47476607ac815d022cc/filename.ext"
 			fileName = zip_directory + "/" + fn;
 			// make sure this filename is not taken yet
-			MyImageD oldImg = ImageManagerD.getExternalImage(fileName);
+			MyImageD oldImg = ImageManagerD.getStaticExternalImage(fileName);
 			if (oldImg != null) {
 				// image with this name exists already
 				if ((oldImg.getWidth() == image.getWidth())
@@ -497,7 +505,7 @@ public class ImageManagerD extends ImageManager {
 							: "";
 					String extension = fileName.substring(pos);
 					fileName = firstPart + n + extension;
-				} while (ImageManagerD.getExternalImage(fileName) != null);
+				} while (ImageManagerD.getStaticExternalImage(fileName) != null);
 			}
 
 			addExternalImage(fileName, image);
@@ -621,11 +629,11 @@ public class ImageManagerD extends ImageManager {
 	 * @param maxSize maximum size in pixels (assuming width == height)
 	 * @return icon respecting pixel ratio
 	 */
-	public ScaledIcon getResponsiveScaledIcon(ImageIcon icon, int maxSize) {
+	public ScaledIcon getResponsiveScaledIcon(Image icon, int maxSize) {
 		int maxScaledSize = (int) (maxSize * getPixelRatio());
-		return new ScaledIcon(ImageManagerD.getScaledIcon(icon,
-				Math.min(icon.getIconWidth(), maxScaledSize),
-				Math.min(icon.getIconHeight(), maxScaledSize)),
+		return new ScaledIcon(ImageManagerD.getScaledImage(icon,
+				Math.min(icon.getWidth(null), maxScaledSize),
+				Math.min(icon.getHeight(null), maxScaledSize)),
 
 				getPixelRatio());
 	}

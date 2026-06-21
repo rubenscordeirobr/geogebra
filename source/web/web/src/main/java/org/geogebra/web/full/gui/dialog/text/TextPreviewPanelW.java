@@ -1,5 +1,22 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.dialog.text;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.awt.GFont;
 import org.geogebra.common.awt.GRectangle;
@@ -7,7 +24,6 @@ import org.geogebra.common.euclidian.EuclidianController;
 import org.geogebra.common.euclidian.EuclidianStatic;
 import org.geogebra.common.euclidian.EuclidianView;
 import org.geogebra.common.euclidian.draw.DrawText;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.gui.dialog.TextPreviewer;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.geos.GeoText;
@@ -95,9 +111,7 @@ public class TextPreviewPanelW extends TextPreviewer {
 
 	@Override
 	protected void removeEVMouseListeners() {
-		// ev.removeMouseListener(ev.getEuclidianController());
-		// ev.removeMouseMotionListener(ev.getEuclidianController());
-		// ev.removeMouseWheelListener(ev.getEuclidianController());
+		// nothing to do here
 	}
 
 	@Override
@@ -123,13 +137,12 @@ public class TextPreviewPanelW extends TextPreviewer {
 		getEVPanel().onResize();
 	}
 
-	/****************************************************************************
-	 * Extension of EuclidianViewD for displaying preview text strings
-	 * 
+	/**
+	 * Extension of EuclidianViewW for displaying preview text strings.
 	 */
-	private static class PreviewEuclidianView extends EuclidianViewW {
+	private static final class PreviewEuclidianView extends EuclidianViewW {
 
-		public PreviewEuclidianView(TextPreviewEuclidianViewPanelW panel,
+		private PreviewEuclidianView(TextPreviewEuclidianViewPanelW panel,
 				EuclidianController ec, int evno, EuclidianSettings settings) {
 			super(panel, ec, evno, settings);
 
@@ -159,16 +172,15 @@ public class TextPreviewPanelW extends TextPreviewer {
 		}
 	}
 
-	/****************************************************************************
-	 * Panel for EuclidianView
-	 * 
+	/**
+	 * Panel for EuclidianView.
 	 */
-	private class TextPreviewEuclidianViewPanelW extends AbsolutePanel implements
-	        EuclidianPanelWAbstract {
+	private final class TextPreviewEuclidianViewPanelW extends AbsolutePanel
+			implements EuclidianPanelWAbstract {
 
-		private Canvas canvas;
+		private final Canvas canvas;
 
-		public TextPreviewEuclidianViewPanelW() {
+		private TextPreviewEuclidianViewPanelW() {
 			super();
 			canvas = Canvas.createIfSupported();
 			canvas.getElement().getStyle().setPosition(Position.ABSOLUTE);

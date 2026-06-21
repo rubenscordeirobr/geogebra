@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.spreadsheet.core;
 
 import static org.junit.Assert.assertEquals;
@@ -11,9 +27,8 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 
 import org.geogebra.common.spreadsheet.TestTabularData;
-import org.geogebra.common.spreadsheet.style.SpreadsheetStyling;
+import org.geogebra.common.util.Box;
 import org.geogebra.common.util.MulticastEvent;
-import org.geogebra.common.utils.Box;
 import org.junit.Test;
 
 public class SpreadsheetSelectionControllerTest {
@@ -23,8 +38,8 @@ public class SpreadsheetSelectionControllerTest {
 
 	private final SpreadsheetSelectionController selectionController =
 			new SpreadsheetSelectionController();
-	private final int numberOfRows = 100;
-	private final int numberOfColumns = 100;
+	private static final int numberOfRows = 100;
+	private static final int numberOfColumns = 100;
 
 	@Test
 	public void testMove() {
@@ -335,14 +350,9 @@ public class SpreadsheetSelectionControllerTest {
 
 	@Test
 	public void testSelectionChangeNotifications() {
-		final Box<Integer> numberOfNotifications = new Box<Integer>(0);
+		final Box<Integer> numberOfNotifications = new Box<>(0);
 		MulticastEvent.Listener<MulticastEvent.Void> listener =
-				new MulticastEvent.Listener<MulticastEvent.Void>() {
-					@Override
-					public void notify(MulticastEvent.Void unused) {
-						numberOfNotifications.value++;
-					}
-				};
+				unused -> numberOfNotifications.value++;
 		selectionController.selectionsChanged.addListener(listener);
 
 		selectionController.selectCell(0, 0, false, false);

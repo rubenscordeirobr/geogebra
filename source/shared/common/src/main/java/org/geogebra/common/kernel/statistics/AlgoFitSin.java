@@ -1,16 +1,20 @@
-package org.geogebra.common.kernel.statistics;
-
-/* 
- GeoGebra - Dynamic Mathematics for Everyone
- http://www.geogebra.org
-
- This file is part of GeoGebra.
-
- This program is free software; you can redistribute it and/or modify it 
- under the terms of the GNU General Public License as published by 
- the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
+
+package org.geogebra.common.kernel.statistics;
 
 import java.util.TreeSet;
 
@@ -208,9 +212,6 @@ public class AlgoFitSin extends AlgoElement implements FitAlgo {
 	/** Tries to find good initial values for a,b,c,d */
 	public final void findParameters() {
 		double y;
-		double min_max_distance; // Distance between x-values of found(?)
-									// extrema
-		int numberofhalfperiods = 1; // Between the extrema
 		int xmax_abs = 0, xmin_abs = 0; // Update in case changes=0 later
 										// (few-data-case)
 		size = xd.length;
@@ -262,10 +263,7 @@ public class AlgoFitSin extends AlgoElement implements FitAlgo {
 				} // if steady up or down
 
 				// Two changes enough. (Must check before updating extremums.)
-				if (changes >= 2) { // debug("Two changes on "+i);
-					// go on counting changes!break;
-				} else { // if changes>=2
-
+				if (changes <= 1) {
 					// Update extremums so far
 					if (current == 1) { // Steady up
 						max = y;
@@ -277,9 +275,10 @@ public class AlgoFitSin extends AlgoElement implements FitAlgo {
 				} // if changes<2
 			} // else: Not steady, nothing to do...
 		}
-
+		// Distance between x-values of found(?)
 		// Checking half-period:
-		min_max_distance = Math.abs(xd[xmax] - xd[xmin]);
+		double min_max_distance = Math.abs(xd[xmax] - xd[xmin]);
+		int numberofhalfperiods = 1; // Between the extrema
 		if (changes <= 1) { // Did not succeed, abs extrema probably best
 			xmin = xmin_abs;
 			xmax = xmax_abs;
@@ -328,24 +327,10 @@ public class AlgoFitSin extends AlgoElement implements FitAlgo {
 
 	/** Doing LM iteration */
 	public final void sinus_Reg() {
-		double lambda; // LM-damping coefficient
-		double multfaktor = LMFACTORMULT; // later?: divfaktor=LMFACTORDIV;
-		double residual, old_residual = beta2(xd, yd, a, b, c, d);
-
-		double da = EPSILON, db = EPSILON, dc = EPSILON, dd = EPSILON; // Something
-																		// larger
-																		// than
-																		// eps,
-																		// to
-																		// get
-																		// started...
+		double old_residual = beta2(xd, yd, a, b, c, d);
 		double b1, b2, b3, b4; // At*beta
-		double m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41,
-				m42, m43, m44, // At*A
-				n; // singular check
+		double m11, m22, m33, m44; // At*A
 		double x, y;
-		double dfa, dfb, dfc, dfd, beta, newa, newb, newc, newd;
-
 		iterations = 0;
 		// LM: Optimal startlambda
 		b1 = b2 = b3 = b4 = 0.0d;
@@ -353,11 +338,11 @@ public class AlgoFitSin extends AlgoElement implements FitAlgo {
 		for (int i = 0; i < size; i++) {
 			x = xd[i];
 			y = yd[i];
-			beta = beta(x, y, a, b, c, d);
-			dfa = df_a();
-			dfb = df_b(x, c, d);
-			dfc = df_c(x, b, c, d);
-			dfd = df_d(x, b, c, d);
+			double beta = beta(x, y, a, b, c, d);
+			double dfa = df_a();
+			double dfb = df_b(x, c, d);
+			double dfc = df_c(x, b, c, d);
+			double dfd = df_d(x, b, c, d);
 			// b=At*beta
 			b1 += beta * dfa;
 			b2 += beta * dfb;
@@ -370,8 +355,11 @@ public class AlgoFitSin extends AlgoElement implements FitAlgo {
 			m44 += dfd * dfd;
 		} // for all datapoints
 		double startfaktor = Math.max(Math.max(Math.max(m11, m22), m33), m44);
-		lambda = startfaktor * 0.001; // Heuristic, suggested by several
+		double lambda = startfaktor * 0.001; // Heuristic, suggested by several
 										// articles
+		double da = EPSILON, db = EPSILON, dc = EPSILON, dd = EPSILON;
+		double m12, m13, m14, m23, m24, m34;
+		double multfaktor = LMFACTORMULT; // later?: divfaktor=LMFACTORDIV;
 		while (Math.abs(da) + Math.abs(db) + Math.abs(dc)
 				+ Math.abs(dd) > EPSILON) {
 
@@ -384,16 +372,16 @@ public class AlgoFitSin extends AlgoElement implements FitAlgo {
 				break;
 			} // if diverging
 			b1 = b2 = b3 = b4 = 0.0d;
-			m11 = m12 = m13 = m14 = m21 = m22 = m23 = m24 = 0.0d;
-			m31 = m32 = m33 = m34 = m41 = m42 = m43 = m44 = 0.0d;
+			m11 = m12 = m13 = m14 = m22 = m23 = m24 = 0.0d;
+			m33 = m34 = m44 = 0.0d;
 			for (int i = 0; i < size; i++) { // for all datapoints
 				x = xd[i];
 				y = yd[i];
-				beta = beta(x, y, a, b, c, d);
-				dfa = df_a();
-				dfb = df_b(x, c, d);
-				dfc = df_c(x, b, c, d);
-				dfd = df_d(x, b, c, d);
+				double beta = beta(x, y, a, b, c, d);
+				double dfa = df_a();
+				double dfb = df_b(x, c, d);
+				double dfc = df_c(x, b, c, d);
+				double dfd = df_d(x, b, c, d);
 				// b=At*beta
 				b1 += beta * dfa;
 				b2 += beta * dfb;
@@ -413,14 +401,14 @@ public class AlgoFitSin extends AlgoElement implements FitAlgo {
 			} // for all datapoints
 
 			// Symmetry:
-			m21 = m12;
-			m31 = m13;
-			m32 = m23;
-			m41 = m14;
-			m42 = m24;
-			m43 = m34;
+			double m21 = m12;
+			double m31 = m13;
+			double m32 = m23;
+			double m41 = m14;
+			double m42 = m24;
+			double m43 = m34;
 
-			n = RegressionMath.det44(m11, m12, m13, m14, m21, m22, m23, m24,
+			double n = RegressionMath.det44(m11, m12, m13, m14, m21, m22, m23, m24,
 					m31, m32, m33, m34, m41, m42, m43, m44);
 
 			if (Math.abs(n) < EPSSING) { // Singular matrix?
@@ -437,11 +425,11 @@ public class AlgoFitSin extends AlgoElement implements FitAlgo {
 				dd = RegressionMath.det44(m11, m12, m13, b1, m21, m22, m23, b2,
 						m31, m32, m33, b3, m41, m42, m43, b4) / n;
 
-				newa = a + da;
-				newb = b + db;
-				newc = c + dc;
-				newd = d + dd; // Remember this, in case we have to go back...
-				residual = beta2(xd, yd, newa, newb, newc, newd); // debug("ChiSqError:
+				double newa = a + da;
+				double newb = b + db;
+				double newc = c + dc;
+				double newd = d + dd; // Remember this, in case we have to go back...
+				double residual = beta2(xd, yd, newa, newb, newc, newd); // debug("ChiSqError:
 																	// +"+residual);
 				// diff=residual-old_residual;
 				// //debug("Residual difference: "+diff+" lambda: "+lambda);
@@ -482,49 +470,49 @@ public class AlgoFitSin extends AlgoElement implements FitAlgo {
 	}
 
 	/* sin(Cx+D) */
-	private final static double sin(double x, double c, double d) {
+	private static double sin(double x, double c, double d) {
 		return Math.sin(c * x + d);
 	}
 
 	/* cos(Cx+D) */
-	private final static double cos(double x, double c, double d) {
+	private static double cos(double x, double c, double d) {
 		return Math.cos(c * x + d);
 	}
 
 	/* f(x)=A+Bsin(Cx+D) */
-	private final static double f(double x, double a, double b, double c,
+	private static double f(double x, double a, double b, double c,
 			double d) {
 		return a + b * sin(x, c, d);
 	}
 
 	/* Partial derivative of f to a */
-	private final static double df_a() {
+	private static double df_a() {
 		return 1.0d;
 	}
 
 	/* Partial derivative of f to b: sin(cx+d) */
-	private final static double df_b(double x, double c, double d) {
+	private static double df_b(double x, double c, double d) {
 		return sin(x, c, d);
 	}
 
 	/* Partial derivative of f to c: cos(cx+d)*B*x */
-	private final static double df_c(double x, double b, double c, double d) {
+	private static double df_c(double x, double b, double c, double d) {
 		return cos(x, c, d) * b * x;
 	}
 
 	/* Partial derivative of f to d: Bcos(cx+d) */
-	private final static double df_d(double x, double b, double c, double d) {
+	private static double df_d(double x, double b, double c, double d) {
 		return cos(x, c, d) * b;
 	}
 
 	/* Difference to be reduced */
-	private final static double beta(double x, double y, double a, double b,
+	private static double beta(double x, double y, double a, double b,
 			double c, double d) {
 		return y - f(x, a, b, c, d);
 	}
 
 	/* Sum of quadratic errors */
-	private final static double beta2(double[] x, double[] y, double a,
+	private static double beta2(double[] x, double[] y, double a,
 			double b, double c, double d) {
 		double sum = 0.0d, beta;
 		int n = x.length;
@@ -536,7 +524,7 @@ public class AlgoFitSin extends AlgoElement implements FitAlgo {
 	}
 
 	// Sum of errors (absolute values)
-	private final static double beta(double[] x, double[] y, double a, double b,
+	private static double beta(double[] x, double[] y, double a, double b,
 			double c, double d) {
 		double sum = 0.0d;
 		int n = x.length;
@@ -560,8 +548,7 @@ public class AlgoFitSin extends AlgoElement implements FitAlgo {
 	// Get Points and sort them. (Could find abs max and min as well,
 	// that is done in findParameters() which is better for testing only
 	// mathematical functionality.)
-	private final void getPoints() {
-		double[] xy = new double[2];
+	private void getPoints() {
 		GeoElement geoelement;
 		// GeoList newlist;
 		// This is code duplication of AlgoSort, but for the time being:
@@ -579,6 +566,7 @@ public class AlgoFitSin extends AlgoElement implements FitAlgo {
 		int i = 0;
 		double[] xlist = new double[size];
 		double[] ylist = new double[size];
+		double[] xy = new double[2];
 		for (GeoPoint gp: sortedSet) {
 			gp.getInhomCoords(xy);
 			xlist[i] = xy[0];
@@ -593,7 +581,7 @@ public class AlgoFitSin extends AlgoElement implements FitAlgo {
 	}
 
 	// Noisekiller
-	private final static boolean nearmaxmin(double a, double b, int state,
+	private static boolean nearmaxmin(double a, double b, int state,
 			int current, double max, double min) {
 		if ((state == 1) && (current == -1)) { // A real max-change?
 			return max > a + NOISEKILLER * b;
@@ -608,7 +596,7 @@ public class AlgoFitSin extends AlgoElement implements FitAlgo {
 	// To be used if DFT is used in finding good initial values
 	// Finds the number of halfperiods between abs max and abs min that gives
 	// the least SSE
-	private final int findNumberOfHalfPeriods(int k, int xmin, int xmax) {
+	private int findNumberOfHalfPeriods(int k, int xmin, int xmax) {
 		double min_error = Double.MAX_VALUE;
 		double error1;
 		double period, c1;

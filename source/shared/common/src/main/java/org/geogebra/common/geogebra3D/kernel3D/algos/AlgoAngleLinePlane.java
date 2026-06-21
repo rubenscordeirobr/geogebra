@@ -1,19 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * AlgoAngleLines.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 30. August 2001, 21:37
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.geogebra3D.kernel3D.algos;
@@ -67,7 +65,6 @@ public class AlgoAngleLinePlane extends AlgoAngle
 
 		// compute angle
 		compute();
-
 	}
 
 	@Override
@@ -81,6 +78,9 @@ public class AlgoAngleLinePlane extends AlgoAngle
 		super(((GeoElement) g).getConstruction(), false);
 		this.g = g;
 		this.p = p;
+
+		initCoords();
+		computeAngleAndUpdateCoordinates();
 	}
 
 	/**
@@ -133,7 +133,6 @@ public class AlgoAngleLinePlane extends AlgoAngle
 		// simplified to allow better Chinese translation
 		return getLoc().getPlain("AngleBetweenAB", g.getLabel(tpl),
 				p.getLabel(tpl));
-
 	}
 
 	@Override
@@ -146,7 +145,10 @@ public class AlgoAngleLinePlane extends AlgoAngle
 
 	@Override
 	public final void compute() {
+		getAngle().setValue(computeAngleAndUpdateCoordinates());
+	}
 
+	private double computeAngleAndUpdateCoordinates() {
 		// line origin and direction
 		Coords o2 = g.getStartInhomCoords();
 		v2 = g.getDirectionInD3();
@@ -157,8 +159,7 @@ public class AlgoAngleLinePlane extends AlgoAngle
 		// project line origin on the plane
 		o2.projectPlaneThruV(pMat, v2, o);
 		if (!o.isDefined()) { // line parallel to plane
-			getAngle().setValue(0);
-			return;
+			return 0;
 		}
 
 		// project line direction on the plane
@@ -167,10 +168,9 @@ public class AlgoAngleLinePlane extends AlgoAngle
 		v1.setAdd3(v1.setMul3(vx, v2.dotproduct(vx)),
 				tmpCoords.setMul3(vy, v2.dotproduct(vy)));
 		if (v1.isZero()) { // line orthogonal to plane
-			getAngle().setValue(Math.PI / 2);
 			v1.set3(vx);
 			vn.setMul3(vy, -1);
-			return;
+			return Math.PI / 2;
 		}
 
 		v1.calcNorm();
@@ -180,11 +180,10 @@ public class AlgoAngleLinePlane extends AlgoAngle
 
 		double c = v1.dotproduct(v2) / (l1 * l2); // cosinus of the angle
 
-		getAngle().setValue(AlgoAnglePoints3D.acos(c));
-
 		vn.setCrossProduct4(v2, v1);
 		vn.normalize();
 
+		return AlgoAnglePoints3D.acos(c);
 	}
 
 	@Override
@@ -231,7 +230,6 @@ public class AlgoAngleLinePlane extends AlgoAngle
 
 	@Override
 	public boolean getCoordsInD3(Coords[] drawCoords) {
-
 		if (!o.isDefined()) {
 			return false;
 		}

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.discrete;
 
 import java.util.ArrayList;
@@ -14,8 +30,7 @@ import org.geogebra.common.kernel.matrix.CoordSys;
 import org.geogebra.common.kernel.matrix.Coords;
 import org.geogebra.common.util.DoubleUtil;
 import org.geogebra.common.util.debug.Log;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * Class to convert a GeoPolygon to a set of triangles
@@ -54,6 +69,52 @@ public class PolygonTriangulation {
 	protected Segment comparedSameSegment;
 	private Coords[] completeVertices = new Coords[0];
 	private Coords[] corners = null;
+
+	final private Comparator<Point> simplePolygonPointComparator = (p1, p2) -> {
+
+		if (p1 == p2) {
+			return 0;
+		}
+
+		if (p1.id == p2.id) {
+			/*
+			 * error("same ids"); debug(p1.debugSegments());
+			 * debug(p2.debugSegments());
+			 */
+
+			// copy segments
+			if (p1.toRight != null) {
+				if (p2.toRight == null) {
+					p2.toRight = new CrossPlatformTreeSet<>();
+				}
+				for (Segment seg : p1.toRight) {
+					seg.leftPoint = p2;
+					p2.toRight.add(seg);
+				}
+			}
+
+			if (p1.toLeft != null) {
+				if (p2.toLeft == null) {
+					p2.toLeft = new CrossPlatformTreeSet<>();
+				}
+				for (Segment seg : p1.toLeft) {
+					seg.rightPoint = p2;
+					p2.toLeft.add(seg);
+				}
+			}
+
+			// add diagonal need
+			if (p1.needsDiagonal) {
+				p2.needsDiagonal = true;
+			}
+
+			nextNewPointForNonSelfIntersectingPolygon = p2;
+
+			return 0;
+		}
+
+		return p1.compareToOnly(p2);
+	};
 
 	private static class CrossPlatformTreeSet<E> extends TreeSet<E> {
 
@@ -115,19 +176,19 @@ public class PolygonTriangulation {
 
 	}
 
-	static private class TriangulationException extends Exception {
+	static private final class TriangulationException extends Exception {
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = 1L;
 
-		public enum Type {
+		enum Type {
 			LEFT_POINT_INTERSECTION, ZERO_SEGMENT, DEAD_END
 		}
 
-		private Type type;
+		private final Type type;
 
-		public TriangulationException(Type type) {
+		private TriangulationException(Type type) {
 			this.type = type;
 		}
 
@@ -143,7 +204,7 @@ public class PolygonTriangulation {
 	 * @param s
 	 *            message
 	 */
-	final static protected void debug(String s) {
+	static protected void debug(String s) {
 		if (DEBUG) {
 			Log.debug(s);
 		}
@@ -155,69 +216,18 @@ public class PolygonTriangulation {
 	 * @param s
 	 *            message
 	 */
-	final static protected void error(String s) {
+	static protected void error(String s) {
 		if (DEBUG) {
 			Log.error(s);
 		}
 	}
 
-	final private Comparator<Point> simplePolygonPointComparator = new Comparator<Point>() {
-
-		@Override
-		public int compare(Point p1, Point p2) {
-
-			if (p1 == p2) {
-				return 0;
-			}
-
-			if (p1.id == p2.id) {
-				/*
-				 * error("same ids"); debug(p1.debugSegments());
-				 * debug(p2.debugSegments());
-				 */
-
-				// copy segments
-				if (p1.toRight != null) {
-					if (p2.toRight == null) {
-						p2.toRight = new CrossPlatformTreeSet<>();
-					}
-					for (Segment seg : p1.toRight) {
-						seg.leftPoint = p2;
-						p2.toRight.add(seg);
-					}
-				}
-
-				if (p1.toLeft != null) {
-					if (p2.toLeft == null) {
-						p2.toLeft = new CrossPlatformTreeSet<>();
-					}
-					for (Segment seg : p1.toLeft) {
-						seg.rightPoint = p2;
-						p2.toLeft.add(seg);
-					}
-				}
-
-				// add diagonal need
-				if (p1.needsDiagonal) {
-					p2.needsDiagonal = true;
-				}
-
-				nextNewPointForNonSelfIntersectingPolygon = p2;
-
-				return 0;
-			}
-
-			return p1.compareToOnly(p2);
-		}
-
-	};
-
-	private class Point implements Comparable<Point> {
-		public double x;
-		public double y;
-		public int id;
-		public String name;
-		public double orientationToNext;
+	private final class Point implements Comparable<Point> {
+		private double x;
+		private double y;
+		private int id;
+		private String name;
+		private double orientationToNext;
 		Point prev; // previous point
 		Point next; // next point
 
@@ -226,19 +236,19 @@ public class PolygonTriangulation {
 
 		boolean needsDiagonal = false;
 
-		public Point(double x, double y, int id) {
+		private Point(double x, double y, int id) {
 			this.x = x;
 			this.y = y;
 			this.id = id;
 		}
 
-		public Point duplicate() {
+		private Point duplicate() {
 			Point ret = new Point(x, y, id);
 			ret.name = name;
 			return ret;
 		}
 
-		public String debugSegments() {
+		private String debugSegments() {
 			StringBuilder s = new StringBuilder(name);
 			s.append(" ");
 			if (toLeft != null) {
@@ -269,35 +279,35 @@ public class PolygonTriangulation {
 			return s.toString();
 		}
 
-		public void removeSegmentToRight(Segment segment) {
+		void removeSegmentToRight(Segment segment) {
 			toRight.remove(segment);
 		}
 
-		public boolean addSegmentToRight(Segment segment) {
+		boolean addSegmentToRight(Segment segment) {
 			if (toRight == null) {
 				toRight = new CrossPlatformTreeSet<>();
 			}
 			return toRight.add(segment);
 		}
 
-		public void removeSegmentToLeft(Segment segment) {
+		void removeSegmentToLeft(Segment segment) {
 			toLeft.remove(segment);
 		}
 
-		public boolean addSegmentToLeft(Segment segment) {
+		boolean addSegmentToLeft(Segment segment) {
 			if (toLeft == null) {
 				toLeft = new CrossPlatformTreeSet<>();
 			}
 			return toLeft.add(segment);
 		}
 
-		public boolean hasNoSegment() {
+		boolean hasNoSegment() {
 			return (toLeft == null || toLeft.isEmpty())
 					&& (toRight == null || toRight.isEmpty());
 		}
 
 		@Override
-		final public int compareTo(Point p2) {
+		public int compareTo(Point p2) {
 
 			if (id == p2.id) {
 				return 0;
@@ -370,7 +380,7 @@ public class PolygonTriangulation {
 			return 42;
 		}
 
-		final public int compareToOnly(Point p2) {
+		int compareToOnly(Point p2) {
 
 			// smallest x
 			if (DoubleUtil.isGreater(p2.x, x, POINT_DELTA)) {
@@ -402,7 +412,7 @@ public class PolygonTriangulation {
 		 * @return -1 if this is before (x1,y1); 1 if this is after (x1,y1); 0
 		 *         otherwise
 		 */
-		final public int compareTo(double x1, double y1) {
+		int compareTo(double x1, double y1) {
 
 			// smallest x
 			if (DoubleUtil.isGreater(x1, x, POINT_DELTA)) {
@@ -424,7 +434,7 @@ public class PolygonTriangulation {
 		}
 	}
 
-	private class Segment implements Comparable<Segment> {
+	private final class Segment implements Comparable<Segment> {
 		double orientation;
 		Point leftPoint;
 		Point rightPoint;
@@ -441,29 +451,29 @@ public class PolygonTriangulation {
 		double z;
 		private boolean equationNeedsUpdate = true;
 
-		public Segment() {
+		private Segment() {
 			// dummy constructor
 		}
 
-		public boolean isDummy() {
+		private boolean isDummy() {
 			return leftPoint == null;
 		}
 
-		public Segment(double orientation, Point leftPoint, Point rightPoint) {
+		private Segment(double orientation, Point leftPoint, Point rightPoint) {
 			this(leftPoint, rightPoint);
 			this.orientation = orientation;
 		}
 
-		public Segment duplicate() {
+		private Segment duplicate() {
 			return new Segment(orientation, leftPoint, rightPoint);
 		}
 
-		public Segment(Point leftPoint, Point rightPoint) {
+		private Segment(Point leftPoint, Point rightPoint) {
 			this.leftPoint = leftPoint;
 			this.rightPoint = rightPoint;
 		}
 
-		public void setEquation() {
+		private void setEquation() {
 			if (equationNeedsUpdate) {
 				y = rightPoint.x - leftPoint.x;
 				x = -rightPoint.y + leftPoint.y;
@@ -487,7 +497,7 @@ public class PolygonTriangulation {
 		/**
 		 * remove this segment from left and right points
 		 */
-		public void removeFromPoints() {
+		private void removeFromPoints() {
 			leftPoint.removeSegmentToRight(this);
 			rightPoint.removeSegmentToLeft(this);
 		}
@@ -497,7 +507,7 @@ public class PolygonTriangulation {
 		 * 
 		 * @return true if new segment
 		 */
-		public boolean addToPoints() {
+		private boolean addToPoints() {
 			boolean newRight = leftPoint.addSegmentToRight(this);
 			boolean newLeft = rightPoint.addSegmentToLeft(this);
 			return newRight && newLeft;
@@ -632,7 +642,7 @@ public class PolygonTriangulation {
 
 	}
 
-	private static class PolygonPoints extends TreeSet<Point> {
+	private static final class PolygonPoints extends TreeSet<Point> {
 
 		/**
 		 * 
@@ -642,9 +652,9 @@ public class PolygonTriangulation {
 		/**
 		 * says that at least one diagonal is needed
 		 */
-		public boolean needsDiagonals = false;
+		private boolean needsDiagonals = false;
 
-		public PolygonPoints(Comparator<Point> comparator) {
+		private PolygonPoints(Comparator<Point> comparator) {
 			super(comparator);
 		}
 
@@ -1366,8 +1376,6 @@ public class PolygonTriangulation {
 				}
 
 			} else {
-
-				Point currentPoint;
 				Point currentPointNew;
 				Point nextPoint = start;
 				Point nextPointNew = nextPoint.duplicate();
@@ -1375,16 +1383,16 @@ public class PolygonTriangulation {
 				// polygonPoints.add(nextPointNew);
 
 				Segment segment = segStart;
-				Segment next = null;
+				Segment next;
 
 				Running running = Running.RIGHT;
 
 				while (running != Running.STOP) {
 					segment.running = running;
-					currentPoint = nextPoint;
+					final Point currentPoint = nextPoint;
 					currentPointNew = nextPointNew;
 					boolean needsDiagonal = false;
-					debug(nextPoint.name + ", " + segment + "");
+					debug(nextPoint.name + ", " + segment);
 					if (running == Running.RIGHT) {
 						nextPoint = segment.rightPoint;
 						if (nextPoint == start) {
@@ -1506,8 +1514,6 @@ public class PolygonTriangulation {
 						pointSet.remove(currentPoint);
 						pointsArray[currentPoint.id] = new GPoint2D(
 								currentPoint.x, currentPoint.y);
-					} else {
-						// debug(currentPoint.name+" : keep");
 					}
 
 					// go on with next segment
@@ -1520,8 +1526,6 @@ public class PolygonTriangulation {
 					pointSet.remove(start);
 					pointsArray[start.id] = new GPoint2D(start.x,
 							start.y);
-				} else {
-					// debug(start.name+" : keep");
 				}
 
 				// add current polygon to list
@@ -1551,7 +1555,7 @@ public class PolygonTriangulation {
 	 *             exception if an intersection is a segment left point (should
 	 *             not occur, unless due to numerical precision)
 	 */
-	final private void checkIntersection(Segment a, Segment b,
+	private void checkIntersection(Segment a, Segment b,
 			TreeSet<Point> pointSet) throws TriangulationException {
 
 		debug("check intersection : " + a + "-" + b);
@@ -1671,7 +1675,7 @@ public class PolygonTriangulation {
 
 	}
 
-	final private void createSegment(Point point) {
+	private void createSegment(Point point) {
 
 		// debug(point.name+", "+((int)
 		// (point.orientationToNext*180/Math.PI))+ Unicode.degreeChar +
@@ -1692,7 +1696,7 @@ public class PolygonTriangulation {
 		segment.addToPoints();
 	}
 
-	final static private double getReverseOrientation(double orientation) {
+	static private double getReverseOrientation(double orientation) {
 		if (orientation > 0) {
 			return orientation - Math.PI;
 		}
@@ -1768,13 +1772,7 @@ public class PolygonTriangulation {
 					if (pt.needsDiagonal) {
 						// error("diagonal to right :
 						// "+below+"<"+pt.name+"<"+above);
-						Point pt2;
-						if (below.rightPoint
-								.compareToOnly(above.rightPoint) < 0) {
-							pt2 = below.rightPoint;
-						} else {
-							pt2 = above.rightPoint;
-						}
+						Point pt2 = pickRightPoint(above, below);
 
 						Segment diagonal = new Segment(
 								Math.atan2(pt2.y - pt.y, pt2.x - pt.x), pt,
@@ -1866,7 +1864,6 @@ public class PolygonTriangulation {
 		// points are re-used
 
 		while (!polygonPoints.isEmpty()) {
-			String s = "Monotone piece : ";
 
 			Point start = polygonPoints.first();
 			Point currentPoint = start;
@@ -1923,9 +1920,6 @@ public class PolygonTriangulation {
 
 					}
 				}
-
-				s += currentPoint.name;
-
 				segment.removeFromPoints();
 				if (oldRunning == Running.LEFT) {
 					if (segment.usable > 1) {
@@ -1986,18 +1980,21 @@ public class PolygonTriangulation {
 				debug("keep : " + start.name);
 			}
 
-			debug(s);
-
 			triangulate(segStart, segment);
 		}
 
 	}
 
-	static final private boolean needsDiagonal(Segment seg1, Segment seg2) {
-		// debug(seg1+"("+((int)
-		// (seg1.orientation*180/Math.PI)) + Unicode.degreeChar +
-		// ")"+","+seg2+"("+((int)
-		// (seg2.orientation*180/Math.PI)) + Unicode.degreeChar + ")");
+	private Point pickRightPoint(Segment above, Segment below) {
+		if (below.rightPoint
+				.compareToOnly(above.rightPoint) < 0) {
+			return below.rightPoint;
+		} else {
+			return above.rightPoint;
+		}
+	}
+
+	static private boolean needsDiagonal(Segment seg1, Segment seg2) {
 		return seg1.orientation < seg2.orientation;
 	}
 
@@ -2140,13 +2137,6 @@ public class PolygonTriangulation {
 			if (currentTriangleFan.size() > 1) { // add fan only if at least 3
 													// points
 				fansList.add(currentTriangleFan);
-				if (DEBUG) {
-					if (clockWise) {
-						// error(s.toString());
-					} else {
-						// debug(s.toString());
-					}
-				}
 			}
 
 			chain = viChain;
@@ -2160,7 +2150,7 @@ public class PolygonTriangulation {
 
 	}
 
-	final static private void debugDiagonal(String s, Point p1, Point p2) {
+	static private void debugDiagonal(String s, Point p1, Point p2) {
 		debug(s + ": " + p1.name + "," + p2.name);
 	}
 

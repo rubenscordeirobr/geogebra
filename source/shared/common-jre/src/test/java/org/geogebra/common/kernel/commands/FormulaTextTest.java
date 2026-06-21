@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.commands;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -12,15 +28,17 @@ public class FormulaTextTest extends BaseUnitTest {
 
 	@Test
 	public void testUnitCoefficients() {
+		StringTemplate algebraTemplate = StringTemplate.algebraTemplate
+				.deriveWithoutCoefficientSimplification();
 		// check that the AV preserves the input
 		add("f(x) = sin(1x+1x-1x)");
 		assertEquals("f(x) = sin(1x + 1x - 1x)",
-				lookup("f").toString(StringTemplate.algebraTemplate));
+				lookup("f").toString(algebraTemplate));
 
 		add("a = 1");
 		add("f(x) = sin(ax+ax-ax)");
 		assertEquals("f(x) = sin(1 x + 1 x - 1 x)",
-				lookup("f").toString(StringTemplate.algebraTemplate));
+				lookup("f").toString(algebraTemplate));
 
 		// but FormulaText removes unit coefficients
 		t("FormulaText(sin(1x+1x-1x))",

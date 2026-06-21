@@ -1,19 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * AlgoIntersectLines.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 30. August 2001, 21:37
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.algos;
@@ -151,19 +149,16 @@ public class AlgoIntersectPathLinePolygon extends AlgoElement {
 	}
 
 	protected OutputHandler<GeoElement> createOutputSegments() {
-		return new OutputHandler<>(new ElementFactory<GeoElement>() {
-			@Override
-			public GeoSegment newElement() {
-				GeoSegment a = new GeoSegment(cons);
-				GeoPoint aS = new GeoPoint(cons);
-				aS.setCoords(0, 0, 1);
-				GeoPoint aE = new GeoPoint(cons);
-				aE.setCoords(0, 0, 1);
-				a.setPoints(aS, aE);
-				a.setParentAlgorithm(AlgoIntersectPathLinePolygon.this);
-				setSegmentVisualProperties(a);
-				return a;
-			}
+		return new OutputHandler<>(() -> {
+			GeoSegment a = new GeoSegment(cons);
+			GeoPoint aS = new GeoPoint(cons);
+			aS.setCoords(0, 0, 1);
+			GeoPoint aE = new GeoPoint(cons);
+			aE.setCoords(0, 0, 1);
+			a.setPoints(aS, aE);
+			a.setParentAlgorithm(this);
+			setSegmentVisualProperties(a);
+			return a;
 		});
 	}
 
@@ -262,7 +257,7 @@ public class AlgoIntersectPathLinePolygon extends AlgoElement {
 		}
 	}
 
-	final private static boolean onSegment(double t) {
+	private static boolean onSegment(double t) {
 		// t=0 and t=1 can be ignored: vertices will be added by
 		// addPolygonPoints()
 		return DoubleUtil.isGreater(t, 0) && DoubleUtil.isGreater(1, t);
@@ -430,7 +425,7 @@ public class AlgoIntersectPathLinePolygon extends AlgoElement {
 	 * @param end
 	 *            point
 	 */
-	final protected static void setSegment(GeoSegmentND seg, Coords start,
+	protected static void setSegment(GeoSegmentND seg, Coords start,
 			Coords end) {
 		seg.setTwoPointsInhomCoords(start, end);
 	}

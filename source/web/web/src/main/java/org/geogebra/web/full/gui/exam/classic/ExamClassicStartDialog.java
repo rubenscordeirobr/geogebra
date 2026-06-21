@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.exam.classic;
 
 import org.geogebra.common.exam.ExamController;
@@ -31,7 +47,7 @@ import elemental2.dom.KeyboardEvent;
 public class ExamClassicStartDialog extends ComponentDialog {
 	private static boolean examStyle;
 	protected AppW appW;
-	private static final ExamController examController = GlobalScope.examController;
+	private final ExamController examController;
 
 	/**
 	 * @param app
@@ -40,6 +56,10 @@ public class ExamClassicStartDialog extends ComponentDialog {
 	public ExamClassicStartDialog(AppW app, DialogData data) {
 		super(app, data, false, true);
 		this.appW = app;
+		examController = GlobalScope.getExamController(app);
+		if (examController == null) {
+			return;
+		}
 		examController.prepareExam();
 		addStyleName("classicExamStartDialog");
 		buildGUI();
@@ -133,10 +153,6 @@ public class ExamClassicStartDialog extends ComponentDialog {
 		}
 	}
 
-	////////////////////////////////////
-	// ANDROID TABLETS
-	////////////////////////////////////
-
 	/**
 	 * In electron this is done by kiosk mode, but on Chromebook it still
 	 * matters.
@@ -144,14 +160,15 @@ public class ExamClassicStartDialog extends ComponentDialog {
 	public static void blockEscTab(AppW app) {
 		DomGlobal.document.body.addEventListener("keyup", evt -> {
 			KeyboardEvent e = (KeyboardEvent) evt;
-			if ("Escape".equals(e.code) && !examController.isIdle()) {
+			if ("Escape".equals(e.code)
+					&& GlobalScope.isExamActive(app)) {
 				e.preventDefault();
 			}
 		});
 		DomGlobal.document.body.addEventListener("keydown", evt -> {
 			KeyboardEvent e = (KeyboardEvent) evt;
 			if (("Tab".equals(e.code) || "Escape".equals(e.code))
-					&& !examController.isIdle()) {
+					&& GlobalScope.isExamActive(app)) {
 				e.preventDefault();
 			}
 		});

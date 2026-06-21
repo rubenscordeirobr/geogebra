@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.openGL;
 
 import java.util.LinkedList;
@@ -12,15 +28,17 @@ abstract public class GLBufferManagerMergeSegments extends GLBufferManager {
 
 	static final private int SPLIT_AVAILABLE_LIMIT = 2;
 
-	private Index startIndex;
-	private Index endIndex;
-	private TreeMap<Integer, LinkedList<BufferPackAbstract>> availableBufferPacks = new TreeMap<>();
+	private final Index startIndex;
+	private final Index endIndex;
+	private final TreeMap<Integer, LinkedList<BufferPackAbstract>> availableBufferPacks
+			= new TreeMap<>();
 	private boolean mayNeedToRemoveBuffers = false;
 
 	/**
 	 * constructor
 	 */
-	public GLBufferManagerMergeSegments() {
+	public GLBufferManagerMergeSegments(ManagerShaders manager) {
+		super(manager);
 		startIndex = new Index();
 		endIndex = new Index();
 	}
@@ -42,7 +60,7 @@ abstract public class GLBufferManagerMergeSegments extends GLBufferManager {
 	 * @param segment
 	 *            segment
 	 */
-	final protected void removeFromAvailableSegments(BufferSegment segment) {
+	private void removeFromAvailableSegments(BufferSegment segment) {
 		currentLengths.setAvailableLengths(segment);
 		LinkedList<BufferSegment> list = availableSegments.get(currentLengths);
 		if (list != null) {
@@ -91,7 +109,7 @@ abstract public class GLBufferManagerMergeSegments extends GLBufferManager {
 	}
 
 	@Override
-	final protected void addToAvailableSegments(BufferSegment bufferSegment) {
+	final void addToAvailableSegments(BufferSegment bufferSegment) {
 		super.addToAvailableSegments(bufferSegment);
 		currentBufferPack.getSegmentEnds().put(new Index(endIndex),
 				bufferSegment);
@@ -101,7 +119,7 @@ abstract public class GLBufferManagerMergeSegments extends GLBufferManager {
 	}
 
 	@Override
-	final protected BufferSegment getAvailableSegment() {
+	final BufferSegment getAvailableSegment() {
 		Map.Entry<Index, LinkedList<BufferSegment>> entry = availableSegments
 				.ceilingEntry(currentLengths);
 		if (entry == null) {
@@ -129,8 +147,7 @@ abstract public class GLBufferManagerMergeSegments extends GLBufferManager {
 			int size = getSizeForCurveFromElements(ret.getElementsLength());
 			int eLength = getElementsLengthForCurve(
 					size * SPLIT_AVAILABLE_LIMIT);
-			int iLength = getIndicesLengthForCurve(
-					size * SPLIT_AVAILABLE_LIMIT);
+			int iLength = getIndicesLengthForCurve(size * SPLIT_AVAILABLE_LIMIT);
 			BufferSegment remainSegment = new BufferSegment(currentBufferPack,
 					ret.elementsOffset + eLength,
 					ret.getElementsAvailableLength() - eLength,
@@ -151,8 +168,7 @@ abstract public class GLBufferManagerMergeSegments extends GLBufferManager {
 		Entry<Integer, LinkedList<BufferPackAbstract>> entry = availableBufferPacks
 				.ceilingEntry(elementsLength);
 		if (entry != null) {
-			BufferPackAbstract buffer = entry.getValue().getFirst();
-			currentBufferPack = buffer;
+			currentBufferPack = entry.getValue().getFirst();
 		} else {
 			super.useAnotherBufferPack();
 		}
@@ -173,11 +189,8 @@ abstract public class GLBufferManagerMergeSegments extends GLBufferManager {
 	private void addToAvailableBufferPacks(BufferPackAbstract buffer) {
 		int length = BufferPackAbstract.ELEMENT_SIZE_MAX
 				- buffer.elementsLength;
-		LinkedList<BufferPackAbstract> list = availableBufferPacks.get(length);
-		if (list == null) {
-			list = new LinkedList<>();
-			availableBufferPacks.put(length, list);
-		}
+		LinkedList<BufferPackAbstract> list =
+				availableBufferPacks.computeIfAbsent(length, k -> new LinkedList<>());
 		list.add(buffer);
 	}
 
@@ -211,19 +224,23 @@ abstract public class GLBufferManagerMergeSegments extends GLBufferManager {
 					BufferPackAbstract bufferPack = bufferPackList.get(i);
 					if (currentBufferPack != bufferPack && bufferPack.elementsLength > 0
 							&& bufferPack.getSegmentEnds().size() == 1) {
-						BufferSegment segment = bufferPack.getSegmentEnds()
-								.firstEntry().getValue();
-						if (segment.elementsOffset == 0 && segment
-								.getElementsAvailableLength() == bufferPack.elementsLength) {
-							bufferPackList.remove(i);
-							removeFromAvailableSegments(segment);
-							removeFromAvailableBufferPacks(bufferPack);
-						}
+						removeIfNeeded(bufferPack, i);
 					}
 				}
 			}
 		}
 		mayNeedToRemoveBuffers = false;
+	}
+
+	private void removeIfNeeded(BufferPackAbstract bufferPack, int i) {
+		BufferSegment segment = bufferPack.getSegmentEnds()
+				.firstEntry().getValue();
+		if (segment.elementsOffset == 0 && segment
+				.getElementsAvailableLength() == bufferPack.elementsLength) {
+			bufferPackList.remove(i);
+			removeFromAvailableSegments(segment);
+			removeFromAvailableBufferPacks(bufferPack);
+		}
 	}
 
 }

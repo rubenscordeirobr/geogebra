@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.cas.view;
 
 import java.awt.Component;
@@ -7,7 +23,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -34,8 +50,8 @@ public class RowHeaderRenderer extends JPanel
 	private JLabel numLabel;
 	/** show hide option (also called plot tool) for this cell content */
 	protected JLabel showHideControl;
-	private ImageIcon iconShown;
-	private ImageIcon iconHidden;
+	private Icon iconShown;
+	private Icon iconHidden;
 	/** constraints */
 	protected GridBagConstraints c;
 	private AppD app;

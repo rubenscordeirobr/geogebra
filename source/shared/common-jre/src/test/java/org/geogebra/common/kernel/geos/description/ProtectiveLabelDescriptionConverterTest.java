@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.geos.description;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -5,7 +21,6 @@ import static org.hamcrest.core.Is.is;
 
 import org.geogebra.common.BaseUnitTest;
 import org.geogebra.common.gui.view.algebra.ProtectiveGeoElementValueConverter;
-import org.geogebra.common.gui.view.algebra.ProtectiveGeoElementValueConverterTest;
 import org.geogebra.common.gui.view.algebra.filter.FunctionAndEquationFilter;
 import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.geos.GeoConic;
@@ -61,7 +76,7 @@ public class ProtectiveLabelDescriptionConverterTest extends BaseUnitTest {
 
 		String fitPolyString = "i(x)=FitPoly({(-1,-1),(0,1),(1,1),(2,5)},3)";
 		GeoFunction fitPoly = addAvInput(fitPolyString);
-		checkCaption(fitPoly, GeoElementND.LABEL_NAME_VALUE, "i(x) = x³ - x² + 0x + 1");
+		checkCaption(fitPoly, GeoElementND.LABEL_NAME_VALUE, "i(x) = x³ - x² + 1");
 
 		String fitLogString = "j(x)=FitLog({(ℯ,1),(ℯ^(2),4)})";
 		GeoFunction fitLog = addAvInput(fitLogString);

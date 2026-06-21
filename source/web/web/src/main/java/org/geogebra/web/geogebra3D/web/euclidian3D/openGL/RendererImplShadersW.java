@@ -1,9 +1,25 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.geogebra3D.web.euclidian3D.openGL;
 
 import java.util.ArrayList;
 
 import org.geogebra.common.geogebra3D.euclidian3D.EuclidianView3D;
-import org.geogebra.common.geogebra3D.euclidian3D.draw.DrawLabel3D;
+import org.geogebra.common.geogebra3D.euclidian3D.draw.DrawableTexture3D;
 import org.geogebra.common.geogebra3D.euclidian3D.openGL.GLBuffer;
 import org.geogebra.common.geogebra3D.euclidian3D.openGL.GLBufferIndices;
 import org.geogebra.common.geogebra3D.euclidian3D.openGL.Manager;
@@ -12,7 +28,7 @@ import org.geogebra.common.geogebra3D.euclidian3D.openGL.RendererImplShaders;
 import org.geogebra.common.geogebra3D.main.FragmentShader;
 import org.geogebra.common.geogebra3D.main.VertexShader;
 import org.geogebra.common.util.debug.Log;
-import org.geogebra.web.html5.gawt.GBufferedImageW;
+import org.geogebra.web.awt.GBufferedImageW;
 
 import elemental2.core.Uint8Array;
 import elemental2.dom.HTMLImageElement;
@@ -274,8 +290,8 @@ public class RendererImplShadersW extends RendererImplShaders {
 	}
 	
 	@Override
-	protected void glViewPort(int width, int height) {
-		glContext.viewport(0, 0, width, height);
+	protected void glViewPort(int x, int y, int width, int height) {
+		glContext.viewport(x, y, width, height);
 	}
 
 	@Override
@@ -419,7 +435,7 @@ public class RendererImplShadersW extends RendererImplShaders {
 	* @param bimg
 	*            buffered image
 	*/
-	public void createAlphaTexture(DrawLabel3D label, HTMLImageElement image,
+	public void createAlphaTexture(DrawableTexture3D label, HTMLImageElement image,
 			GBufferedImageW bimg) {
 
 		if (label.isPickable()) {
@@ -484,7 +500,7 @@ public class RendererImplShadersW extends RendererImplShaders {
 		// create texture
 		WebGLTexture texture;
 
-		int newIndex = texturesArray.size();
+		final int newIndex = texturesArray.size();
 		texture = glContext.createTexture();
 		texturesArray.add(texture);
 
@@ -508,7 +524,7 @@ public class RendererImplShadersW extends RendererImplShaders {
 		createAlphaTexture(-1, null, new GBufferedImageW(2, 2, 1));
 	}
 
-	private static void updatePickingDimension(DrawLabel3D label,
+	private static void updatePickingDimension(DrawableTexture3D label,
 			ImageData data) {
 		int xmin = label.getWidth(), xmax = 0, ymin = label.getHeight(),
 				ymax = 0;

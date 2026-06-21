@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.awt;
 
 import org.geogebra.common.gui.font.GFontCommon;
@@ -6,6 +22,8 @@ import org.geogebra.common.gui.font.GFontCommon;
  * Class used for testing.
  */
 public class GGraphicsCommon implements GGraphics2D {
+
+    private GFont font;
 
     @Override
     public void draw(GShape s) {
@@ -98,12 +116,12 @@ public class GGraphicsCommon implements GGraphics2D {
 
     @Override
     public GFont getFont() {
-		return new GFontCommon(12);
+        return font == null ? new GFontCommon(12) : font;
     }
 
     @Override
     public void setFont(GFont font) {
-        // ignore empty method
+        this.font = font;
     }
 
     @Override
@@ -132,11 +150,6 @@ public class GGraphicsCommon implements GGraphics2D {
     }
 
     @Override
-    public void setClip(GShape shape, boolean saveContext) {
-        // ignore empty method
-    }
-
-    @Override
     public void resetClip() {
         // ignore empty method
     }
@@ -147,12 +160,12 @@ public class GGraphicsCommon implements GGraphics2D {
     }
 
     @Override
-    public void setClip(int x, int y, int width, int height) {
+    public void setClip(double x, double y, double width, double height) {
         // ignore empty method
     }
 
     @Override
-    public void setClip(int x, int y, int width, int height, boolean saveContext) {
+    public void setClip(double x, double y, double width, double height, boolean saveContext) {
         // ignore empty method
     }
 

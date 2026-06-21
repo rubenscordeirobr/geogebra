@@ -1,16 +1,22 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.web.full.gui.view.algebra;
+
+import javax.annotation.Nonnull;
 
 import org.geogebra.common.euclidian.EuclidianConstants;
 import org.geogebra.common.euclidian.EuclidianViewInterfaceCommon;
@@ -19,9 +25,9 @@ import org.geogebra.common.gui.popup.autocompletion.InputSuggestions;
 import org.geogebra.common.kernel.ModeSetter;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.main.App;
-import org.geogebra.common.main.SelectionManager;
 import org.geogebra.common.plugin.Event;
 import org.geogebra.common.plugin.EventType;
+import org.geogebra.editor.share.editor.MathField;
 import org.geogebra.web.full.gui.layout.panels.AlgebraStyleBarW;
 import org.geogebra.web.full.main.AppWFull;
 import org.geogebra.web.html5.Browser;
@@ -56,8 +62,6 @@ import org.gwtproject.timer.client.Timer;
 import org.gwtproject.user.client.ui.FlowPanel;
 import org.gwtproject.user.client.ui.Widget;
 
-import com.himamis.retex.editor.share.editor.MathField;
-
 /**
  * Controller class of a AV item.
  * 
@@ -70,7 +74,7 @@ public class RadioTreeItemController implements ClickHandler,
 
 	private static final int VERTICAL_PADDING = 20;
 	protected AppWFull app;
-	RadioTreeItem item;
+	final RadioTreeItem item;
 	private LongTouchManager longTouchManager;
 	protected AVSelectionController selectionCtrl;
 	protected boolean editing = false;
@@ -259,16 +263,14 @@ public class RadioTreeItemController implements ClickHandler,
 
 		JsArray<Touch> touches = event.getTargetTouches().length() == 0
 				? event.getChangedTouches() : event.getTargetTouches();
+		PointerEvent wrappedEvent = PointerEvent.wrapEvent(touches.get(0), ZeroOffset.INSTANCE);
 
-		boolean active = isEditing();
-
-		PointerEvent wrappedEvent = PointerEvent.wrapEvent(touches.get(0),
-				ZeroOffset.INSTANCE);
-		if (isMarbleHit(wrappedEvent.getX(), wrappedEvent.getY())) {
+		if (isMarbleHit(wrappedEvent.getX(), wrappedEvent.getY())
+				|| isWidgetHit(item.controls, wrappedEvent)) {
 			return;
 		}
 
-		if (editOnTap(active, wrappedEvent)) {
+		if (editOnTap(isEditing(), wrappedEvent)) {
 			onPointerUp(wrappedEvent);
 			CancelEventTimer.touchEventOccurred();
 			return;
@@ -362,6 +364,7 @@ public class RadioTreeItemController implements ClickHandler,
 	}
 
 	protected void onPointerDown(AbstractEvent event, MouseDownEvent nativeEvt) {
+		app.getSelectionManager().resetKeyboardSelection();
 		if (event.isRightClick()) {
 			onRightClick(nativeEvt);
 			return;
@@ -399,7 +402,7 @@ public class RadioTreeItemController implements ClickHandler,
 		app.dispatchEvent(new Event(eventType, item.getGeo(), null));
 	}
 
-	protected void onPointerUp(AbstractEvent event) {
+	protected void onPointerUp(@Nonnull AbstractEvent event) {
 		selectionCtrl.setSelectHandled(false);
 
 		GeoElement geo = item.geo;
@@ -427,7 +430,7 @@ public class RadioTreeItemController implements ClickHandler,
 		if (!EuclidianConstants.isMoveOrSelectionMode(mode)
 				&& mode != EuclidianConstants.MODE_SELECTION_LISTENER) {
 			// let euclidianView know about the click
-			ev.clickedGeo(geo, app.isControlDown(event));
+			ev.clickedGeo(geo, event.isControlDown());
 		}
 		ev.mouseMovedOver(null);
 
@@ -476,7 +479,7 @@ public class RadioTreeItemController implements ClickHandler,
 		if (!isEditing()) {
 			setEditHeight(item.getEditHeight());
 			getAV().startEditItem(geo);
-			Scheduler.get().scheduleDeferred(() -> item.adjustStyleBar());
+			Scheduler.get().scheduleDeferred(item::adjustStyleBar);
 			showKeyboard();
 		}
 	}
@@ -488,7 +491,7 @@ public class RadioTreeItemController implements ClickHandler,
 		if (!editing) {
 			return;
 		}
-		item.stopEditing(item.getText(), null, true);
+		item.stopEditing(item.getText(), null);
 	}
 
 	/**
@@ -553,17 +556,10 @@ public class RadioTreeItemController implements ClickHandler,
 			return;
 		}
 
-		GeoElement geo = item.geo;
-		SelectionManager selection = app.getSelectionManager();
-		if (geo != null) {
-			if (!selection.containsSelectedGeo(geo)) {
-				selection.clearSelectedGeos(false);
-				selection.addSelectedGeo(geo, true, true);
-			}
+		if (item.geo != null) {
 			// else: keep (multi)selection, already includes clicked object
 			double scale = app.getGeoGebraElement().getScaleX();
-			app.getGuiManager().showPopupMenu(
-					selection.getSelectedGeos(), item.asWidget(), (int) (evt.getX() / scale),
+			new ContextMenuAVItemMore(item).show(item.asWidget(), (int) (evt.getX() / scale),
 					(int) (evt.getY() / scale));
 		}
 	}

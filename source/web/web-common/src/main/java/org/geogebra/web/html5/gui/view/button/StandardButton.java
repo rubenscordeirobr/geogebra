@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.html5.gui.view.button;
 
 import org.geogebra.web.html5.gui.util.AriaHelper;
@@ -14,6 +30,8 @@ import org.gwtproject.resources.client.ResourcePrototype;
 import org.gwtproject.user.client.ui.Label;
 import org.gwtproject.user.client.ui.SimplePanel;
 import org.gwtproject.user.client.ui.Widget;
+
+import elemental2.dom.KeyboardEvent;
 
 public class StandardButton extends Widget implements HasResource {
 	private ResourcePrototype icon;
@@ -288,16 +306,10 @@ public class StandardButton extends Widget implements HasResource {
 	}
 
 	/**
-	 * Toggle the button between enabled and disabled
-	 * Changes "disabled" property in DOM, so use :disabled in css
 	 * @param enabled whether to add or remove the "disabled" property
 	 */
 	public void setEnabled(boolean enabled) {
-		if (enabled) {
-			getElement().removeAttribute("disabled");
-		} else {
-			getElement().setAttribute("disabled", "true");
-		}
+		AriaHelper.setDisabled(this, !enabled);
 	}
 
 	/**
@@ -320,6 +332,25 @@ public class StandardButton extends Widget implements HasResource {
 		globalHandlers.addEventListener(this.getElement(), "click", (e) -> {
 			handler.onClick(this);
 			e.stopPropagation();
+		});
+	}
+
+	/**
+	 * Registers an action that is invoked when this button is activated via keyboard.
+	 *
+	 * <p>The action is triggered on {@code Enter} or {@code Space} key release and
+	 * prevents further propagation of the event.</p>
+	 *
+	 * @param activateAction action to run when the button is activated by keyboard input
+	 */
+	public void addKeyActivateHandler(Runnable activateAction) {
+		Dom.addEventListener(this.getElement(), "keyup", (event) -> {
+			KeyboardEvent e = (KeyboardEvent) event;
+			if (" ".equals(e.key) || "Enter".equals(e.key)) {
+				activateAction.run();
+				e.preventDefault();
+				e.stopPropagation();
+			}
 		});
 	}
 

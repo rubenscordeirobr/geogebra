@@ -1,9 +1,27 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Nonnull;
 
 import org.geogebra.common.awt.GPoint;
 import org.geogebra.common.euclidian.EuclidianConstants;
@@ -101,8 +119,7 @@ import org.geogebra.common.plugin.Operation;
 import org.geogebra.common.util.AsyncOperation;
 import org.geogebra.common.util.DoubleUtil;
 import org.geogebra.common.util.debug.Log;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * Controller for the 3D view
@@ -1383,19 +1400,22 @@ public abstract class EuclidianController3D extends EuclidianController {
 
 			Coords vn = geo.getMainDirection();
 			if (vn != null) {
-				if (view3D.hasMouse()) {
-					if (view3D.isXREnabled()) {
-						view3D.setRotAnimationAR(view3D.getCursorNormal());
-					} else {
-						view3D.setRotAnimation(view3D.getCursorNormal());
-					}
-				} else { // doesn't come from 3D view
-					view3D.setClosestRotAnimation(vn, true);
-				}
+				setRotAnimationForDirection(vn);
 			}
 		}
-
 		return false;
+	}
+
+	private void setRotAnimationForDirection(Coords vn) {
+		if (view3D.hasMouse()) {
+			if (view3D.isXREnabled()) {
+				view3D.setRotAnimationAR(view3D.getCursorNormal());
+			} else {
+				view3D.setRotAnimation(view3D.getCursorNormal());
+			}
+		} else { // doesn't come from 3D view
+			view3D.setClosestRotAnimation(vn, true);
+		}
 	}
 
 	/**
@@ -1453,23 +1473,7 @@ public abstract class EuclidianController3D extends EuclidianController {
 		}
 
 		if (!hits.isEmpty()) { // hits may be empty at the end of using the tool
-
-			// we don't need to replace or de-select a polygon, since
-			// we'll open immediately a dialog
-			int basisAdded = selPolygons() + selConics();
-
-			if (basisAdded == 0) { // if no basis for now, try to add polygon
-				basisAdded += addSelectedPolygon(hits, 1, false, selPreview);
-				if (basisAdded == 0) { // try to add conic
-					basisAdded += addSelectedConic(hits, 1, false, selPreview);
-					if (basisAdded == 0) { // if polygon/conic has been added,
-											// the height
-						// will be entered through dialog manager
-						addSelectedNumberValue(hits, 1, false, selPreview);
-					}
-				}
-			}
-
+			addExtrudableElements(hits, selPreview);
 		}
 
 		if (selNumberValues() == 1) {
@@ -1501,6 +1505,24 @@ public abstract class EuclidianController3D extends EuclidianController {
 		}
 
 		return null;
+	}
+
+	private void addExtrudableElements(Hits hits, boolean selPreview) {
+		// we don't need to replace or de-select a polygon, since
+		// we'll open immediately a dialog
+		int basisAdded = selPolygons() + selConics();
+
+		if (basisAdded == 0) { // if no basis for now, try to add polygon
+			basisAdded += addSelectedPolygon(hits, 1, false, selPreview);
+			if (basisAdded == 0) { // try to add conic
+				basisAdded += addSelectedConic(hits, 1, false, selPreview);
+				if (basisAdded == 0) { // if polygon/conic has been added,
+					// the height
+					// will be entered through dialog manager
+					addSelectedNumberValue(hits, 1, false, selPreview);
+				}
+			}
+		}
 	}
 
 	final protected GeoElement[] surfaceOfRevolution(Hits hits,
@@ -1555,19 +1577,15 @@ public abstract class EuclidianController3D extends EuclidianController {
 		if (pyramidBasis == null) { // try to find/create a polygon
 			if (selPolygons() == 0) { // try to create a polygon
 				// if the first point is clicked again, we create a polygon
-				if (selPoints() > 2) {
-					// check if first point was clicked again
-					boolean finished = !selPreview
-							&& hits.contains(getSelectedPointList().get(0));
-					if (finished) {
-						// store basis
-						((DrawPolyhedron3D) view3D.getPreviewDrawable())
-								.previewBasisIsFinished();
-						pyramidBasis = getSelectedPointsND();
-						// cancel last switch of point move mode
-						cancelSwitchPointMoveModeIfNeeded();
-						return null;
-					}
+				if (!selPreview && selPoints() > 2
+						&& hits.contains(getSelectedPointList().get(0))) {
+					// store basis
+					((DrawPolyhedron3D) view3D.getPreviewDrawable())
+							.previewBasisIsFinished();
+					pyramidBasis = getSelectedPointsND();
+					// cancel last switch of point move mode
+					cancelSwitchPointMoveModeIfNeeded();
+					return null;
 				}
 
 				if (addSelectedPoint(hits, GeoPolygon.POLYGON_MAX_POINTS, false,
@@ -1600,13 +1618,12 @@ public abstract class EuclidianController3D extends EuclidianController {
 				GeoPointND[] points = getSelectedPointsND();
 				// create new pyramid or prism
 				view3D.disposePreview();
-				switch (mode) {
-				case EuclidianConstants.MODE_PYRAMID:
-					return new GeoElement[] { getKernel().getManager3D()
-							.pyramid(null, basis[0], points[0])[0] };
-				case EuclidianConstants.MODE_PRISM:
-					return new GeoElement[] { getKernel().getManager3D()
-							.prism(null, basis[0], points[0])[0] };
+				if (mode == EuclidianConstants.MODE_PYRAMID) {
+					return new GeoElement[]{getKernel().getManager3D()
+							.pyramid(null, basis[0], points[0])[0]};
+				} else if (mode == EuclidianConstants.MODE_PRISM) {
+					return new GeoElement[]{getKernel().getManager3D()
+							.prism(null, basis[0], points[0])[0]};
 				}
 			}
 
@@ -1621,15 +1638,14 @@ public abstract class EuclidianController3D extends EuclidianController {
 				points[pyramidBasis.length] = getSelectedPointsND()[0];
 				// create new pyramid or prism
 				view3D.disposePreview();
-				switch (mode) {
-				case EuclidianConstants.MODE_PYRAMID:
+				if (mode == EuclidianConstants.MODE_PYRAMID) {
 					pyramidBasis = null;
-					return new GeoElement[] { getKernel().getManager3D()
-							.pyramid(null, points)[0] };
-				case EuclidianConstants.MODE_PRISM:
+					return new GeoElement[]{getKernel().getManager3D()
+							.pyramid(null, points)[0]};
+				} else if (mode == EuclidianConstants.MODE_PRISM) {
 					pyramidBasis = null;
-					return new GeoElement[] {
-							getKernel().getManager3D().prism(null, points)[0] };
+					return new GeoElement[]{
+							getKernel().getManager3D().prism(null, points)[0]};
 				}
 			}
 
@@ -1644,13 +1660,13 @@ public abstract class EuclidianController3D extends EuclidianController {
 	// mouse released
 
 	@Override
-	public void wrapMouseReleased(AbstractEvent e) {
+	public void wrapMouseReleased(@Nonnull AbstractEvent e) {
 		boolean longDragOccurred = isDraggingOccurredBeyondThreshold();
-		if (!longDragOccurred && !app.isControlDown(e)) {
+		if (!longDragOccurred && !e.isControlDown()) {
 			view3D.switchMoveCursor();
 		}
 
-        super.wrapMouseReleasedND(e, true);
+		super.wrapMouseReleasedND(e, true);
         if (!longDragOccurred && mode == EuclidianConstants.MODE_MOVE) {
             showDynamicStylebar();
         }
@@ -1809,7 +1825,7 @@ public abstract class EuclidianController3D extends EuclidianController {
 	}
 
 	@Override
-	protected void processMouseMoved(AbstractEvent e) {
+	protected void processMouseMoved(@Nonnull AbstractEvent e) {
 		view3D.setHasMouse(true);
 		// for next mouse move process
 		setMouseMovedEvent(e);
@@ -1817,7 +1833,6 @@ public abstract class EuclidianController3D extends EuclidianController {
 
 		// needed for non-animated renderers
 		view3D.repaintView();
-
 	}
 
 	/**
@@ -2147,30 +2162,25 @@ public abstract class EuclidianController3D extends EuclidianController {
 
 	@Override
 	protected GeoElement[] switchModeForThreePoints(int threePointsMode) {
-		switch (threePointsMode) {
-		case EuclidianConstants.MODE_PLANE_THREE_POINTS:
+		if (threePointsMode == EuclidianConstants.MODE_PLANE_THREE_POINTS) {
 			GeoPointND[] points = getSelectedPointsND();
 			GeoPlane3D ret0 = (GeoPlane3D) getKernel().getManager3D()
 					.plane3D(null, points[0], points[1], points[2]);
-			return new GeoElement[]{ ret0 };
-		default:
-			return super.switchModeForThreePoints(threePointsMode);
-
+			return new GeoElement[]{ret0};
 		}
+		return super.switchModeForThreePoints(threePointsMode);
 	}
 
 	@Override
 	protected GeoElement[] switchModeForCircleOrSphere2(int sphereNDMode) {
-		switch (sphereNDMode) {
-		case EuclidianConstants.MODE_SPHERE_TWO_POINTS:
+		if (sphereNDMode == EuclidianConstants.MODE_SPHERE_TWO_POINTS) {
 			GeoPointND[] points = getSelectedPointsND();
-			GeoElement[] ret = { null };
+			GeoElement[] ret = {null};
 			ret[0] = getKernel().getManager3D().sphere(null, points[0],
 					points[1]);
 			return ret;
-		default:
-			return super.switchModeForCircleOrSphere2(sphereNDMode);
 		}
+		return super.switchModeForCircleOrSphere2(sphereNDMode);
 	}
 
 	// /////////////////////////////////////////
@@ -3892,14 +3902,9 @@ public abstract class EuclidianController3D extends EuclidianController {
 				ArrayList<GeoElement> ret = new ArrayList<>();
 
 				for (GeoElement geo : geos) {
-					if (geo != mirror) {
-						if (geo instanceof Transformable) {
-							ret.addAll(Arrays.asList(kernel.getManager3D()
-									.mirror3D(null, geo, plane)));
-						} else if (geo.isGeoPolygon()) {
-							ret.addAll(Arrays.asList(kernel.getManager3D()
-									.mirror3D(null, geo, plane)));
-						}
+					if (geo != mirror && (geo instanceof Transformable || geo.isGeoPolygon())) {
+						ret.addAll(Arrays.asList(kernel.getManager3D()
+								.mirror3D(null, geo, plane)));
 					}
 				}
 
@@ -4077,67 +4082,62 @@ public abstract class EuclidianController3D extends EuclidianController {
 
 		kernel.getAlgebraProcessor().processAlgebraCommandNoExceptionHandling(
 				inputText, false, eh, true,
-				new AsyncOperation<GeoElementND[]>() {
+				result -> {
+					String defaultRotateAngle = Unicode.FORTY_FIVE_DEGREES_STRING;
 
-					@Override
-					public void callback(GeoElementND[] result) {
-						String defaultRotateAngle = Unicode.FORTY_FIVE_DEGREES_STRING;
+					cons.setSuppressLabelCreation(oldVal);
 
-						cons.setSuppressLabelCreation(oldVal);
+					boolean success = result != null && result.length > 0
+							&& result[0] instanceof GeoNumberValue;
 
-						boolean success = result != null && result.length > 0
-								&& result[0] instanceof GeoNumberValue;
+					if (success) {
+						GeoNumberValue num = (GeoNumberValue) result[0];
 
-						if (success) {
-							GeoNumberValue num = (GeoNumberValue) result[0];
+						// keep angle entered if it ends with 'degrees'
+						if (rawInput.endsWith(Unicode.DEGREE_STRING)) {
+							defaultRotateAngle = rawInput;
+						}
 
-							// keep angle entered if it ends with 'degrees'
-							if (rawInput.endsWith(Unicode.DEGREE_STRING)) {
-								defaultRotateAngle = rawInput;
-							}
-
-							if (polys.length == 1) {
-								GeoElement[] geos = ec.rotateAroundLine(
-										polys[0], num, lines[0]);
-								if (geos != null) {
-									app.storeUndoInfoAndStateForModeStarting();
-									ec.memorizeJustCreatedGeos(geos);
-								}
-								if (callback != null) {
-									callback.callback(defaultRotateAngle);
-								}
-								return;
-							}
-
-							ArrayList<GeoElement> ret = new ArrayList<>();
-							for (GeoElement selGeo : selGeos) {
-								if (selGeo != lines[0]) {
-									if (selGeo instanceof Transformable) {
-										ret.addAll(Arrays.asList(
-												ec.rotateAroundLine(selGeo,
-														num, lines[0])));
-									} else if (selGeo.isGeoPolygon()) {
-										ret.addAll(Arrays.asList(
-												ec.rotateAroundLine(selGeo,
-														num, lines[0])));
-									}
-								}
-							}
-							if (!ret.isEmpty()) {
+						if (polys.length == 1) {
+							GeoElement[] geos = ec.rotateAroundLine(
+									polys[0], num, lines[0]);
+							if (geos != null) {
 								app.storeUndoInfoAndStateForModeStarting();
-								ec.memorizeJustCreatedGeos(ret);
+								ec.memorizeJustCreatedGeos(geos);
 							}
-						} else {
-							if (result != null && result.length > 0) {
-								eh.showError(Errors.NumberExpected.getError(app.getLocalization()));
+							if (callback != null) {
+								callback.callback(defaultRotateAngle);
+							}
+							return;
+						}
+
+						ArrayList<GeoElement> ret = new ArrayList<>();
+						for (GeoElement selGeo : selGeos) {
+							if (selGeo != lines[0]) {
+								if (selGeo instanceof Transformable) {
+									ret.addAll(Arrays.asList(
+											ec.rotateAroundLine(selGeo,
+													num, lines[0])));
+								} else if (selGeo.isGeoPolygon()) {
+									ret.addAll(Arrays.asList(
+											ec.rotateAroundLine(selGeo,
+													num, lines[0])));
+								}
 							}
 						}
-						if (callback != null) {
-							callback.callback(
-									success ? defaultRotateAngle : null);
+						if (!ret.isEmpty()) {
+							app.storeUndoInfoAndStateForModeStarting();
+							ec.memorizeJustCreatedGeos(ret);
+						}
+					} else {
+						if (result != null && result.length > 0) {
+							eh.showError(Errors.NumberExpected.getError(app.getLocalization()));
 						}
 					}
-
+					if (callback != null) {
+						callback.callback(
+								success ? defaultRotateAngle : null);
+					}
 				});
 	}
 
@@ -4165,7 +4165,7 @@ public abstract class EuclidianController3D extends EuclidianController {
 	@Override
 	protected int getModeForShallMoveView(AbstractEvent event) {
 		if (event.isShiftDown() || app.isMiddleClick(event)) {
-			return EuclidianConstants.MODE_TRANSLATEVIEW;
+			return EuclidianConstants.MODE_TRANSLATE_VIEW;
 		}
 		return EuclidianConstants.MODE_ROTATEVIEW;
 	}
@@ -4379,9 +4379,7 @@ public abstract class EuclidianController3D extends EuclidianController {
 
 	@Override
 	protected boolean modeTriggersUndoOnDragGeo(int mode2) {
-		switch (mode2) {
-		case EuclidianConstants.MODE_PYRAMID:
-		case EuclidianConstants.MODE_PRISM:
+		if (mode2 == EuclidianConstants.MODE_PYRAMID || mode2 == EuclidianConstants.MODE_PRISM) {
 			return pyramidBasis == null && selPolygons() == 0;
 		}
 		return super.modeTriggersUndoOnDragGeo(mode2);

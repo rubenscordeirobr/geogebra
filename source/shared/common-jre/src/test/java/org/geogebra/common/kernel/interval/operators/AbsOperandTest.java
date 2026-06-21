@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.interval.operators;
 
 import static org.geogebra.common.kernel.interval.IntervalConstants.negativeInfinity;
@@ -6,7 +22,7 @@ import static org.geogebra.common.kernel.interval.IntervalConstants.undefined;
 import static org.geogebra.common.kernel.interval.IntervalConstants.whole;
 import static org.geogebra.common.kernel.interval.IntervalConstants.zero;
 import static org.geogebra.common.kernel.interval.IntervalHelper.interval;
-import static org.geogebra.common.kernel.interval.IntervalHelper.invertedInterval;
+import static org.geogebra.common.kernel.interval.IntervalHelper.invertedPayload;
 import static org.junit.Assert.assertEquals;
 
 import org.geogebra.common.kernel.interval.Interval;
@@ -52,12 +68,12 @@ public class AbsOperandTest {
 
 	@Test
 	public void testMixedInvertedIntervals() {
-		assertEquals(interval(100, Double.POSITIVE_INFINITY), abs(invertedInterval(-100, 100)));
+		assertEquals(interval(100, Double.POSITIVE_INFINITY), abs(invertedPayload(-100, 100)));
 	}
 
 	@Test
 	public void testNegativeInvertedIntervals() {
 		assertEquals(interval(0, Double.POSITIVE_INFINITY),
-				abs(invertedInterval(-200, -100)));
+				abs(invertedPayload(-200, -100)));
 	}
 }

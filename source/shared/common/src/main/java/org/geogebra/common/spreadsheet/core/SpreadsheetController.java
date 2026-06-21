@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.spreadsheet.core;
 
 import java.util.ArrayList;
@@ -13,6 +29,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import org.geogebra.common.gui.view.spreadsheet.DataImport;
+import org.geogebra.common.kernel.statistics.Statistic;
 import org.geogebra.common.spreadsheet.style.CellFormat;
 import org.geogebra.common.spreadsheet.style.SpreadsheetStyling;
 import org.geogebra.common.util.MouseCursor;
@@ -21,12 +38,15 @@ import org.geogebra.common.util.StringUtil;
 import org.geogebra.common.util.shape.Point;
 import org.geogebra.common.util.shape.Rectangle;
 import org.geogebra.common.util.shape.Size;
+import org.geogebra.editor.share.controller.ExpressionReader;
+import org.geogebra.editor.share.editor.MathFieldInternal;
+import org.geogebra.editor.share.event.KeyEvent;
+import org.geogebra.editor.share.input.KeyboardInputAdapter;
+import org.geogebra.editor.share.serializer.ScreenReaderSerializer;
+import org.geogebra.editor.share.tree.CharacterNode;
+import org.geogebra.editor.share.util.JavaKeyCodes;
 
-import com.himamis.retex.editor.share.editor.MathFieldInternal;
-import com.himamis.retex.editor.share.event.KeyEvent;
-import com.himamis.retex.editor.share.input.KeyboardInputAdapter;
-import com.himamis.retex.editor.share.model.MathCharacter;
-import com.himamis.retex.editor.share.util.JavaKeyCodes;
+import com.google.j2objc.annotations.Weak;
 
 /**
  * A container for tabular data, with support for selecting and editing the data.
@@ -35,20 +55,16 @@ import com.himamis.retex.editor.share.util.JavaKeyCodes;
  */
 public final class SpreadsheetController {
 
-	public final MulticastEvent<CellSizes> cellSizesChanged = new MulticastEvent<>();
-
-	/**
-	 * Fired when the list of cell references (in the currently editing cell), or the current
-	 * cell reference (the one under the cursor) changes.
-	 */
-	public final MulticastEvent<MulticastEvent.Void> referencesChanged = new MulticastEvent<>();
-
 	final SpreadsheetSelectionController selectionController
 			= new SpreadsheetSelectionController();
 	private final @Nonnull TabularData<?> tabularData;
 	private final @CheckForNull SpreadsheetStyling spreadsheetStyling;
 
+	@Weak
+	private @CheckForNull SpreadsheetControllerDelegate delegate;
 	private @CheckForNull SpreadsheetControlsDelegate controlsDelegate;
+	private @CheckForNull SpreadsheetAccessibilityDelegate accessibilityDelegate;
+	private @CheckForNull ExpressionReader expressionReader;
 	private @CheckForNull SpreadsheetConstructionDelegate constructionDelegate;
 	private final @Nonnull TableLayout layout;
 	private final @Nonnull ContextMenuBuilder contextMenuBuilder;
@@ -60,18 +76,20 @@ public final class SpreadsheetController {
 	private Rectangle viewport;
 	private @CheckForNull ViewportAdjuster viewportAdjuster;
 	private @CheckForNull UndoProvider undoProvider;
+	private @CheckForNull SpreadsheetCellDescriptionBuilder cellDescriptionBuilder;
 	private final @CheckForNull CellDragPasteHandler cellDragPasteHandler;
 	private double lastPointerPositionX = -1;
 	private double lastPointerPositionY = -1;
 	private @CheckForNull CopyPasteCutTabularData copyPasteCut;
 	private boolean autoscrollRow;
 	private boolean autoscrollColumn;
-	private boolean didScrollWhileEditorActive = false;
+	private @CheckForNull SpreadsheetCoords pendingEditorActivationCoords = null;
 
 	private static final int DOT_CATCH_RADIUS = 18;
 
 	/**
 	 * @param tabularData underlying data for the spreadsheet
+	 * @param spreadsheetStyling styling information provider
 	 */
 	public SpreadsheetController(@Nonnull TabularData<?> tabularData,
 			@CheckForNull SpreadsheetStyling spreadsheetStyling) {
@@ -82,9 +100,14 @@ public final class SpreadsheetController {
 		this.dragState = new DragState(MouseCursor.DEFAULT, -1, -1);
 		layout = new TableLayout(tabularData.numberOfRows(), tabularData.numberOfColumns());
 		contextMenuBuilder = new ContextMenuBuilder(this);
+		selectionController.selectionsChanged.addListener(this::readSelectedCell);
 	}
 
 	// Delegates
+
+	public void setDelegate(@CheckForNull SpreadsheetControllerDelegate delegate) {
+		this.delegate = delegate;
+	}
 
 	/**
 	 * @param controlsDelegate The controls delegate.
@@ -98,9 +121,10 @@ public final class SpreadsheetController {
 	/**
 	 * @param constructionDelegate {@link SpreadsheetConstructionDelegate}
 	 */
-	public void setSpreadsheetConstructionDelegate(@CheckForNull SpreadsheetConstructionDelegate
+	void setSpreadsheetConstructionDelegate(@CheckForNull SpreadsheetConstructionDelegate
 			constructionDelegate) {
 		this.constructionDelegate = constructionDelegate;
+		this.contextMenuBuilder.setSpreadsheetConstructionDelegate(constructionDelegate);
 	}
 
 	/**
@@ -120,6 +144,41 @@ public final class SpreadsheetController {
 		this.undoProvider = undoProvider;
 	}
 
+	/**
+	 * @param accessibilityDelegate Delegate for accessibility announcements
+	 */
+	public void setAccessibilityDelegate(
+			@CheckForNull SpreadsheetAccessibilityDelegate accessibilityDelegate) {
+		this.accessibilityDelegate = accessibilityDelegate;
+	}
+
+	/**
+	 * @param cellDescriptionBuilder {@link SpreadsheetCellDescriptionBuilder}
+	 */
+	public void setCellDescriptionBuilder(
+			@CheckForNull SpreadsheetCellDescriptionBuilder cellDescriptionBuilder) {
+		this.cellDescriptionBuilder = cellDescriptionBuilder;
+	}
+
+	/**
+	 * @param expressionReader ExpressionReader for screen reader serialization of editor content
+	 */
+	public void setExpressionReader(@CheckForNull ExpressionReader expressionReader) {
+		this.expressionReader = expressionReader;
+	}
+
+	private void notifyRepaintNeeded() {
+		if (delegate != null) {
+			delegate.repaintNeeded();
+		}
+	}
+
+	private void notifyCellSizesChanged(@Nonnull CellSizes cellSizes) {
+		if (delegate != null) {
+			delegate.cellSizesChanged(cellSizes);
+		}
+	}
+
 	// Tabular data
 
 	Object contentAt(int row, int column) {
@@ -127,7 +186,7 @@ public final class SpreadsheetController {
 	}
 
 	/**
-	 * Inserts a row at a given index
+	 * Inserts a row at a given index.
 	 * @param row Index of where to insert the row
 	 * @param below Whether the row is being inserted below the currently selected row
 	 */
@@ -286,11 +345,12 @@ public final class SpreadsheetController {
 
 	private void onLayoutChange() {
 		// sync TableLayout -> SpreadsheetSettings
-		cellSizesChanged.notifyListeners(
-				new CellSizes(layout.getCustomColumnWidths(), layout.getCustomRowHeights()));
+		notifyCellSizesChanged(new CellSizes(layout.getCustomColumnWidths(),
+				layout.getCustomRowHeights()));
 		selectionController.trimSelectionToSize(tabularData.numberOfRows(),
 				tabularData.numberOfColumns());
 		storeUndoInfo();
+		notifyRepaintNeeded();
 		notifyViewportAdjusterAboutSizeChange();
 		adjustViewportIfNeeded();
 	}
@@ -326,13 +386,7 @@ public final class SpreadsheetController {
 	// Viewport
 
 	void setViewport(@Nonnull Rectangle viewport) {
-		Point oldViewportOrigin = this.viewport != null ? this.viewport.origin : null;
-		Point newViewportOrigin = viewport != null ? viewport.origin : null;
-		boolean viewportOriginDidChange = !Objects.equals(oldViewportOrigin, newViewportOrigin);
 		this.viewport = viewport;
-		if (isEditorActive() && viewportOriginDidChange) {
-			didScrollWhileEditorActive = true;
-		}
 	}
 
 	@Nonnull Rectangle getViewport() {
@@ -349,9 +403,15 @@ public final class SpreadsheetController {
 		Selection lastSelection = getLastSelection();
 		if (lastSelection != null && (cellDragPasteHandler == null
 				|| cellDragPasteHandler.getDragPasteDestinationRange() == null)) {
+			scrollRangeIntoView(lastSelection.getRange());
+		}
+	}
+
+	void scrollRangeIntoView(TabularRange range) {
+		if (viewportAdjuster != null) {
 			viewport = viewportAdjuster.adjustViewportIfNeeded(
-					lastSelection.getRange().getToRow(),
-					lastSelection.getRange().getToColumn(),
+					range.getToRow(),
+					range.getToColumn(),
 					viewport);
 		}
 	}
@@ -368,6 +428,15 @@ public final class SpreadsheetController {
 
 	@Nonnull TableLayout getLayout() {
 		return layout;
+	}
+
+	/**
+	 * Called when the spreadsheet view becomes visible.
+	 */
+	public void handleOnViewAppear() {
+		if (selectionController.getLastSelection() == null) {
+			selectionController.selectCell(0, 0, false, false);
+		}
 	}
 
 	// Selection
@@ -464,22 +533,30 @@ public final class SpreadsheetController {
 		return selectionController.areAllCellsSelected();
 	}
 
-	/**
-	 * @param column column index
-	 * @return whether selection contains at least one cell in given column
-	 */
-	boolean isSelectionIntersectingColumn(int column) {
-		return selectionController.getSelections()
-				.anyMatch(sel -> sel.getRange().intersectsColumn(column));
+	private void readSelectedCell(MulticastEvent.Void unused) {
+		if (accessibilityDelegate == null || cellDescriptionBuilder == null || isEditorActive()
+				|| !selectionController.isSingleCellSelected()) {
+			return;
+		}
+		SpreadsheetCoords coords = getLastSelectionUpperLeftCell();
+		if (coords != null) {
+			accessibilityDelegate.readText(
+					cellDescriptionBuilder.getCellDescription(coords.row, coords.column));
+		}
 	}
 
-	/**
-	 * @param row row index
-	 * @return whether selection contains at least one cell in given row
-	 */
-	boolean isSelectionIntersectingRow(int row) {
-		return selectionController.getSelections()
-				.anyMatch(sel -> sel.getRange().intersectsRow(row));
+	private void readNoMoreCells() {
+		if (accessibilityDelegate != null && cellDescriptionBuilder != null) {
+			accessibilityDelegate.readText(cellDescriptionBuilder.getNoMoreCellsDescription());
+		}
+	}
+
+	private void readCellEditorContent() {
+		if (accessibilityDelegate != null && editor != null && cellDescriptionBuilder != null) {
+			accessibilityDelegate.readText(
+					cellDescriptionBuilder.getEditorDescription(
+							editor.getEditorContent(expressionReader)));
+		}
 	}
 
 	private int findRowOrHeader(double y) {
@@ -498,6 +575,14 @@ public final class SpreadsheetController {
 
 	// Cell Editor
 
+	private void showCellEditor(@CheckForNull SpreadsheetCoords coords,
+			boolean editExistingContent) {
+		if (coords == null) {
+			return;
+		}
+		showCellEditor(coords.row, coords.column, editExistingContent);
+	}
+
 	private void showCellEditor(int row, int column, boolean editExistingContent) {
 		if (controlsDelegate == null) {
 			return; // cell editor not shown
@@ -506,9 +591,10 @@ public final class SpreadsheetController {
 			editor = new Editor(controlsDelegate.getCellEditor());
 		}
 		currentReferences = null;
-		didScrollWhileEditorActive = false;
 		editor.showAt(row, column, editExistingContent);
+		readCellEditorContent();
 		resetDragAction();
+		updateTextMode();
 	}
 
 	private void showCellEditorAtSelection(boolean editExistingContent) {
@@ -529,11 +615,13 @@ public final class SpreadsheetController {
 		}
 	}
 
-	private void resizeCellEditor() {
-		if (!isEditorActive() || didScrollWhileEditorActive) {
+	private void resizeCellEditorToMatchCell() {
+		if (!isEditorActive()) {
 			return;
 		}
-		editor.updatePosition();
+		editor.updateBoundsToMatchCell();
+		// draw new editor border
+		notifyRepaintNeeded();
 	}
 
 	/**
@@ -560,7 +648,7 @@ public final class SpreadsheetController {
 	void scrollEditorIntoView() {
 		if (viewportAdjuster != null && editor != null && editor.isVisible()) {
 			viewport = viewportAdjuster.adjustViewportIfNeeded(editor.row, editor.column, viewport);
-			editor.updatePosition();
+			editor.updateBoundsToMatchCell();
 		}
 	}
 
@@ -611,11 +699,11 @@ public final class SpreadsheetController {
 
 		MathFieldInternal mathField = editor.cellEditor.getMathField();
 		String input = mathField.getText();
-		if (input.isEmpty() || !input.startsWith("=")) {
+		if (!input.startsWith("=")) {
 			return null;
 		}
 		ArrayList<String> characterSequences = new ArrayList<>();
-		Predicate<MathCharacter> include = w -> w.isCharacter() || ":".equals(w.getUnicodeString());
+		Predicate<CharacterNode> include = w -> w.isCharacter() || ":".equals(w.getUnicodeString());
 		mathField.collectCharacterSequences(include, characterSequences);
 		ArrayList<SpreadsheetReference> cellRanges = new ArrayList<>();
 		for (String characterSequence : characterSequences) {
@@ -653,6 +741,7 @@ public final class SpreadsheetController {
 	 * @param modifiers event modifiers
 	 */
 	public void handlePointerDown(double x, double y, @Nonnull Modifiers modifiers) {
+		pendingEditorActivationCoords = null;
 		if (controlsDelegate != null) {
 			controlsDelegate.hideContextMenu();
 			controlsDelegate.hideAutoCompleteSuggestions();
@@ -691,9 +780,13 @@ public final class SpreadsheetController {
 			showContextMenuForSelection(x, y);
 			return;
 		}
-
-		if (row >= 0 && column >= 0 && selectionController.isOnlyCellSelected(row, column)) {
-			showCellEditor(row, column, true);
+		if (tabularData.handleMouseDown(row, column)) {
+			return;
+		}
+		if (!modifiers.ctrlOrCmd && !modifiers.shift && !modifiers.secondaryButton
+				&& row >= 0 && column >= 0
+				&& selectionController.isOnlyCellSelected(row, column)) {
+			pendingEditorActivationCoords = new SpreadsheetCoords(row, column);
 			return;
 		}
 		updateCellSelection(row, column, modifiers);
@@ -732,6 +825,10 @@ public final class SpreadsheetController {
 		lastPointerPositionX = x;
 		lastPointerPositionY = y;
 		autoscrollColumn = autoscrollRow = false;
+		if (pendingEditorActivationCoords != null
+				&& !pendingEditorActivationCoords.equals(cellCoords(x, y))) {
+			pendingEditorActivationCoords = null;
+		}
 		switch (dragState.cursor) {
 		case RESIZE_X:
 			// only handle the dragged column here, the rest of selection on pointer up
@@ -755,6 +852,10 @@ public final class SpreadsheetController {
 	 * @param modifiers event modifiers
 	 */
 	public void handlePointerUp(double x, double y, Modifiers modifiers) {
+		boolean shouldOpenEditor = dragState.cursor == MouseCursor.DEFAULT
+				&& pendingEditorActivationCoords != null
+				&& pendingEditorActivationCoords.equals(cellCoords(x, y))
+				&& selectionController.isOnlyCellSelected(pendingEditorActivationCoords);
 		switch (dragState.cursor) {
 		case RESIZE_X:
 			if (isSelected(-1, dragState.startColumn)) {
@@ -778,6 +879,10 @@ public final class SpreadsheetController {
 		}
 		autoscrollColumn = autoscrollRow = false;
 		resetDragAction();
+		if (shouldOpenEditor) {
+			showCellEditor(pendingEditorActivationCoords, true);
+		}
+		pendingEditorActivationCoords = null;
 	}
 
 	/**
@@ -856,7 +961,7 @@ public final class SpreadsheetController {
 			}
 			setDestinationForDragPaste(lastPointerPositionX + viewport.getMinX() - oldViewportX,
 					lastPointerPositionY + viewport.getMinY() - oldViewportY);
-		} else if (autoscrollRow  || autoscrollColumn) {
+		} else if (autoscrollRow || autoscrollColumn) {
 			viewport = viewportAdjuster.scrollForDrag(
 					lastPointerPositionX, lastPointerPositionY, viewport,
 					autoscrollRow);
@@ -866,11 +971,11 @@ public final class SpreadsheetController {
 	}
 
 	private void adjustDataDimensionsForDrag() {
-		while (lastPointerPositionX + viewport.getMinX()
+		while (canAddColumn() && lastPointerPositionX + viewport.getMinX()
 				> layout.getTotalWidth() - layout.getRowHeaderWidth()) {
 			insertColumnRight();
 		}
-		while (lastPointerPositionY + viewport.getMinY()
+		while (canAddRow() && lastPointerPositionY + viewport.getMinY()
 				> layout.getTotalHeight() - layout.getColumnHeaderHeight()) {
 			insertRowBottom();
 		}
@@ -959,7 +1064,7 @@ public final class SpreadsheetController {
 		double height = layout.getHeightForRowResize(dragState.startRow,
 				y + viewport.getMinY());
 		layout.setHeightForRows(height, dragState.startRow, dragState.startRow);
-		resizeCellEditor();
+		resizeCellEditorToMatchCell();
 	}
 
 	private void resizeAllSelectedRows(double y) {
@@ -978,7 +1083,7 @@ public final class SpreadsheetController {
 		double width = layout.getWidthForColumnResize(dragState.startColumn,
 				x + viewport.getMinX());
 		layout.setWidthForColumns(width, dragState.startColumn, dragState.startColumn);
-		resizeCellEditor();
+		resizeCellEditorToMatchCell();
 	}
 
 	private void resizeAllSelectedColumns(double x) {
@@ -998,10 +1103,11 @@ public final class SpreadsheetController {
 	/**
 	 * Handles keys being pressed
 	 * @param keyCode Key Code
-	 * @param key unicode value
+	 * @param key Unicode value
 	 * @param modifiers Modifiers
+	 * @return whether this was handled
 	 */
-	public void handleKeyPressed(int keyCode, @CheckForNull String key, @Nonnull Modifiers modifiers) {
+	public boolean handleKeyPressed(int keyCode, @CheckForNull String key, @Nonnull Modifiers modifiers) {
 		boolean cellSelectionChanged = false;
 
 		if (selectionController.hasSelection()) {
@@ -1024,9 +1130,10 @@ public final class SpreadsheetController {
 				cellSelectionChanged = true;
 				break;
 			case JavaKeyCodes.VK_A:
-				if (modifiers.ctrlOrCmd) {
+				// Ctrl + Shift + A represents a global shortcut (Toggle Algebra-View)
+				if (modifiers.ctrlOrCmd && !modifiers.shift) {
 					selectionController.selectAll();
-					return;
+					return true;
 				}
 				startTyping(key, modifiers);
 				break;
@@ -1045,7 +1152,7 @@ public final class SpreadsheetController {
 				break;
 			case JavaKeyCodes.VK_ENTER:
 				showCellEditorAtSelection(true);
-				return;
+				return true;
 			case JavaKeyCodes.VK_DELETE:
 			case JavaKeyCodes.VK_BACK_SPACE:
 			case JavaKeyCodes.VK_CLEAR:
@@ -1054,14 +1161,14 @@ public final class SpreadsheetController {
 			case JavaKeyCodes.VK_X:
 				if (modifiers.ctrlOrCmd) {
 					cutSelections();
-					return;
+					return true;
 				}
 				startTyping(key, modifiers);
 				break;
 			case JavaKeyCodes.VK_C:
 				if (modifiers.ctrlOrCmd) {
 					copySelections();
-					return;
+					return true;
 				}
 				startTyping(key, modifiers);
 				break;
@@ -1069,7 +1176,7 @@ public final class SpreadsheetController {
 				if (modifiers.ctrlOrCmd) {
 					pasteToSelections(selectionController.getSelections()
 							.map(Selection::getRange));
-					return;
+					return true;
 				}
 				startTyping(key, modifiers);
 				break;
@@ -1080,6 +1187,8 @@ public final class SpreadsheetController {
 		if (cellSelectionChanged) {
 			adjustViewportIfNeeded();
 		}
+		// Ctrl not pressed: we just opened the editor, handled an arrow or opened the menu
+		return !modifiers.ctrlOrCmd;
 	}
 
 	/**
@@ -1129,12 +1238,14 @@ public final class SpreadsheetController {
 	}
 
 	void onEditorTextOrCursorPositionChanged() {
+		editor.resizeToFitContent();
+
 		SpreadsheetReferences editorReferences = new SpreadsheetReferences(
 				getEditorCellReferences(), getCurrentEditorCellReference());
 		SpreadsheetReferences previousReferences = currentReferences;
 		currentReferences = editorReferences;
 		if (!Objects.equals(previousReferences, editorReferences)) {
-			referencesChanged.notifyListeners(MulticastEvent.VOID);
+			notifyRepaintNeeded();
 		}
 	}
 
@@ -1154,6 +1265,9 @@ public final class SpreadsheetController {
 	 * @param extendingCurrentSelection True if the current selection should expand, false else
 	 */
 	void moveUp(boolean extendingCurrentSelection) {
+		if (isCellMoveBlocked(Direction.Up)) {
+			readNoMoreCells();
+		}
 		selectionController.moveUp(extendingCurrentSelection);
 	}
 
@@ -1161,8 +1275,11 @@ public final class SpreadsheetController {
 	 * @param extendingCurrentSelection True if the current selection should expand, false else
 	 */
 	void moveDown(boolean extendingCurrentSelection) {
+		if (isCellMoveBlocked(Direction.Down)) {
+			readNoMoreCells();
+		}
 		Selection lastSelection = selectionController.getLastSelection();
-		if (lastSelection != null
+		if (lastSelection != null && canAddRow()
 				&& lastSelection.getRange().getMaxRow() == tabularData.numberOfRows() - 1) {
 			insertRowBottom();
 		}
@@ -1173,6 +1290,9 @@ public final class SpreadsheetController {
 	 * @param extendingCurrentSelection True if the current selection should expand, false else
 	 */
 	void moveLeft(boolean extendingCurrentSelection) {
+		if (isCellMoveBlocked(Direction.Left)) {
+			readNoMoreCells();
+		}
 		selectionController.moveLeft(extendingCurrentSelection);
 	}
 
@@ -1180,12 +1300,53 @@ public final class SpreadsheetController {
 	 * @param extendingCurrentSelection True if the current selection should expand, false else
 	 */
 	void moveRight(boolean extendingCurrentSelection) {
+		if (isCellMoveBlocked(Direction.Right)) {
+			readNoMoreCells();
+		}
 		Selection lastSelection = selectionController.getLastSelection();
-		if (lastSelection != null
+		if (lastSelection != null && canAddColumn()
 				&& lastSelection.getRange().getMaxColumn() == tabularData.numberOfColumns() - 1) {
 			insertColumnRight();
 		}
 		selectionController.moveRight(extendingCurrentSelection, layout.numberOfColumns());
+	}
+
+	private boolean isCellMoveBlocked(Direction direction) {
+		Selection lastSelection = selectionController.getLastSelection();
+		if (lastSelection == null) {
+			return false;
+		}
+		TabularRange range = lastSelection.getRange();
+		return switch (direction) {
+			case Up -> range.getMinRow() == 0;
+			case Down -> !canAddRow() && range.getMaxRow() == tabularData.numberOfRows() - 1;
+			case Left -> range.getMinColumn() == 0;
+			case Right -> !canAddColumn()
+					&& range.getMaxColumn() == tabularData.numberOfColumns() - 1;
+		};
+	}
+
+	/**
+	 * @return whether a row can be inserted
+	 */
+	boolean canAddRow() {
+		return tabularData.numberOfRows() < Spreadsheet.MAX_ROWS;
+	}
+
+	/**
+	 * @return whether a column can be inserted
+	 */
+	boolean canAddColumn() {
+		return tabularData.numberOfColumns() < Spreadsheet.MAX_COLUMNS;
+	}
+
+	private @CheckForNull SpreadsheetCoords cellCoords(double x, double y) {
+		int row = findRowOrHeader(y);
+		int column = findColumnOrHeader(x);
+		if (row < 0 || column < 0) {
+			return null;
+		}
+		return new SpreadsheetCoords(row, column);
 	}
 
 	// Context menu
@@ -1286,45 +1447,43 @@ public final class SpreadsheetController {
 	}
 
 	// Calculations
-
-	void calculate(SpreadsheetCommand command) {
+	
+	void calculate1VarStatistics(Statistic statistic) {
 		Selection last = getLastSelection();
 		TabularRange range = last == null ? null : last.getRange();
-
 		if (range == null) {
 			return;
 		}
-
 		if (range.isSingleCell()) {
-			processCalculate(command, -1, -1, -1, -1, range.getMinRow(), range.getMinColumn(),
+			processCalculate(statistic, -1, -1, -1, -1, range.getMinRow(), range.getMinColumn(),
 					true);
 		} else if (range.isEntireColumn()) {
-			processCalculate(command, 0, range.getMinColumn(), getLayout().numberOfRows() - 2,
+			processCalculate(statistic, 0, range.getMinColumn(), getLayout().numberOfRows() - 2,
 					range.getMaxColumn(), getLayout().numberOfRows() - 1,
 					range.getMaxColumn(), false);
 		} else if (range.isEntireRow()) {
-			processCalculate(command, range.getMinRow(), 0, range.getMaxRow(),
+			processCalculate(statistic, range.getMinRow(), 0, range.getMaxRow(),
 					getLayout().numberOfColumns() - 2, range.getMaxRow(),
 					getLayout().numberOfColumns() - 1, false);
 		} else if (range.isPartialColumn()) {
-			processCalculate(command, range.getMinRow(), range.getMinColumn(),
+			processCalculate(statistic, range.getMinRow(), range.getMinColumn(),
 					range.getMaxRow(), range.getMaxColumn(), range.getMaxRow() + 1,
 					range.getMaxColumn(), false);
 		} else if (range.isPartialRow()) {
-			processCalculate(command, range.getMinRow(), range.getMinColumn(),
+			processCalculate(statistic, range.getMinRow(), range.getMinColumn(),
 					range.getMaxRow(), range.getMaxColumn(), range.getMaxRow(),
 					range.getMaxColumn() + 1, false);
 		} else {
 			// multiple part of columns and rows
-			processCalculate(command, range.getMinRow(), range.getMinColumn(),
+			processCalculate(statistic, range.getMinRow(), range.getMinColumn(),
 					range.getMaxRow(), range.getMaxColumn(), range.getMaxRow() + 1,
 					range.getMaxColumn(), false);
 		}
 	}
 
-	private void processCalculate(SpreadsheetCommand command, int fromRow, int fromCol, int toRow,
+	private void processCalculate(Statistic statistic, int fromRow, int fromCol, int toRow,
 			int toCol, int destRow, int destCol, boolean showEditor) {
-		String curCommand = getCalculateString(command, fromRow, fromCol, toRow, toCol);
+		String curCommand = getCalculateString(statistic, fromRow, fromCol, toRow, toCol);
 		tabularData.getCellProcessor().process(curCommand, destRow, destCol);
 		updateSelectionAndScroll(destRow, destCol);
 		if (showEditor) {
@@ -1343,11 +1502,11 @@ public final class SpreadsheetController {
 		}
 	}
 
-	private String getCalculateString(SpreadsheetCommand command, int fromRow, int fromCol,
+	private String getCalculateString(Statistic statistic, int fromRow, int fromCol,
 			int toRow, int toCol) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("=");
-		sb.append(command.getCommand());
+		sb.append(statistic.getCommandName());
 		sb.append("(");
 		if (fromRow > -1 && fromCol > -1 && toRow > -1 && toCol > -1) {
 			sb.append(tabularData.getCellName(fromRow, fromCol)).append(":")
@@ -1361,33 +1520,39 @@ public final class SpreadsheetController {
 	// Charts
 
 	void createChart(ContextMenuItem.Identifier chartType) {
-		Selection last = getLastSelection();
-		TabularRange range = last == null ? null : last.getRange();
-
-		if (range == null) {
-			return;
-		}
-
 		switch (chartType) {
 		case PIE_CHART:
-			createPieChart(range);
+			Selection last = getLastSelection();
+			if (last != null) {
+				TabularRange range = last.getRange();
+				createPieChart(range);
+			}
 			break;
 		case BAR_CHART:
 		case HISTOGRAM:
-			createChartWithTwoParameter(range, chartType);
+			createChartWithTwoParameters(getSelectionRanges(), chartType);
 			break;
 		case LINE_CHART:
-			createLineChart(range);
+			createLineChart(getSelectionRanges());
+			break;
+		case BOX_PLOT:
+			createBoxPlot(getSelectionRanges());
 			break;
 		default:
+			break;
 		}
+	}
+
+	private List<TabularRange> getSelectionRanges() {
+		return selectionController.getSelections()
+				.map(Selection::getRange)
+				.collect(Collectors.toList());
 	}
 
 	private void createPieChart(TabularRange range) {
 		if (constructionDelegate == null || controlsDelegate == null) {
 			return;
 		}
-
 		if (range.isEntireColumn() || range.isPartialColumn() && !range.isPartialRow()
 				&& !range.isEntireRow()) {
 			constructionDelegate.createPieChart(tabularData, range);
@@ -1397,44 +1562,59 @@ public final class SpreadsheetController {
 		}
 	}
 
-	private void createChartWithTwoParameter(TabularRange range,
+	private void createChartWithTwoParameters(List<TabularRange> ranges,
 			ContextMenuItem.Identifier chartType) {
 		if (constructionDelegate == null || controlsDelegate == null) {
 			return;
 		}
-
-		if (range.getWidth() == 2) {
+		ChartError chartError = ChartError.validateForTwoColumns(ranges);
+		if (chartError == ChartError.NONE) {
 			switch (chartType) {
 			case BAR_CHART:
-				constructionDelegate.createBarChart(tabularData, range);
+				constructionDelegate.createBarChart(tabularData, ranges);
 				break;
 			case HISTOGRAM:
-				constructionDelegate.createHistogram(tabularData, range);
+				constructionDelegate.createHistogram(tabularData, ranges);
 				break;
 			default:
 			}
 		} else {
-			controlsDelegate.showSnackbar(range.isSingleCell() ? "StatsDialog.NoData"
-					: "ChartError.TwoColumns");
+			controlsDelegate.showSnackbar(chartError.getErrorKey());
 		}
 	}
 
-	private void createLineChart(TabularRange range) {
+	private void createLineChart(List<TabularRange> ranges) {
 		if (constructionDelegate == null || controlsDelegate == null) {
 			return;
 		}
-
-		if (range.getWidth() >= 2) {
-			constructionDelegate.createLineGraph(tabularData, range);
+		ChartError chartError = ChartError.validateForMoreColumns(ranges);
+		if (chartError == ChartError.NONE) {
+			if (ranges.size() == 1) {
+				constructionDelegate.createLineGraph(tabularData, ranges.get(0));
+			} else {
+				constructionDelegate.createLineGraph(tabularData, ranges);
+			}
 		} else {
-			controlsDelegate.showSnackbar(range.isSingleCell() ? "StatsDialog.NoData"
-					: "ChartError.TwoColumns");
+			controlsDelegate.showSnackbar(chartError.getErrorKey());
 		}
+	}
+
+	private void createBoxPlot(List<TabularRange> ranges) {
+		if (constructionDelegate == null || controlsDelegate == null) {
+			return;
+		}
+		ChartError chartError = ChartError.validateRangesForBoxPlot(ranges);
+		if (chartError != ChartError.NONE) {
+			controlsDelegate.showSnackbar(chartError.getErrorKey());
+			return;
+		}
+		constructionDelegate.createBoxPlot(tabularData, ranges);
 	}
 
 	// Autocomplete
 
 	void onEditorTextChanged() {
+		updateTextMode();
 		updateAutoCompleteSearchPrefix();
 	}
 
@@ -1477,6 +1657,24 @@ public final class SpreadsheetController {
 	}
 
 	/**
+	 * Decides if input should be handled as plain text (e.g. SPACE is replace it with dot if
+	 * not plain text mode).
+	 */
+	private void updateTextMode() {
+		if (editor == null) {
+			return;
+		}
+		MathFieldInternal mathField = editor.cellEditor.getMathField();
+		String text = mathField.getText();
+		boolean isPlainTextMode = !text.startsWith("=");
+		boolean oldPlainTextMode = mathField.getInputController().getPlainTextMode();
+		if (oldPlainTextMode != isPlainTextMode) {
+			mathField.getInputController().setPlainTextMode(isPlainTextMode);
+			mathField.parse(text);
+		}
+	}
+
+	/**
 	 * @param identifier category identifier
 	 * @return all items for given category
 	 */
@@ -1491,6 +1689,8 @@ public final class SpreadsheetController {
 		}
 	}
 
+	// Editor
+
 	private final class Editor {
 		private final @Nonnull SpreadsheetCellEditor cellEditor;
 		private @CheckForNull SpreadsheetMathFieldAdapter mathFieldAdapter;
@@ -1503,7 +1703,7 @@ public final class SpreadsheetController {
 			this.cellEditor = cellEditor;
 		}
 
-		void showAt(int row, int column, boolean editExistingContent) {
+		private void showAt(int row, int column, boolean editExistingContent) {
 			this.row = row;
 			this.column = column;
 			MathFieldInternal mathField = cellEditor.getMathField();
@@ -1535,69 +1735,118 @@ public final class SpreadsheetController {
 			}
 		}
 
-		void updatePosition() {
+		/**
+		 * Update the editor's position and size to match the table cell bounds. If the editor
+		 * is active, grow the editor to fit the content.
+		 */
+		private void updateBoundsToMatchCell() {
 			bounds = layout.getBounds(new TabularRange(row, column), viewport);
-			if (bounds != null) {
-				cellEditor.updatePosition(bounds.insetBy(1, 1), viewport);
-			}
+			// note: this is also called on rotation / spreadsheet size change, so the editor's
+			// preferred content width needs to be used if the editor is active
+            resizeToFitContent();
 		}
 
-		void hide() {
+		/**
+		 * Update the editor's size (without changing the position) to fit the content.
+		 */
+		private void resizeToFitContent() {
+			if (bounds == null) {
+				return;
+			}
+			bounds = editorBoundsFittingContent();
+			cellEditor.updatePosition(bounds.insetBy(1, 1), viewport);
+			notifyRepaintNeeded();
+		}
+
+		/**
+		 * The editor's current bounds, with the width adjusted to match the editor's fitting
+		 * content width.
+		 * Note: must only be called when the editor is active and bounds is not null.
+		 */
+		private @Nonnull Rectangle editorBoundsFittingContent() {
+			assert bounds != null;
+			double availableWidth = Math.max(0, viewport.getWidth() - bounds.origin.x - 1);
+			double clampedFittingWidth = Math.min(
+					availableWidth, cellEditor.getFittingContentWidth());
+			double finalWidth = Math.max(bounds.getWidth(), clampedFittingWidth);
+			return new Rectangle(bounds.origin, new Size(finalWidth, bounds.getHeight()));
+		}
+
+		private void hide() {
 			cellEditor.getMathField().removeMathFieldListener(mathFieldAdapter);
 			bounds = null;
 			cellEditor.hide();
 		}
 
-		boolean isVisible() {
+		private boolean isVisible() {
 			return bounds != null;
 		}
 
-		void type(@CheckForNull String key) {
+		private void type(@CheckForNull String key) {
 			if (key == null) {
 				return;
 			}
 			KeyboardInputAdapter.type(cellEditor.getMathField(), key);
 		}
 
-		void commitInput() {
+		private void commitInput() {
 			if (mathFieldAdapter != null) {
 				mathFieldAdapter.commitInput();
 			}
 			previousCellContent = null;
 		}
 
-		void discardInput() {
+		private void discardInput() {
 			// restore previous cell content
 			tabularData.setContent(row, column, previousCellContent);
 			previousCellContent = null;
 		}
 
-		boolean isComputedCell() {
+		private boolean isComputedCell() {
 			return cellEditor.getMathField().getText().startsWith("=");
 		}
 
-		void updateReference(String reference) {
-			Predicate<MathCharacter> predicate =
+		/**
+		 * @param expressionReader ExpressionReader
+		 * @return The serialized, textual content of the cell editor.
+		 * If the {@code expressionReader} is undefined, simply returns the plain text content.
+		 */
+		private @Nonnull String getEditorContent(@CheckForNull ExpressionReader expressionReader) {
+			if (expressionReader != null) {
+				return ScreenReaderSerializer.fullDescription(
+						cellEditor.getMathField().getFormula().getRootNode(),
+						expressionReader.getAdapter());
+			}
+			return cellEditor.getMathField().getText();
+		}
+
+		private void updateReference(String reference) {
+			Predicate<CharacterNode> predicate =
 					w -> w.isCharacter() || ":".equals(w.getUnicodeString());
 			String[] parts = reference.split(":");
 			String startCell = parts[0].trim();
 			String endCell = parts.length > 1 ? parts[1].trim() : startCell;
-			String currentWord = cellEditor.getMathField()
+
+			MathFieldInternal mfi = cellEditor.getMathField();
+			String currentWord = mfi
 					.getCharactersLeftOfCursorMatching(predicate);
+			KeyboardInputAdapter.ensureTrailingCommaAsOperator(mfi.getEditorState(), currentWord);
 			boolean spaceNeeded = !currentWord.isEmpty();
+
 			if (currentWord.endsWith(":" + endCell)
 					|| currentWord.startsWith(startCell + ":")
 					|| currentWord.equals(endCell) || currentWord.equals(startCell)) {
-				cellEditor.getMathField().deleteCurrentCharSequence(
-						predicate);
+				mfi.deleteCurrentCharSequence(predicate);
 				spaceNeeded = false;
 			}
+
 			type(spaceNeeded ? " " + reference : reference);
 		}
 
 		private @CheckForNull String getCurrentCellRangeCandidate() {
-			Predicate<MathCharacter> predicate =
-					w -> w.isCharacter() || ":".equals(w.getUnicodeString());
+			Predicate<CharacterNode> predicate =
+					w -> (w.isCharacter() && !",".equals(w.getUnicodeString()))
+							|| ":".equals(w.getUnicodeString());
 			String candidate = cellEditor.getMathField()
 					.getCharactersAroundCursorMatching(predicate);
 			return candidate == null || candidate.isEmpty() ? null : candidate;

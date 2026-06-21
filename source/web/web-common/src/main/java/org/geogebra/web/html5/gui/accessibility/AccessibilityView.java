@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.html5.gui.accessibility;
 
 import java.util.ArrayList;
@@ -20,6 +36,7 @@ import org.geogebra.common.kernel.geos.ScreenReaderBuilder;
 import org.geogebra.common.kernel.kernelND.GeoPointND;
 import org.geogebra.common.main.App;
 import org.geogebra.web.html5.gui.BaseWidgetFactory;
+import org.geogebra.web.html5.gui.util.Dom;
 import org.geogebra.web.html5.main.AppW;
 import org.geogebra.web.html5.util.sliderPanel.SliderW;
 import org.gwtproject.dom.client.Element;
@@ -33,6 +50,7 @@ import elemental2.dom.DomGlobal;
  * View for representation of geo elements as hidden DOM controls
  */
 public class AccessibilityView implements View {
+	public static final String CLASSNAME = "accessibilityView";
 	private final BaseWidgetFactory sliderFactory;
 	private final FlowPanel controls;
 	private final Map<GeoElement, AccessibleWidget> widgets;
@@ -50,7 +68,7 @@ public class AccessibilityView implements View {
 	public AccessibilityView(final AppW app, BaseWidgetFactory sliderFactory) {
 		this.app = app;
 		this.controls = sliderFactory.newPanel();
-		controls.setStyleName("accessibilityView");
+		controls.setStyleName(CLASSNAME);
 		this.sliderFactory = sliderFactory;
 		widgets = new HashMap<>();
 		app.getKernel().attach(this);
@@ -305,6 +323,14 @@ public class AccessibilityView implements View {
 				((AccessibleDropDown) widget).close();
 			}
 		}
+	}
+
+	/**
+	 * @return whether keyboard focus is in this view
+	 */
+	public boolean isFocused() {
+		Element activeElement = Dom.getActiveElement();
+		return controls.getElement().isOrHasChild(activeElement);
 	}
 
 	/**

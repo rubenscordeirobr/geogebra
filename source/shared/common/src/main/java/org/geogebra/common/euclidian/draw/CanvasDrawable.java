@@ -1,5 +1,22 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian.draw;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.awt.GDimension;
 import org.geogebra.common.awt.GFont;
@@ -8,11 +25,11 @@ import org.geogebra.common.awt.GPoint;
 import org.geogebra.common.awt.GRectangle;
 import org.geogebra.common.euclidian.Drawable;
 import org.geogebra.common.euclidian.EuclidianStatic;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.geos.GeoInputBox;
 import org.geogebra.common.kernel.geos.TextProperties;
 import org.geogebra.common.main.App;
+import org.geogebra.common.main.GeoGebraColorConstants;
 import org.geogebra.common.util.StringUtil;
 
 /**
@@ -83,10 +100,10 @@ public abstract class CanvasDrawable extends Drawable {
 		// eg $\math{x}$ for nice x
 		boolean serif = shouldBeSerif(text, geo0, isContentOfInputBox);
 
-		GDimension ret = app.getDrawEquation().drawEquation(app, geo0, g2, x, y,
-				text,
-				font, serif, geo.getObjectColor(), geo.getBackgroundColor(),
-				false, false, view.getCallBack(geo, firstCall));
+		GDimension ret = app.getDrawEquation().drawEquation(app, geo0, g2, x, y, text, font, serif,
+				geo.usesDisabledStyle(null)
+						? GeoGebraColorConstants.NEUTRAL_500 : geo.getObjectColor(),
+				geo.getBackgroundColor(), false, false, view.getCallBack(geo, firstCall));
 		firstCall = false;
 		return ret;
 	}

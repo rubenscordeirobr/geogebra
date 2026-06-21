@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.draw;
 
 import java.util.ArrayList;
@@ -111,28 +127,18 @@ public class DrawQuadric3D extends Drawable3DSurfaces implements Previewable {
 
 	@Override
 	public void drawGeometryHidden(Renderer renderer) {
-		switch (((GeoQuadric3D) getGeoElement()).getType()) {
-		default:
-			// do nothing
-			break;
-		case GeoQuadricNDConstants.QUADRIC_LINE:
+		if (((GeoQuadric3D) getGeoElement()).getType() == GeoQuadricNDConstants.QUADRIC_LINE) {
 			initDrawLine((GeoQuadric3D) getGeoElement());
 			drawLine.drawGeometryHidden(renderer);
-			break;
 		}
 	}
 
 	@Override
 	public void drawOutline(Renderer renderer) {
 		if (isVisible()) {
-			switch (((GeoQuadric3D) getGeoElement()).getType()) {
-			default:
-				// do nothing
-				break;
-			case GeoQuadricNDConstants.QUADRIC_LINE:
+			if (((GeoQuadric3D) getGeoElement()).getType() == GeoQuadricNDConstants.QUADRIC_LINE) {
 				initDrawLine((GeoQuadric3D) getGeoElement());
 				drawLine.drawOutline(renderer);
-				break;
 			}
 		}
 
@@ -241,7 +247,7 @@ public class DrawQuadric3D extends Drawable3DSurfaces implements Previewable {
 	 * @author mathieu
 	 *
 	 */
-	private static enum Visible {
+	private enum Visible {
 		/** the quadric is totally outside */
 		TOTALLY_OUTSIDE,
 		/** the quadric is totally inside */
@@ -473,18 +479,18 @@ public class DrawQuadric3D extends Drawable3DSurfaces implements Previewable {
 
 	private void updateEllipsoid(GeoQuadric3D quadric, Renderer renderer) {
 		setPackSurface();
-		Coords center = quadric.getMidpoint3D();
-		double r0 = quadric.getHalfAxis(0);
-		double r1 = quadric.getHalfAxis(1);
-		double r2 = quadric.getHalfAxis(2);
 		PlotterSurface surface = renderer.getGeometryManager().getSurface();
 		surface.start(getReusableSurfaceIndex());
 		scale = getView3D().getMaxScale();
+		double r0 = quadric.getHalfAxis(0);
+		double r1 = quadric.getHalfAxis(1);
+		double r2 = quadric.getHalfAxis(2);
 		double radius = Math.max(r0, Math.max(r1, r2));
 		longitude = surface.calcSphereLongitudesNeeded(radius, scale);
 		Coords ev0 = quadric.getEigenvec3D(0);
 		Coords ev1 = quadric.getEigenvec3D(1);
 		Coords ev2 = quadric.getEigenvec3D(2);
+		Coords center = quadric.getMidpoint3D();
 		surface.drawEllipsoid(center, ev0, ev1, ev2, r0, r1, r2, longitude);
 		setSurfaceIndex(surface.end());
 		endPacking();
@@ -497,16 +503,16 @@ public class DrawQuadric3D extends Drawable3DSurfaces implements Previewable {
 			updateCylinder(quadric, renderer);
 			return;
 		}
-		Coords center = quadric.getMidpoint3D();
-		double r0 = quadric.getHalfAxis(0);
-		double r1 = quadric.getHalfAxis(1);
 		PlotterSurface surface = renderer.getGeometryManager().getSurface();
 		setPackSurface();
 		surface.start(getReusableSurfaceIndex());
+		initVminMax();
+		Coords center = quadric.getMidpoint3D();
+		double r0 = quadric.getHalfAxis(0);
+		double r1 = quadric.getHalfAxis(1);
 		Coords ev0 = quadric.getEigenvec3D(0);
 		Coords ev1 = quadric.getEigenvec3D(1);
 		Coords ev2 = quadric.getEigenvec3D(2);
-		initVminMax();
 		getView3D().getMinIntervalOutsideClipping(vMinMax, center, ev2.mul(r2));
 		scale = getView3D().getMaxScale();
 		// get radius at max
@@ -562,22 +568,22 @@ public class DrawQuadric3D extends Drawable3DSurfaces implements Previewable {
 
 	private void updateHyperboloidTwoSheets(GeoQuadric3D quadric,
 			Renderer renderer) {
-		double min, max;
-		Coords center = quadric.getMidpoint3D();
-		double r0 = quadric.getHalfAxis(0);
-		double r1 = quadric.getHalfAxis(1);
-		double r2 = quadric.getHalfAxis(2);
 		setPackSurface();
 		PlotterSurface surface = renderer.getGeometryManager().getSurface();
 		surface.start(getReusableSurfaceIndex());
 		Coords ev2 = quadric.getEigenvec3D(2);
 		initVminMax();
+		Coords center = quadric.getMidpoint3D();
+		double r0 = quadric.getHalfAxis(0);
+		double r1 = quadric.getHalfAxis(1);
+		double r2 = quadric.getHalfAxis(2);
 		getView3D().getMinIntervalOutsideClipping(vMinMax, center, ev2.mul(r2));
 		scale = getView3D().getMaxScale();
 		// get radius at max
 		double radius = Math.max(r0, r1)
 				* Math.max(Math.abs(vMinMax[0]), Math.abs(vMinMax[1])) / r2;
 		longitude = surface.calcSphereLongitudesNeeded(radius, scale);
+		double min, max;
 		if (vMinMax[0] < -1) { // bottom exists
 			min = -DrawConic3D.acosh(-vMinMax[0]);
 		} else if (vMinMax[0] <= 1) { // top ends at pole
@@ -601,12 +607,10 @@ public class DrawQuadric3D extends Drawable3DSurfaces implements Previewable {
 	}
 
 	private void updateParaboloid(GeoQuadric3D quadric, Renderer renderer) {
-		Coords center = quadric.getMidpoint3D();
-		double r0 = quadric.getHalfAxis(0);
-		double r1 = quadric.getHalfAxis(1);
 		PlotterSurface surface = renderer.getGeometryManager().getSurface();
 		setPackSurface();
 		surface.start(getReusableSurfaceIndex());
+		initVminMax();
 		Coords ev0 = quadric.getEigenvec3D(0);
 		Coords ev1 = quadric.getEigenvec3D(1);
 		Coords ev2 = quadric.getEigenvec3D(2);
@@ -614,7 +618,9 @@ public class DrawQuadric3D extends Drawable3DSurfaces implements Previewable {
 			ev0 = ev0.mul(-1);
 			ev2 = ev2.mul(-1);
 		}
-		initVminMax();
+		Coords center = quadric.getMidpoint3D();
+		double r0 = quadric.getHalfAxis(0);
+		double r1 = quadric.getHalfAxis(1);
 		getView3D().getMinIntervalOutsideClipping(vMinMax, center, ev2);
 		if (vMinMax[1] < 0) {
 			// nothing to draw
@@ -639,19 +645,19 @@ public class DrawQuadric3D extends Drawable3DSurfaces implements Previewable {
 
 	private void updateParabolicCylinder(GeoQuadric3D quadric,
 			Renderer renderer) {
-		Coords center = quadric.getMidpoint3D();
-		double r2 = quadric.getHalfAxis(2);
 		PlotterSurface surface = renderer.getGeometryManager().getSurface();
 		setPackSurface();
 		surface.start(getReusableSurfaceIndex());
-		Coords ev0 = quadric.getEigenvec3D(0);
-		Coords ev1 = quadric.getEigenvec3D(1);
-		Coords ev2 = quadric.getEigenvec3D(2);
 		if (vMinMax == null) {
 			vMinMax = new double[2];
 		}
 		vMinMax[0] = Double.POSITIVE_INFINITY;
 		vMinMax[1] = Double.NEGATIVE_INFINITY;
+		Coords center = quadric.getMidpoint3D();
+		double r2 = quadric.getHalfAxis(2);
+		Coords ev0 = quadric.getEigenvec3D(0);
+		Coords ev1 = quadric.getEigenvec3D(1);
+		Coords ev2 = quadric.getEigenvec3D(2);
 		getView3D().getMinIntervalOutsideClipping(vMinMax, center, ev0);
 		if (quadric instanceof GeoQuadric3DPart) { // simple cylinder
 
@@ -729,21 +735,17 @@ public class DrawQuadric3D extends Drawable3DSurfaces implements Previewable {
 			}
 			vMinMax[0] = Double.POSITIVE_INFINITY;
 			vMinMax[1] = Double.NEGATIVE_INFINITY;
+			boundsMin.set(Double.POSITIVE_INFINITY);
+			boundsMax.set(Double.NEGATIVE_INFINITY);
 			getMinMax(vMinMax);
-			double min = vMinMax[0];
-			double max = vMinMax[1];
-			// min -= delta;
-			// max += delta;
-			// Log.debug(min+","+max);
+			final double min = vMinMax[0];
+			final double max = vMinMax[1];
 			Coords center = quadric.getMidpoint3D();
 			Coords ev1 = quadric.getEigenvec3D(0);
 			Coords ev2 = quadric.getEigenvec3D(1);
 			Coords ev3 = quadric.getEigenvec3D(2);
 			double r1 = quadric.getHalfAxis(0);
 			double r2 = quadric.getHalfAxis(1);
-
-			boundsMin.set(Double.POSITIVE_INFINITY);
-			boundsMax.set(Double.NEGATIVE_INFINITY);
 			if (min * max < 0) {
 				if (getView3D().useClippingCube()) {
 					Coords bottomCenter = surface.cone(center, ev1, ev2,
@@ -798,10 +800,6 @@ public class DrawQuadric3D extends Drawable3DSurfaces implements Previewable {
 
 	private void updateHyperbolicCylinder(GeoQuadric3D quadric,
 			Renderer renderer) {
-		Coords center = quadric.getMidpoint3D();
-		double r0 = quadric.getHalfAxis(0);
-
-		Coords ev0 = quadric.getEigenvec3D(0);
 		PlotterSurface surface = renderer.getGeometryManager().getSurface();
 		setPackSurface();
 		surface.start(getReusableSurfaceIndex());
@@ -810,6 +808,9 @@ public class DrawQuadric3D extends Drawable3DSurfaces implements Previewable {
 		}
 		uMinMax[0] = Double.POSITIVE_INFINITY;
 		uMinMax[1] = Double.NEGATIVE_INFINITY;
+		Coords center = quadric.getMidpoint3D();
+		double r0 = quadric.getHalfAxis(0);
+		Coords ev0 = quadric.getEigenvec3D(0);
 		getView3D().getMinIntervalOutsideClipping(uMinMax, center, ev0.mul(r0));
 		double min, max;
 		double radius;
@@ -878,8 +879,6 @@ public class DrawQuadric3D extends Drawable3DSurfaces implements Previewable {
 	}
 
 	private void updateCylinder(GeoQuadric3D quadric, Renderer renderer) {
-		double min, max;
-		double radius, r1, r2;
 		Coords center = quadric.getMidpoint3D();
 		Coords ev1 = quadric.getEigenvec3D(0);
 		Coords ev2 = quadric.getEigenvec3D(1);
@@ -890,7 +889,7 @@ public class DrawQuadric3D extends Drawable3DSurfaces implements Previewable {
 		surface.start(getReusableSurfaceIndex());
 
 		if (quadric instanceof GeoQuadric3DPart) { // simple cylinder
-			radius = quadric.getHalfAxis(0);
+			double radius = quadric.getHalfAxis(0);
 			double radius2 = quadric.getHalfAxis(1);
 			longitude = renderer.getGeometryManager().getLongitude(radius,
 					getView3D().getMaxScale());
@@ -913,11 +912,11 @@ public class DrawQuadric3D extends Drawable3DSurfaces implements Previewable {
 			vMinMax[0] = Double.POSITIVE_INFINITY;
 			vMinMax[1] = Double.NEGATIVE_INFINITY;
 			getMinMax(vMinMax);
-			min = vMinMax[0];
-			max = vMinMax[1];
-			r1 = quadric.getHalfAxis(0);
-			r2 = quadric.getHalfAxis(1);
-			radius = Math.max(r1, r2);
+			final double min = vMinMax[0];
+			final double max = vMinMax[1];
+			double r1 = quadric.getHalfAxis(0);
+			double r2 = quadric.getHalfAxis(1);
+			double radius = Math.max(r1, r2);
 
 			longitude = renderer.getGeometryManager().getLongitude(radius,
 					getView3D().getMaxScale());

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.prover;
 
 import java.math.BigInteger;
@@ -265,7 +281,6 @@ public class AlgoAreConcyclic extends AlgoElement
 			BigInteger[] coords2 = inputPoint2.getExactCoordinates(values);
 			BigInteger[] coords3 = inputPoint3.getExactCoordinates(values);
 			BigInteger[] coords4 = inputPoint4.getExactCoordinates(values);
-			BigInteger[] coords = new BigInteger[1];
 			BigInteger[][] matrix = new BigInteger[4][4];
 			matrix[0][0] = coords1[0].multiply(coords1[2]);
 			matrix[0][1] = coords1[1].multiply(coords1[2]);
@@ -291,9 +306,7 @@ public class AlgoAreConcyclic extends AlgoElement
 					.add(coords4[1].multiply(coords4[1]));
 			matrix[3][3] = coords4[2].multiply(coords4[2]);
 
-			coords[0] = SymbolicParameters.det4(matrix);
-
-			return coords;
+			return new BigInteger[] { SymbolicParameters.det4(matrix)};
 		}
 		throw new NoSymbolicParametersException();
 	}
@@ -305,10 +318,10 @@ public class AlgoAreConcyclic extends AlgoElement
 		}
 		if (inputPoint1 != null && inputPoint2 != null && inputPoint3 != null
 				&& inputPoint4 != null) {
-			PPolynomial[] coords1 = inputPoint1.getPolynomials();
-			PPolynomial[] coords2 = inputPoint2.getPolynomials();
-			PPolynomial[] coords3 = inputPoint3.getPolynomials();
-			PPolynomial[] coords4 = inputPoint4.getPolynomials();
+			final PPolynomial[] coords1 = inputPoint1.getPolynomials();
+			final PPolynomial[] coords2 = inputPoint2.getPolynomials();
+			final PPolynomial[] coords3 = inputPoint3.getPolynomials();
+			final PPolynomial[] coords4 = inputPoint4.getPolynomials();
 			polynomials = new PPolynomial[1];
 			PPolynomial[][] matrix = new PPolynomial[4][4];
 			matrix[0][0] = coords1[0].multiply(coords1[2]);

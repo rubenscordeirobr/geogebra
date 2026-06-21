@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.plugin;
 
 import java.util.HashMap;
@@ -27,16 +43,16 @@ public class Geometry3DGetterSimple implements Geometry3DGetter {
 	private String exportName;
 	private boolean filterGeoNames;
 
-	private static class GeometryStringBuilders {
-		public StringBuilder vsb;
-		public StringBuilder nsb;
-		public StringBuilder csb;
-		public StringBuilder tsb;
-		public GeometryType type;
-		public int index;
-		public int nextShift;
+	private static final class GeometryStringBuilders {
+		private StringBuilder vsb;
+		private StringBuilder nsb;
+		private StringBuilder csb;
+		private StringBuilder tsb;
+		private GeometryType type;
+		private int index;
+		private int nextShift;
 
-		public GeometryStringBuilders(GeometryType type) {
+		GeometryStringBuilders(GeometryType type) {
 			this.type = type;
 			index = 0;
 			nextShift = 0;
@@ -56,18 +72,13 @@ public class Geometry3DGetterSimple implements Geometry3DGetter {
 	public Geometry3DGetterSimple(String name) {
 		geometryStringsMap = new HashMap<>();
 		exportName = name;
-		if (exportName != null && !"".equals(exportName)) {
-			filterGeoNames = true;
-		} else {
-			filterGeoNames = false;
-		}
+		filterGeoNames = exportName != null && !exportName.isEmpty();
 	}
 
 	@Override
 	public boolean handles(GeoElement geo, GeometryType type) {
 		if (filterGeoNames) {
-			boolean ret = exportName.equals(geo.getLabelSimple());
-			return ret;
+			return exportName.equals(geo.getLabelSimple());
 		}
 		return true;
 	}

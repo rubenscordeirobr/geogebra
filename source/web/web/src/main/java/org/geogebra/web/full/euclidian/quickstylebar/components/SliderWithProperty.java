@@ -1,26 +1,42 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.euclidian.quickstylebar.components;
 
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.properties.Property;
 import org.geogebra.common.properties.PropertySupplier;
-import org.geogebra.common.properties.impl.collections.RangePropertyCollection;
+import org.geogebra.common.properties.impl.facade.RangePropertyListFacade;
 import org.geogebra.common.properties.impl.objects.ImageOpacityProperty;
 import org.geogebra.common.properties.impl.objects.OpacityProperty;
 import org.geogebra.common.properties.impl.objects.ThicknessProperty;
 import org.geogebra.web.full.gui.util.LineStylePreview;
 import org.geogebra.web.html5.gui.BaseWidgetFactory;
 import org.geogebra.web.html5.main.AppW;
-import org.geogebra.web.html5.util.sliderPanel.SliderPanelW;
+import org.geogebra.web.html5.util.sliderPanel.SliderW;
 import org.gwtproject.user.client.ui.FlowPanel;
 import org.gwtproject.user.client.ui.Label;
 
 public class SliderWithProperty extends FlowPanel {
 	private final AppW appW;
-	private RangePropertyCollection<?> property;
+	private RangePropertyListFacade<?> property;
 	private final PropertySupplier propertySupplier;
 	private LineStylePreview preview;
 	private Label unitLabel;
-	private SliderPanelW sliderPanel;
+	private SliderW slider;
 	private int rangeValue;
 	private int lineType;
 	private GColor color;
@@ -33,7 +49,7 @@ public class SliderWithProperty extends FlowPanel {
 	 * @param lineType - line type
 	 * @param color - line color
 	 */
-	public SliderWithProperty(AppW appW, RangePropertyCollection<?> property,
+	public SliderWithProperty(AppW appW, RangePropertyListFacade<?> property,
 			PropertySupplier propertySupplier,
 			int lineType, GColor color) {
 		this.appW = appW;
@@ -66,7 +82,7 @@ public class SliderWithProperty extends FlowPanel {
 
 		add(labelPreviewHolder);
 		buildSlider();
-		add(sliderPanel);
+		add(slider);
 	}
 
 	private void addPropertyBasedPreview(FlowPanel parent) {
@@ -86,26 +102,25 @@ public class SliderWithProperty extends FlowPanel {
 	}
 
 	private void buildSlider() {
-		sliderPanel = new SliderPanelW(property.getMin().doubleValue(),
-				property.getMax().doubleValue(), appW.getKernel(), false);
-		sliderPanel.getSlider().addStyleName("slider");
+		slider = new SliderW(property.getMin(), property.getMax());
+		slider.addStyleName("slider");
 		setInitialValue();
-		sliderPanel.getSlider().addValueChangeHandler(event -> {
-			onInputChangeFinished(sliderPanel.getSlider().getValue().intValue());
+		slider.addValueChangeHandler(event -> {
+			onInputChangeFinished(slider.getValue().intValue());
 		});
-		sliderPanel.getSlider().addInputHandler(()
-				-> onInputChange(sliderPanel.getSlider().getValue().intValue()));
+		slider.addInputHandler(()
+				-> onInputChange(slider.getValue().intValue()));
 	}
 
 	private void setInitialValue() {
 		Integer val = property.getValue();
-		sliderPanel.setValue(val.doubleValue());
+		slider.setValue(val.doubleValue());
 		updatePreview();
 	}
 
 	private void onInputChange(int val) {
 		if (!dragging) {
-			property = (RangePropertyCollection<?>) propertySupplier.updateAndGet();
+			property = (RangePropertyListFacade<?>) propertySupplier.updateAndGet();
 			dragging = true;
 			property.beginSetValue();
 		}

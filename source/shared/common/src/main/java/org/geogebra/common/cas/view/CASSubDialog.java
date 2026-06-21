@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.cas.view;
 
 import java.util.ArrayList;
@@ -44,55 +60,6 @@ public abstract class CASSubDialog {
 
 	/** Contains substitution values */
 	protected Vector<Vector<String>> data;
-
-	/**
-	 * Class containing row information
-	 */
-	protected static class SubstituteValue {
-		private String variable;
-		private String value;
-
-		/**
-		 * @param var
-		 *            old expression
-		 * @param val
-		 *            new expression
-		 */
-		public SubstituteValue(String var, String val) {
-			variable = var;
-			value = val;
-		}
-
-		/**
-		 * @return old expression
-		 */
-		public String getVariable() {
-			return variable;
-		}
-
-		/**
-		 * @param var
-		 *            variable
-		 */
-		public void setVariable(String var) {
-			variable = var;
-		}
-
-		/**
-		 * @return new expression
-		 */
-		public String getValue() {
-			return value;
-		}
-
-		/**
-		 * @param val
-		 *            value
-		 */
-		public void setValue(String val) {
-			value = val;
-		}
-	}
 
 	/**
 	 * @param prefix
@@ -193,9 +160,6 @@ public abstract class CASSubDialog {
 	 * @return true iff any substitution applied
 	 */
 	protected boolean apply(String actionCommand) {
-
-		CASTable table = getCASView().getConsoleTable();
-
 		// create substitution list
 		StringBuilder substList = new StringBuilder("{");
 		StringBuilder substComment = new StringBuilder();
@@ -203,7 +167,7 @@ public abstract class CASSubDialog {
 		for (int i = 0; i < data.size(); i++) {
 			String fromExpr = data.get(i).get(0).trim();
 			String toExpr = data.get(i).get(1).trim();
-			if (!"".equals(fromExpr) && !"".equals(toExpr)) {
+			if (!fromExpr.isEmpty() && !toExpr.isEmpty()) {
 				if (substList.length() > 1) {
 					substList.append(',');
 					substComment.append(',');
@@ -238,6 +202,7 @@ public abstract class CASSubDialog {
 		}
 
 		try {
+			CASTable table = getCASView().getConsoleTable();
 			GeoCasCell currCell = table.getGeoCasCell(editRow);
 			StringBuilder oldXML = currCell.getConstruction().getCurrentUndoXML(false);
 			currCell.setProcessingInformation(prefix, subCmd, postfix);

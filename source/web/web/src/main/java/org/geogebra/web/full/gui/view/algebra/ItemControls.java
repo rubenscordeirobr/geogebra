@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.view.algebra;
 
 import org.geogebra.common.gui.SetLabels;
@@ -10,7 +26,6 @@ import org.geogebra.common.util.AsyncOperation;
 import org.geogebra.web.full.css.MaterialDesignResources;
 import org.geogebra.web.full.gui.view.algebra.AnimPanel.AnimPanelListener;
 import org.geogebra.web.full.main.AppWFull;
-import org.geogebra.web.html5.gui.util.AriaHelper;
 import org.geogebra.web.html5.gui.util.Dom;
 import org.geogebra.web.html5.gui.view.button.StandardButton;
 import org.geogebra.web.html5.util.DataTest;
@@ -59,13 +74,14 @@ public class ItemControls extends FlowPanel
 	 */
 	public StandardButton getMoreButton() {
 		if (btnMore == null) {
-			btnMore = new StandardButton(MaterialDesignResources.INSTANCE.more_vert_black(), 24);
+			btnMore = new
+					StandardButton(MaterialDesignResources.INSTANCE.more_vert_black(), 24);
 			btnMore.addStyleName("more");
 			btnMore.addFastClickHandler((event) -> {
 					getController().preventBlur();
 					openMoreMenu();
 			});
-			AriaHelper.setHidden(btnMore, true);
+			btnMore.addKeyActivateHandler(this::openMoreMenu);
 		}
 
 		return btnMore;
@@ -82,6 +98,7 @@ public class ItemControls extends FlowPanel
 		cancelEditItem();
 		closeBurgerMenu();
 		createMoreContextMenu();
+		radioTreeItem.getApplication().hideKeyboard();
 		if (radioTreeItem.isInputTreeItem()) {
 			showMoreMenuForInput();
 		} else {
@@ -373,7 +390,7 @@ public class ItemControls extends FlowPanel
 			cmMore.setLabels();
 		}
 		if (btnMore != null) {
-			btnMore.setAltText(this.radioTreeItem.loc.getMenu("Options"));
+			btnMore.setAltText(this.radioTreeItem.loc.getMenu("More"));
 		}
 		if (animPanel != null) {
 			animPanel.setLabels(this.radioTreeItem.loc);

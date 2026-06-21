@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.main.undo;
 
 import org.geogebra.common.euclidian.DrawableND;
@@ -31,7 +47,10 @@ public class ConstructionActionExecutor
 	public boolean executeAction(ActionType action, String... args) {
 		if (action == ActionType.REMOVE) {
 			for (String arg: args) {
-				app.getKernel().lookupLabel(arg).remove();
+				GeoElement element = app.getKernel().lookupLabel(arg);
+				if (element != null) {
+					element.remove();
+				}
 			}
 		} else if (action == ActionType.ADD) {
 			for (String arg: args) {
@@ -69,7 +88,10 @@ public class ConstructionActionExecutor
 			if (arg.charAt(0) == '<') {
 				evalXML(arg);
 			} else if (arg.startsWith(DEL)) {
-				app.getKernel().lookupLabel(arg.substring(DEL.length())).remove();
+				GeoElement element = app.getKernel().lookupLabel(arg.substring(DEL.length()));
+				if (element != null) {
+					element.remove();
+				}
 			} else if (arg.startsWith(RENAME)) {
 				String[] labels = arg.substring(RENAME.length()).split(" ");
 				app.getKernel().lookupLabel(labels[0]).setLabel(labels[1]);
@@ -82,12 +104,13 @@ public class ConstructionActionExecutor
 		}
 	}
 
-	private void processSetValue(String substring) {
+	private void processSetValue(String definition) {
 		try {
-			ValidExpression ve = app.getKernel().getParser().parseGeoGebraExpression(substring);
+			ValidExpression ve = app.getKernel().getParser().parseGeoGebraExpression(definition);
 			String label = ve.getLabel();
 			ve.setLabel(null);
 			AlgebraProcessor algebraProcessor = app.getKernel().getAlgebraProcessor();
+
 			CmdSetValue.setValue2(app.getKernel().lookupLabel(label),
 					algebraProcessor.processValidExpression(ve, new EvalInfo(false))[0]);
 		} catch (ParseException | MyError | CircularDefinitionException | RuntimeException e) {

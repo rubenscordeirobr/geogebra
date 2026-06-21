@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.commands;
 
 import java.util.ArrayList;
@@ -171,7 +187,7 @@ public class CmdIf extends CommandProcessor {
 	private GeoElement[] specialFunction(Command c, String[] varName,
 			FunctionVariable[] fv, EvalInfo info) {
 		EvalInfo argInfo = info.withLabels(false);
-		boolean oldFlag = kernel.getConstruction().isSuppressLabelsActive();
+		final boolean oldFlag = kernel.getConstruction().isSuppressLabelsActive();
 		kernel.getConstruction().setSuppressLabelCreation(true);
 		ArrayList<FunctionalNVar> conditions = new ArrayList<>();
 		ArrayList<FunctionalNVar> functions = new ArrayList<>();
@@ -226,7 +242,7 @@ public class CmdIf extends CommandProcessor {
 	/**
 	 * If-then-else construct for functions. example: If[ x < 2, x^2, x + 2 ]
 	 */
-	final private GeoElement functionIf(String label,
+	private GeoElement functionIf(String label,
 			ArrayList<FunctionalNVar> conditions,
 			ArrayList<FunctionalNVar> functions, int vars) {
 		FunctionVariable[] fv;

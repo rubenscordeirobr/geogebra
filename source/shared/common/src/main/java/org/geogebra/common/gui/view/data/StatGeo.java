@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.view.data;
 
 import java.util.ArrayList;
@@ -113,7 +129,7 @@ public class StatGeo {
 		}
 		// construction elements created by this method should always be
 		// removed from the construction
-		boolean currentRemoveFromConstructionStatus = removeFromConstruction;
+		final boolean currentRemoveFromConstructionStatus = removeFromConstruction;
 		removeFromConstruction = true;
 
 		// String label = dataList.getLabel();
@@ -231,10 +247,7 @@ public class StatGeo {
 	public GeoElementND createHistogram(GeoList dataList,
 			StatPanelSettings settings, boolean isFrequencyPolygon)
 			throws StatException {
-
-		AlgoElement al = null, algoHistogram = null;
 		histogramRight = !settings.isLeftRule();
-		GeoElementND geo;
 		GeoList valueList = (GeoList) (settings.groupType() == GroupType.RAWDATA ? dataList
 				: dataList.get(0));
 		// determine min/max X values
@@ -244,7 +257,7 @@ public class StatGeo {
 		} else if (settings.groupType() == GroupType.CLASS) {
 			// settings.numClasses = ((GeoList) dataList.get(0)).size();
 		}
-
+		AlgoElement al;
 		// determine class borders
 		if (settings.isUseManualClasses()
 				|| settings.groupType() == GroupType.CLASS) {
@@ -276,7 +289,7 @@ public class StatGeo {
 
 		// ==================
 		// create a histogram and (possibly) a frequency polygon
-
+		AlgoHistogram algoHistogram;
 		if (settings.groupType() == GroupType.RAWDATA) {
 			// histogram constructed from data values
 			algoHistogram = new AlgoHistogram(cons,
@@ -303,10 +316,10 @@ public class StatGeo {
 					"unexpected groupType: " + settings.groupType());
 
 		}
-
+		GeoElement geo;
 		if (isFrequencyPolygon) {
 			AlgoPolyLine al3 = createFrequencyPolygon(
-					(AlgoHistogram) algoHistogram, settings.isCumulative());
+					algoHistogram, settings.isCumulative());
 			geo = al3.getOutput(0);
 			geo.setObjColor(
 					listener.createColor(DataAnalysisModel.OVERLAY_COLOR_IDX));

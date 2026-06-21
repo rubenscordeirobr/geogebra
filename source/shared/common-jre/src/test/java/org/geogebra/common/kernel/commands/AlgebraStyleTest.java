@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+ 
 package org.geogebra.common.kernel.commands;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -30,25 +46,21 @@ import org.geogebra.common.kernel.kernelND.GeoElementND;
 import org.geogebra.common.main.settings.AlgebraStyle;
 import org.geogebra.common.main.settings.config.equationforms.EquationBehaviourStandaloneGraphing;
 import org.geogebra.common.util.IndexHTMLBuilder;
+import org.geogebra.common.util.MyMath;
 import org.geogebra.common.util.StringUtil;
+import org.geogebra.editor.share.util.Unicode;
 import org.geogebra.test.TestErrorHandler;
 import org.geogebra.test.TestStringUtil;
+import org.geogebra.test.annotation.Issue;
 import org.geogebra.test.commands.AlgebraTestHelper;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.himamis.retex.editor.share.util.Unicode;
 
 public class AlgebraStyleTest extends BaseUnitTest {
 	static AppCommon app;
 	static AlgebraProcessor ap;
 
-	private static class ExpressionChecker {
-		private final String def;
-
-		private ExpressionChecker(String def) {
-			this.def = def;
-		}
+	private record ExpressionChecker(String def) {
 
 		private ExpressionChecker checkEditAndVal(String expectDef) {
 			checkVal(expectDef);
@@ -74,7 +86,7 @@ public class AlgebraStyleTest extends BaseUnitTest {
 		}
 
 		private ExpressionChecker check(String def, String expect, StringTemplate tpl,
-										boolean val) {
+				boolean val) {
 			GeoElementND[] geo = ap.processAlgebraCommandNoExceptionHandling(def,
 					false, TestErrorHandler.INSTANCE, new EvalInfo(true, true),
 					null);
@@ -264,8 +276,9 @@ public class AlgebraStyleTest extends BaseUnitTest {
 				"X = (-1, 2) + (-0.5 t, -0.25 t^2)");
 		checkEquation("y^2=x +x -1+y", QuadraticEquationRepresentable.Form.PARAMETRIC,
 				"X = (0.38, 0.5) + (0.5 t^2, t)");
+		getApp().setRounding("5d");
 		checkEquation("(x+y)^2=x +x -1+y", QuadraticEquationRepresentable.Form.PARAMETRIC,
-				"X = (0.81, -0.06) + (0.06 t^2 + 0.13 t, -0.06 t^2 + 0.13 t)");
+				"X = (0.8125, -0.0625) + (0.0625 t^2 + 0.125 t, -0.0625 t^2 + 0.125 t)");
 	}
 
 	@Test
@@ -826,5 +839,67 @@ public class AlgebraStyleTest extends BaseUnitTest {
 		getKernel().setPrintDecimals(2);
 		small = add("0.0001");
 		assertTrue(small.isEngineeringNotationMode());
+	}
+
+	@Test
+	@Issue("APPS-7345")
+	public void largeNumberInDecimalModeFormatsAsScientific() {
+		getKernel().setPrintDecimals(2);
+		assertEquals("1 " + Unicode.CENTER_DOT + " 10"
+						+ Unicode.SUPERSCRIPT_1 + Unicode.SUPERSCRIPT_6,
+				getKernel().format(1E16, StringTemplate.defaultTemplate));
+	}
+
+	@Test
+	@Issue("APPS-7345")
+	public void largeNumberTrailingZerosTrimmed() {
+		getKernel().setPrintDecimals(2);
+		assertEquals("1.5 " + Unicode.CENTER_DOT + " 10"
+						+ Unicode.SUPERSCRIPT_1 + Unicode.SUPERSCRIPT_6,
+				getKernel().format(1.5E16, StringTemplate.defaultTemplate));
+	}
+
+	@Test
+	@Issue("APPS-7345")
+	public void largeNumberShowsFifteenSignificantDigits() {
+		getKernel().setPrintDecimals(2);
+		assertEquals("9.00719925474099 " + Unicode.CENTER_DOT + " 10"
+						+ Unicode.SUPERSCRIPT_1 + Unicode.SUPERSCRIPT_5,
+				getKernel().format(MyMath.LARGEST_INTEGER, StringTemplate.defaultTemplate));
+	}
+
+	@Test
+	@Issue("APPS-7345")
+	public void negativeLargeNumberFormatsAsScientific() {
+		getKernel().setPrintDecimals(2);
+		assertEquals("-2 " + Unicode.CENTER_DOT + " 10"
+						+ Unicode.SUPERSCRIPT_1 + Unicode.SUPERSCRIPT_6,
+				getKernel().format(-2E16, StringTemplate.defaultTemplate));
+	}
+
+	@Test
+	@Issue("APPS-7345")
+	public void largeNumberInSignificantFiguresModePreservesTrailingZeros() {
+		getKernel().setPrintFigures(5);
+		assertEquals("1.5000 " + Unicode.CENTER_DOT + " 10"
+						+ Unicode.SUPERSCRIPT_1 + Unicode.SUPERSCRIPT_6,
+				getKernel().format(1.5E16, StringTemplate.defaultTemplate));
+	}
+
+	@Test
+	@Issue("APPS-7345")
+	public void justBelowThresholdNotFormattedAsScientific() {
+		getKernel().setPrintDecimals(2);
+		String result = getKernel().format(
+				MyMath.LARGEST_INTEGER - 1, StringTemplate.defaultTemplate);
+		assertFalse(result.contains(Unicode.CENTER_DOT + ""));
+	}
+
+	@Test
+	@Issue("APPS-7345")
+	public void largeNumberInLatexTemplateFormatsCorrectly() {
+		getKernel().setPrintDecimals(2);
+		assertEquals("1.5 \\cdot 10^{16}",
+				getKernel().format(1.5E16, StringTemplate.latexTemplate));
 	}
 }

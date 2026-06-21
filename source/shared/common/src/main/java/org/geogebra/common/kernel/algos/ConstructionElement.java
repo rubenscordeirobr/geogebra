@@ -1,19 +1,26 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.algos;
 
 import java.util.TreeSet;
 
+import javax.annotation.Nonnull;
+
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.GTemplate;
 import org.geogebra.common.kernel.Kernel;
@@ -34,10 +41,10 @@ public abstract class ConstructionElement
 
 	/** parent construction of this element */
 	@Weak
-	public transient Construction cons;
+	public transient @Nonnull Construction cons;
 	/** parent kernel of this element */
 	@Weak
-	public transient Kernel kernel;
+	public transient @Nonnull Kernel kernel;
 
 	private int constIndex = -1; // index in construction list
 
@@ -50,16 +57,17 @@ public abstract class ConstructionElement
 	 * @param c
 	 *            construction
 	 */
-	public ConstructionElement(final Construction c) {
+	public ConstructionElement(@Nonnull Construction c) {
 		ceID = c.getApplication().getNextCeIDcounter();
-		setConstruction(c);
+		cons = c;
+		kernel = c.getKernel();
 	}
 
 	/**
 	 * @param c
 	 *            new construction
 	 */
-	public void setConstruction(final Construction c) {
+	public final void setConstruction(@Nonnull Construction c) {
 		cons = c;
 		kernel = c.getKernel();
 	}
@@ -67,14 +75,14 @@ public abstract class ConstructionElement
 	/**
 	 * @return construction this element belongs to
 	 */
-	public Construction getConstruction() {
+	public final @Nonnull Construction getConstruction() {
 		return cons;
 	}
 
 	/**
 	 * @return kernel
 	 */
-	public final Kernel getKernel() {
+	public final @Nonnull Kernel getKernel() {
 		return kernel;
 	}
 
@@ -162,7 +170,7 @@ public abstract class ConstructionElement
 	 * @param sb
 	 *            string builder
 	 */
-	public abstract void getXML(boolean getListenersToo, StringBuilder sb);
+	public abstract void getXML(boolean getListenersToo, XMLStringBuilder sb);
 
 	/**
 	 * Returns XML representation of this object. OGP format.
@@ -170,7 +178,7 @@ public abstract class ConstructionElement
 	 * @param sb
 	 *            string builder
 	 */
-	public void getXML_OGP(StringBuilder sb) {
+	public void getXML_OGP(XMLStringBuilder sb) {
 		getXML(false, sb);
 	}
 

@@ -1,19 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * AlgoRotatePoint.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 24. September 2001, 21:37
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.algos;
@@ -237,7 +235,6 @@ public class AlgoRotatePoint extends AlgoTransformation
 			 */
 			double angleDoubleVal = angle.getDouble();
 			double angleDoubleValDeg = angleDoubleVal / Math.PI * 180;
-			int angleValDeg = (int) angleDoubleValDeg;
 			if (!DoubleUtil.isInteger(angleDoubleValDeg)) {
 				// unhandled angle, not an integer degree
 				throw new NoSymbolicParametersException();
@@ -251,7 +248,7 @@ public class AlgoRotatePoint extends AlgoTransformation
 			PPolynomial a_2 = new PPolynomial(botanaVars[1]);
 			PPolynomial t1 = new PPolynomial(botanaVars[6]);
 			PPolynomial t2 = new PPolynomial(botanaVars[7]);
-
+			int angleValDeg = (int) angleDoubleValDeg;
 			angleValDeg %= 360;
 			if (angleValDeg < 0) {
 				angleValDeg += 360; // be non-negative

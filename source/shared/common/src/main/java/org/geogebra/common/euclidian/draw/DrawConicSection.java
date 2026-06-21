@@ -1,5 +1,22 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian.draw;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GAffineTransform;
 import org.geogebra.common.awt.GArc2D;
 import org.geogebra.common.awt.GGeneralPath;
@@ -10,7 +27,6 @@ import org.geogebra.common.awt.GShape;
 import org.geogebra.common.euclidian.EuclidianView;
 import org.geogebra.common.euclidian.GeneralPathClipped;
 import org.geogebra.common.euclidian.clipping.ClipShape;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.kernel.kernelND.GeoConicND;
 import org.geogebra.common.kernel.kernelND.GeoConicSectionInterface;
 import org.geogebra.common.kernel.matrix.Coords;
@@ -95,7 +111,7 @@ public class DrawConicSection extends DrawConic {
 	 *            angle parameter
 	 * @return ellipse point
 	 */
-	public static final Coords ellipsePoint(Coords m, Coords ev0, Coords ev1,
+	public static Coords ellipsePoint(Coords m, Coords ev0, Coords ev1,
 			double r0, double r1, double parameter) {
 		return m.copy().addInsideMul(ev0, r0 * Math.cos(parameter))
 				.addInsideMul(ev1, r1 * Math.sin(parameter));
@@ -105,8 +121,7 @@ public class DrawConicSection extends DrawConic {
 	 * draw an edge of the ellipse (if not all in the view)
 	 */
 	private void updateEllipseEdge() {
-
-		Coords m = conic.getMidpoint3D();
+		final Coords m = conic.getMidpoint3D();
 		Coords ev0 = conic.getEigenvec3D(0);
 		Coords ev1 = conic.getEigenvec3D(1);
 		double r0 = conic.getHalfAxis(0);
@@ -218,9 +233,6 @@ public class DrawConicSection extends DrawConic {
 			}
 		}
 
-		// check for huge pixel radius
-		double xradius = halfAxes[0] * view.getXscale();
-		double yradius = halfAxes[1] * view.getYscale();
 		/*
 		 * if (xradius > DrawConic.HUGE_RADIUS || yradius >
 		 * DrawConic.HUGE_RADIUS) { isVisible = false; return; }
@@ -231,8 +243,8 @@ public class DrawConicSection extends DrawConic {
 			arc = AwtFactory.getPrototype().newArc2D();
 		}
 
-		Double extent0 = getExtent(0);
-		Double start1 = getStart(1);
+		double extent0 = getExtent(0);
+		double start1 = getStart(1);
 
 		// set the arc type : if one hole, add chord to close the arc, if two
 		// holes, let arcs open
@@ -271,6 +283,8 @@ public class DrawConicSection extends DrawConic {
 		setTransform(M);
 
 		// BIG RADIUS: larger than screen diagonal
+		double xradius = halfAxes[0] * view.getXscale();
+		double yradius = halfAxes[1] * view.getYscale();
 		int BIG_RADIUS = view.getWidth() + view.getHeight(); // > view's
 																// diagonal
 		if (xradius < BIG_RADIUS && yradius < BIG_RADIUS) {
@@ -486,8 +500,7 @@ public class DrawConicSection extends DrawConic {
 
 	@Override
 	protected void updateHyperbolaEdge() {
-
-		Coords m = conic.getMidpoint3D();
+		final Coords m = conic.getMidpoint3D();
 		Coords ev1 = conic.getEigenvec3D(0);
 		Coords ev2 = conic.getEigenvec3D(1);
 		double e1 = conic.getHalfAxis(0);
@@ -572,7 +585,7 @@ public class DrawConicSection extends DrawConic {
 
 	@Override
 	protected void updateHyperbolaSetShape() {
-		fillShape = hyp;
+		fillShape = hyp.getGeneralPath();
 	}
 
 	@Override

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.inputfield;
 
 import java.util.ArrayList;
@@ -16,9 +32,9 @@ import org.geogebra.common.main.App;
 import org.geogebra.common.main.error.ErrorHandler;
 import org.geogebra.common.plugin.Operation;
 import org.geogebra.common.util.StringUtil;
+import org.geogebra.editor.share.util.Unicode;
 
 import com.google.j2objc.annotations.Weak;
-import com.himamis.retex.editor.share.util.Unicode;
 
 /**
  * Utility class with methods for converting a GeoText string into a list of
@@ -34,10 +50,8 @@ import com.himamis.retex.editor.share.util.Unicode;
  * 
  */
 public class DynamicTextProcessor {
-
 	@Weak
 	private final App app;
-
 	private final ArrayList<DynamicTextElement> dList;
 
 	/**
@@ -60,7 +74,6 @@ public class DynamicTextProcessor {
 	 *         GeoText
 	 */
 	public ArrayList<DynamicTextElement> buildDynamicTextList(GeoText geo) {
-
 		dList.clear();
 
 		if (geo == null) {
@@ -82,7 +95,6 @@ public class DynamicTextProcessor {
 		// parse the root and set the text content
 		this.splitString(root, dList);
 		return dList;
-
 	}
 
 	/**
@@ -96,7 +108,6 @@ public class DynamicTextProcessor {
 	 */
 	private void splitString(ExpressionNode en,
 			ArrayList<DynamicTextElement> dynList) {
-
 		ExpressionValue left = en.getLeft();
 		ExpressionValue right = en.getRight();
 		StringTemplate tpl = StringTemplate.defaultTemplate;
@@ -123,7 +134,6 @@ public class DynamicTextProcessor {
 
 		// STANDARD case: no leaf
 		else {
-
 			if (right != null && isNotSplittable(en)) {
 				// neither left nor right are free texts, eg a+3 in
 				// (a+3)+"hello"
@@ -164,7 +174,6 @@ public class DynamicTextProcessor {
 				}
 			}
 		}
-
 	}
 
 	/**
@@ -178,7 +187,6 @@ public class DynamicTextProcessor {
 	 * @return DynamicText instance
 	 */
 	private DynamicTextElement createDynamicTextElement(String text) {
-
 		String contentString = text;
 		DynamicTextType type = DynamicTextType.VALUE;
 		String prefix;
@@ -230,7 +238,6 @@ public class DynamicTextProcessor {
 	 */
 	public String buildGeoGebraString(List<DynamicTextElement> list,
 			boolean latex) {
-
 		if (list == null || list.isEmpty()) {
 			return "";
 		}
@@ -277,7 +284,6 @@ public class DynamicTextProcessor {
 		sb.append('"');
 
 		return sb.toString();
-
 	}
 
 	/**

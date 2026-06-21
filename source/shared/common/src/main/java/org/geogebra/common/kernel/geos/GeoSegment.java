@@ -1,17 +1,22 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.geos;
 
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.MyPoint;
@@ -60,18 +65,19 @@ final public class GeoSegment extends GeoLine
 	/**
 	 * Returns array of all decoration types
 	 * 
-	 * @see GeoElementND#SEGMENT_DECORATION_ONE_TICK etc.
+	 * @see GeoElementND#DECORATION_SEGMENT_ONE_TICK etc.
 	 * @return array of all decoration types
 	 */
 	public static Integer[] getDecoTypes() {
-		Integer[] ret = { Integer.valueOf(GeoElementND.DECORATION_NONE),
-				Integer.valueOf(GeoElementND.DECORATION_SEGMENT_ONE_TICK),
-				Integer.valueOf(GeoElementND.DECORATION_SEGMENT_TWO_TICKS),
-				Integer.valueOf(GeoElementND.DECORATION_SEGMENT_THREE_TICKS),
-				Integer.valueOf(GeoElementND.DECORATION_SEGMENT_ONE_ARROW),
-				Integer.valueOf(GeoElementND.DECORATION_SEGMENT_TWO_ARROWS),
-				Integer.valueOf(GeoElementND.DECORATION_SEGMENT_THREE_ARROWS) };
-		return ret;
+		return new Integer[] {
+				GeoElementND.DECORATION_NONE,
+				GeoElementND.DECORATION_SEGMENT_ONE_TICK,
+				GeoElementND.DECORATION_SEGMENT_TWO_TICKS,
+				GeoElementND.DECORATION_SEGMENT_THREE_TICKS,
+				GeoElementND.DECORATION_SEGMENT_ONE_ARROW,
+				GeoElementND.DECORATION_SEGMENT_TWO_ARROWS,
+				GeoElementND.DECORATION_SEGMENT_THREE_ARROWS
+		};
 	}
 
 	@Override
@@ -454,18 +460,13 @@ final public class GeoSegment extends GeoLine
 	 * returns all class-specific xml tags for saveXML
 	 */
 	@Override
-	protected void getStyleXML(StringBuilder sb) {
+	protected void getStyleXML(XMLStringBuilder sb) {
 		super.getStyleXML(sb);
 
-		// allowOutlyingIntersections
-		sb.append("\t<outlyingIntersections val=\"");
-		sb.append(allowOutlyingIntersections);
-		sb.append("\"/>\n");
-
-		// keepTypeOnGeometricTransform
-		sb.append("\t<keepTypeOnTransform val=\"");
-		sb.append(keepTypeOnGeometricTransform);
-		sb.append("\"/>\n");
+		sb.startTag("outlyingIntersections")
+				.attr("val", allowOutlyingIntersections).endTag();
+		sb.startTag("keepTypeOnTransform")
+				.attr("val", keepTypeOnGeometricTransform).endTag();
 
 		appendStartEndStyle(sb);
 	}

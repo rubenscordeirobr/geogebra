@@ -1,8 +1,26 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import javax.annotation.CheckForNull;
 
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.awt.GFont;
@@ -32,7 +50,7 @@ import org.geogebra.common.main.MyError;
 import org.geogebra.common.main.MyError.Errors;
 import org.geogebra.common.main.settings.EuclidianSettings;
 import org.geogebra.common.main.settings.LabelVisibility;
-import org.geogebra.common.util.AsyncOperation;
+import org.geogebra.common.util.Box;
 import org.geogebra.common.util.debug.Log;
 
 public class EuclidianStyleBarStatic {
@@ -49,9 +67,9 @@ public class EuclidianStyleBarStatic {
 	 *            fixed
 	 * @param ev
 	 *            view
-	 * @return new geoo if redefinition was needed
+	 * @return new geo if redefinition was needed
 	 */
-	public static GeoElement applyFixPosition(List<GeoElement> geos,
+	public static @CheckForNull GeoElement applyFixPosition(List<GeoElement> geos,
 			boolean flag, EuclidianViewInterfaceCommon ev) {
 		GeoElement ret = geos.get(0);
 		App app = geos.get(0).getKernel().getApplication();
@@ -226,28 +244,21 @@ public class EuclidianStyleBarStatic {
 	 *            new definition
 	 * @return redefined geo
 	 */
-	public static GeoElement redefineGeo(GeoElement geo, String cmdtext) {
-		GeoElement newGeo = null;
-
-		final App app = geo.getKernel().getApplication();
-
+	public static @CheckForNull GeoElement redefineGeo(GeoElement geo, String cmdtext) {
 		if (cmdtext == null) {
-			return newGeo;
+			return null;
 		}
-
 		Log.debug("redefining " + geo + " as " + cmdtext);
-
+		final App app = geo.getKernel().getApplication();
+		Box<GeoElementND> newGeo = new Box<>(null);
 		try {
 			app.getKernel().getAlgebraProcessor().changeGeoElement(geo, cmdtext,
 					true, true, app.getDefaultErrorHandler(),
-					new AsyncOperation<GeoElementND>() {
-
-						@Override
-						public void callback(GeoElementND newGeo1) {
-							if (newGeo1 != null) {
-								app.doAfterRedefine(newGeo1);
-								newGeo1.updateRepaint();
-							}
+					newGeo1 -> {
+						newGeo.value = newGeo1;
+						if (newGeo1 != null) {
+							app.doAfterRedefine(newGeo1);
+							newGeo1.updateRepaint();
 						}
 					});
 
@@ -256,7 +267,10 @@ public class EuclidianStyleBarStatic {
 		} catch (MyError err) {
 			app.showError(err);
 		}
-		return newGeo;
+		if (newGeo.value instanceof GeoElement result) {
+			return result;
+		}
+		return null;
 	}
 
 	/**
@@ -299,16 +313,10 @@ public class EuclidianStyleBarStatic {
 	public static void applyTableTextFormat(List<GeoElement> geos,
 			String justify, boolean hSelected, boolean vSelected, int index,
 			App app) {
-
-		AlgoElement algo;
-		GeoElement[] input;
-		GeoElement geo;
 		String arg = justify;
-		// if (this.btnTableTextLinesH.isSelected())
 		if (hSelected) {
 			arg += "_";
 		}
-		// if (this.btnTableTextLinesV.isSelected())
 		if (vSelected) {
 			arg += "|";
 		}
@@ -316,15 +324,13 @@ public class EuclidianStyleBarStatic {
 			arg += bracketArray2[index];
 		}
 		ArrayList<GeoElement> newGeos = new ArrayList<>();
-
 		StringBuilder cmdText = new StringBuilder();
 
 		for (int i = 0; i < geos.size(); i++) {
-
 			// get the TableText algo for this geo and its input
-			geo = geos.get(i);
-			algo = geo.getParentAlgorithm();
-			input = algo.getInput();
+			GeoElement geo = geos.get(i);
+			AlgoElement algo = geo.getParentAlgorithm();
+			GeoElement[] input = algo.getInput();
 
 			// create a new TableText cmd
 			cmdText.setLength(0);
@@ -441,7 +447,6 @@ public class EuclidianStyleBarStatic {
 	}
 
 	/**
-	 * @param app application
 	 * @param geos selected (or default) geos
 	 * @param color
 	 *            color
@@ -449,7 +454,7 @@ public class EuclidianStyleBarStatic {
 	 *            opacity
 	 * @return success
 	 */
-	public static boolean applyColor(GColor color, double alpha, App app, List<GeoElement> geos) {
+	public static boolean applyColor(GColor color, double alpha, List<GeoElement> geos) {
 		boolean needUndo = false;
 
 		for (GeoElement geo : geos) {
@@ -870,7 +875,7 @@ public class EuclidianStyleBarStatic {
 	 *            geo
 	 * @return true if the "fix position" button should be fixed for geo
 	 */
-	final static public boolean checkSelectedFixPosition(GeoElement geo) {
+	static public boolean checkSelectedFixPosition(GeoElement geo) {
 		if (geo instanceof AbsoluteScreenLocateable && !geo.isGeoList()) {
 			AbsoluteScreenLocateable locateable = (AbsoluteScreenLocateable) geo
 					.getGeoElementForPropertiesDialog();

@@ -1033,11 +1033,6 @@
 	###       DIALOGS
 	#####################################################################################*/
 
-	.TextInputDialog .gwt-ToggleButton {
-		padding-right: 6px;
-		cursor: pointer;
-	}
-
 	/*-------- RECOVER AUTO SAVED DIALOG ------------*/
 
 	.RecoverAutoSavedDialog .buttonPanel {
@@ -1046,39 +1041,6 @@
 
 	.RecoverAutoSavedDialog {
 		max-width: 500px;
-	}
-
-	/*-------- SLIDER DIALOG ------------------------*/
-
-	.dialogContent .sliderIntervalPanel .inlineOption,
-	.dialogContent .sliderWidthPanel .inlineOption {
-		margin: 8px 8px 0 0;
-		display: inline-block;
-		width: 30%;
-	}
-
-	.dialogContent .sliderWidthPanel .AutoCompleteTextFieldW .fieldContainer {
-		@extends .dialogContent .sliderWidthPanel div;
-		width: 100%;
-	}
-
-	.dialogContent .sliderIntervalPanel .gwt-Label {
-		display: block;
-	}
-
-	.dialogContent .sliderWidthPanel .gwt-Label {
-		padding-top: 8px;
-		display: block;
-	}
-
-	.dialogContent .sliderPanelWidget {
-		min-width: 400px;
-		margin-top: 10px;
-	}
-
-	.sliderDialog .dialogContent .gwt-TabPanelBottom {
-		min-height: 150px;
-		margin-bottom: 15px;
 	}
 
 	/* ----------- BUTTON DIALOG -------------*/
@@ -1114,60 +1076,10 @@
 	/*========= End Dialogs ===========*/
 
 
-	/*========= FileChooser ===========*/
-
-	.GeoGebraFileChooser .titlePanel {
-		width: 100%;
-		padding: 5px;
-	}
-
-	.GeoGebraFileChooser .titlePanel input {
-		float: right;
-	}
-
-	.GeoGebraFileChooser .titlePanel .gwt-Label {
-		padding-right: 10px;
-	}
-
-	.GeoGebraFileChooser .buttonPanel {
-		float: right;
-	}
-
-	.GeoGebraFileChooser .buttonPanel button {
-		float: right;
-		margin-left: 5px;
-	}
-
-	.GeoGebraFileChooser .buttonPanel a {
-		float: right;
-		margin-left: 5px;
-	}
-
-	.GoogleFileDescriptors {
-		font-size: 80%;
-	}
-
-	.GoogleFileDescriptors .fileLabel {
-		padding-right: 3px;
-		font-weight: bold;
-	}
-
-	.GoogleFileDescriptors .fileName {
-		text-decoration: underline;
-	}
+	/*========= Context menu ===========*/
 
 	.menuTitle span {
 		font-weight: bold;
-	}
-
-	.GeoGebraFileChooser {
-		font-family: geogebra-sans-serif, Arial Unicode MS, Arial, sans-serif;
-	}
-
-	.GeoGebraFileChooser .buttonPanel .save, .GeoGebraFileChooser .buttonPanel .cancel {
-		width: 60px;
-		text-align: center;
-		margin: auto;
 	}
 
 	/*========= End FileChooser ===========*/
@@ -1481,21 +1393,6 @@
 		overflow: auto;
 	}
 
-	.textEditorAdvancedPanel {
-		width: 380px;
-		height: 180px;
-	}
-
-	.textEditorDisclosurePanelContent {
-		margin: 0;
-		padding: 0;
-		font-size: 80%;
-	}
-
-	.textEditorDisclosurePanelHeader {
-		margin-bottom: 3px;
-	}
-
 	/* ========== Text Editor end ============ */
 	/*#####################################################################################
 	###      INPUT HELP
@@ -1522,10 +1419,15 @@
 
 	.inputHelp-detailPanelTitle {
 		width: 100%;
+		height: 37px;
 		font-weight: bold;
 		padding: 1px 10px;
 		border-bottom: 1px solid lightgray;
 		cursor: default;
+
+		.gwt-InlineLabel {
+			line-height: 36px;
+		}
 	}
 
 	.inputHelp-cmdSyntax {
@@ -1580,10 +1482,9 @@
 		cursor: pointer;
 	}
 
-	.inputHelp-functionTable td {
-		padding: 0 4px;
-		line-height: 160%;
-		white-space: nowrap;
+	.inputHelp-functionTable div {
+		display: flex;
+		gap: 8px;
 	}
 
 	.inputHelp-toggleButton {
@@ -1668,16 +1569,6 @@
 		PROPERTIES
 	###################################################################*/
 
-	.contentsPanel {
-		overflow-x: hidden;
-		overflow-y: hidden;
-		height: 100%;
-	}
-
-	.contentsPanel > table.gwt-TabPanel {
-		width: 100%;
-	}
-
 	.ggb-MultiRowsTabPanel > * {
 		float: left;
 	}
@@ -1686,11 +1577,6 @@
 
 	.settingsBtn {
 		min-width: 160px;
-	}
-
-	.propView_deckPanel {
-		flex: 1;
-		overflow-x: hidden;
 	}
 
 	.panelTitle {
@@ -1841,26 +1727,6 @@
 	.disabled .gwt-ListBox {
 		opacity: 0.4;
 		cursor: default;
-	}
-
-	/*++++++++++++++++ ADVANCED LIST ++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-
-	.advanced-TextButtonPanel {
-		position: relative;
-		margin: 3px 0;
-
-		.matKeyboardOpenBtn {
-			display: none;
-		}
-	}
-
-	.advanced-TextButtonPanel input[disabled=""] {
-		opacity: 1;
-		cursor: default;
-	}
-
-	.geoSelectFirst {
-		width: 50%;
 	}
 
 	/*#####################################################################################
@@ -2673,5 +2539,14 @@
 
 	.mk-spinner-wrap.spinnerForLogo {
 		position:static;
+	}
+
+	.styleBarW {
+		display: flex;
+	}
+
+	.splitPanelWrapper {
+		display: flex;
+		width: 100%;
 	}
 }

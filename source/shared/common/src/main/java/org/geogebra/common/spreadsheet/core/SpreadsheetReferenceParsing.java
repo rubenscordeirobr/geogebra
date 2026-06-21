@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.spreadsheet.core;
 
 import java.util.Locale;
@@ -37,8 +53,11 @@ final class SpreadsheetReferenceParsing {
 	 * reference input string, or {@code null} if candidate is not a valid cell or range reference.
 	 */
 	static @CheckForNull SpreadsheetReference parseReference(@Nonnull String candidate) {
+		if (candidate.isBlank()) { // this includes empty strings
+			return null;
+		}
 		String[] parts = candidate.split(":");
-		if (parts.length > 2) {
+		if (parts.length > 2 || parts.length < 1) {
 			return null; // must be "A1" or "A1:A10"
 		}
 		return parseCellReferences(parts[0], parts.length == 2 ? parts[1] : null);
@@ -73,7 +92,7 @@ final class SpreadsheetReferenceParsing {
 	 */
 	private static @CheckForNull SpreadsheetCellReference parseCellReference(
 			@CheckForNull String cellReference) {
-		if (cellReference == null) {
+		if (cellReference == null || cellReference.isEmpty()) {
 			return null;
 		}
 		MatchResult match = CELL_REFERENCE_REGEX.exec(cellReference);

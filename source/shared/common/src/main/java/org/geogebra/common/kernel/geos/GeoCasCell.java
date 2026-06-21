@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.geos;
 
 import java.util.ArrayList;
@@ -16,6 +32,7 @@ import org.geogebra.common.awt.GColor;
 import org.geogebra.common.awt.GFont;
 import org.geogebra.common.cas.GeoGebraCAS;
 import org.geogebra.common.io.XMLParseException;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.AlgoCasCellInterface;
 import org.geogebra.common.kernel.CASException;
 import org.geogebra.common.kernel.CircularDefinitionException;
@@ -68,8 +85,7 @@ import org.geogebra.common.plugin.Operation;
 import org.geogebra.common.plugin.script.GgbScript;
 import org.geogebra.common.util.StringUtil;
 import org.geogebra.common.util.debug.Log;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * Cell pair of input and output strings used in the CAS view. This needs to be
@@ -460,8 +476,8 @@ public class GeoCasCell extends GeoElement
 	 *            font
 	 */
 	public void setFont(GFont ft) {
-		setFontSizeMultiplier((double) ft.getSize()
-				/ (double) kernel.getApplication().getFontSize());
+		setFontSizeMultiplier(ft.getSize()
+				/ kernel.getApplication().getFontSize());
 		setFontStyle(ft.getStyle());
 	}
 
@@ -1650,8 +1666,7 @@ public class GeoCasCell extends GeoElement
 		}
 		boolean isLine = false;
 		// case we have 3DLine
-		if (inputVE != null && inputVE.getTopLevelCommand() != null
-				&& inputVE.getTopLevelCommand().getName().equals("Line")
+		if (inputVE != null && inputVE.isTopLevelCommand("Line")
 				&& outputVE instanceof Equation
 				&& ((Equation) outputVE).getLHS().getLeft()
 						.toString(StringTemplate.defaultTemplate).equals("X")
@@ -1715,12 +1730,7 @@ public class GeoCasCell extends GeoElement
 			if (isFunctionProducingCommand()) {
 				((ExpressionNode) outputVE).setForceFunction();
 				TreeSet<String> varSet = new TreeSet<>(
-						new Comparator<String>() {
-							@Override
-							public int compare(String o1, String o2) {
-								return o2.compareTo(o1);
-							}
-						});
+						Comparator.reverseOrder());
 				evalVE.traverse(
 						Traversing.DummyVariableCollector.getCollector(varSet));
 				Iterator<String> it = varSet.iterator();
@@ -1880,13 +1890,10 @@ public class GeoCasCell extends GeoElement
 	// needed for undo
 	private void updateConstructionDependencies() {
 		if (this.getInputVE() != null && this.getInputVE() instanceof Function
-				&& ((Function) this.getInputVE()).getFunctionExpression()
-						.getTopLevelCommand() != null
 				&& (((Function) this.getInputVE()).getFunctionExpression()
-						.getTopLevelCommand().getName().equals("Integral")
+						.isTopLevelCommand("Integral")
 						|| ((Function) this.getInputVE())
-								.getFunctionExpression().getTopLevelCommand()
-								.getName().equals("SolveODE"))) {
+								.getFunctionExpression().isTopLevelCommand("SolveODE"))) {
 			ArbitraryConstantRegistry myArbConst = cons.getArbitraryConsTable()
 					.get(this.row);
 			if (this.arbconst.getConstList().isEmpty() && myArbConst != null) {
@@ -2057,7 +2064,7 @@ public class GeoCasCell extends GeoElement
 		}
 		boolean wasFunction = outputVE instanceof FunctionNVar
 				|| Equation.isFunctionEquation(outputVE);
-		boolean wasCurve = twinGeo == null || twinGeo.isParametric();
+		final boolean wasCurve = twinGeo == null || twinGeo.isParametric();
 
 		// replace variables x and y with a FunctionVariable object
 		FunctionVariable fvX = new FunctionVariable(kernel, "x");
@@ -2150,6 +2157,7 @@ public class GeoCasCell extends GeoElement
 	 * @param doTwinGeoUpdate
 	 *            whether twin geo should be updated or not
 	 */
+	@SuppressWarnings("PMD.ExceptionAsFlowControl")
 	private void computeOutput(final boolean doTwinGeoUpdate,
 			final boolean allowFunction) {
 		// check for circular definition before we do anything
@@ -2692,140 +2700,116 @@ public class GeoCasCell extends GeoElement
 	 * Appends &lt;cascell caslabel="m"&gt; XML tag to StringBuilder.
 	 */
 	@Override
-	protected void getElementOpenTagXML(StringBuilder sb) {
-		sb.append("<cascell");
+	protected void getElementOpenTagXML(XMLStringBuilder sb) {
+		sb.startOpeningTag("cascell", 0);
 		if (assignmentVar != null) {
-			sb.append(" caslabel=\"");
-			StringUtil.encodeXML(sb, assignmentVar);
-			sb.append("\" ");
+			sb.attr("caslabel", assignmentVar);
 		}
-		sb.append(">\n");
+		sb.endTag();
 	}
 
 	/**
 	 * Appends &lt;/cascell&gt; XML tag to StringBuilder.
 	 */
 	@Override
-	protected void getElementCloseTagXML(StringBuilder sb) {
-		sb.append("</cascell>\n");
+	protected void getElementCloseTagXML(XMLStringBuilder sb) {
+		sb.closeTag("cascell");
 	}
 
 	/**
 	 * Appends &lt;cellPair&gt; XML tag to StringBuilder.
 	 */
 	@Override
-	protected void getXMLtags(StringBuilder sb) {
+	protected void getXMLTags(XMLStringBuilder sb) {
 		// StringBuilder sb = new StringBuilder();
-		sb.append("\t<cellPair>\n");
+		sb.startOpeningTag("cellPair", 1).endTag();
 
 		// useAsText
 		if (useAsText) {
-			sb.append("\t\t<useAsText>\n");
+			sb.startOpeningTag("useAsText", 2).endTag();
 
 			getFontXML(sb);
 
-			sb.append("\t\t</useAsText>\n");
+			sb.closeTag("useAsText");
 		}
 
 		// inputCell
 		if (!isInputEmpty() || useAsText
 				|| (input != null && input.length() > 0)) {
-			sb.append("\t\t<inputCell>\n");
+			sb.startOpeningTag("inputCell", 2).endTag();
 			getInputExpressionXML(sb);
-			sb.append("\t\t</inputCell>\n");
+			sb.closeTag("inputCell");
 		}
 
 		// outputCell
 		if (!isOutputEmpty()) {
-			sb.append("\t\t<outputCell>\n");
+			sb.startOpeningTag("outputCell", 2).endTag();
 			getOutputExpressionXML(sb);
-			sb.append("\t\t</outputCell>\n");
+			sb.closeTag("outputCell");
 		}
 
-		sb.append("\t</cellPair>\n");
+		sb.closeTag("cellPair");
 
 		// return sb.toString();
 	}
 
-	private void getOutputExpressionXML(StringBuilder sb) {
-		sb.append("\t\t\t<expression value=\"");
-		StringUtil.encodeXML(sb, getOutput(StringTemplate.xmlTemplate));
-		sb.append("\"");
+	private void getOutputExpressionXML(XMLStringBuilder sb) {
+		sb.startTag("expression", 3)
+				.attr("value", getOutput(StringTemplate.xmlTemplate));
 		if (isError()) {
-			sb.append(" error=\"true\"");
+			sb.attr("error", true);
 		}
 		if (isNative()) {
-			sb.append(" native=\"true\"");
+			sb.attr("native", true);
 		}
 		if (!"".equals(evalCmd)) {
-			sb.append(" evalCommand=\"");
-			StringUtil.encodeXML(sb, evalCmd);
-			sb.append("\" ");
+			sb.attr("evalCommand", evalCmd);
 		}
 
 		if (!"".equals(evalComment)) {
-			sb.append(" evalComment=\"");
-			StringUtil.encodeXML(sb, evalComment);
-			sb.append("\" ");
+			sb.attr("evalComment", evalComment);
 		}
-
-		sb.append("/>\n");
-
+		sb.endTag();
 	}
 
-	private void getInputExpressionXML(StringBuilder sb) {
-		sb.append("\t\t\t<expression value=\"");
+	private void getInputExpressionXML(XMLStringBuilder sb) {
+		sb.startTag("expression", 3);
 		if (useAsText) {
-			StringUtil.encodeXML(sb, commentText.getTextString());
-			sb.append("\" ");
+			sb.attr("value", commentText.getTextString());
 		} else {
-			StringUtil.encodeXML(sb, input);
-			sb.append("\" ");
+			sb.attr("value", input);
 
 			if (evalVE != getInputVE()) {
 				if (!"".equals(prefix)) {
-					sb.append(" prefix=\"");
-					StringUtil.encodeXML(sb, prefix);
-					sb.append("\" ");
+					sb.attr("prefix", prefix);
 				}
 
-				sb.append(" eval=\"");
-				StringUtil.encodeXML(sb, getEvalText());
-				sb.append("\" ");
+				sb.attr("eval", getEvalText());
 
 				if (!"".equals(postfix)) {
-					sb.append(" postfix=\"");
-					StringUtil.encodeXML(sb, postfix);
-					sb.append("\" ");
+					sb.attr("postfix", postfix);
 				}
 
-				sb.append("evalCmd=\"");
-				StringUtil.encodeXML(sb, evalCmd);
-				sb.append("\"");
+				sb.attr("evalCmd", evalCmd);
 			}
 
 			if (pointList) {
-				sb.append(" pointList=\"true\"");
+				sb.attr("pointList", true);
 			}
 		}
-		sb.append("/>\n");
-
+		sb.endTag();
 	}
 
-	private void getFontXML(StringBuilder sb) {
-		sb.append("\t\t\t<FontStyle value=\"");
-		sb.append(getFontStyle());
-		sb.append("\" ");
-		sb.append("/>\n");
+	private void getFontXML(XMLStringBuilder sb) {
+		sb.startTag("FontStyle", 3);
+		sb.attr("value", getFontStyle()).endTag();
 
-		sb.append("\t\t\t<FontSizeM value=\"");
-		sb.append(getFontSizeMultiplier());
-		sb.append("\" ");
-		sb.append("/>\n");
+		sb.startTag("FontSizeM");
+		sb.attr("value", getFontSizeMultiplier()).endTag();
 
-		sb.append("\t\t\t<FontColor");
+		sb.startTag("FontColor", 3);
 		XMLBuilder.appendRGB(sb, getFontColor());
-		sb.append("/>\n");
+		sb.endTag();
 	}
 
 	@Override
@@ -2884,16 +2868,12 @@ public class GeoCasCell extends GeoElement
 
 		// row reference like $5
 		StringBuilder sb = new StringBuilder();
-		switch (tpl.getStringType()) {
 		// send output to underlying CAS
-		case GIAC:
+		if (tpl.getStringType() == StringType.GIAC) {
 			sb.append(" (");
 			sb.append(outputVE == null ? "?" : outputVE.toString(tpl));
 			sb.append(") ");
-			break;
-
-		default:
-			// standard case: return current row, e.g. $5
+		} else { // standard case: return current row, e.g. $5
 			if (row >= 0) {
 				if (tpl.hasType(StringType.LATEX)) {
 					sb.append("\\$");
@@ -2902,7 +2882,6 @@ public class GeoCasCell extends GeoElement
 				}
 				sb.append(row + 1);
 			}
-			break;
 		}
 		return sb.toString();
 	}
@@ -3173,11 +3152,11 @@ public class GeoCasCell extends GeoElement
 			return true;
 		}
 
-		String oldEvalComment = evalComment;
-		ValidExpression oldEvalVE = evalVE;
-		ValidExpression oldInputVE = getInputVE();
-		String oldAssignmentVar = assignmentVar;
-		AssignmentType oldOutputAssignmentType = getAssignmentType();
+		final String oldEvalComment = evalComment;
+		final ValidExpression oldEvalVE = evalVE;
+		final ValidExpression oldInputVE = getInputVE();
+		final String oldAssignmentVar = assignmentVar;
+		final AssignmentType oldOutputAssignmentType = getAssignmentType();
 
 		assignmentVar = getPlotVar();
 		adjustPointList(false);

@@ -1,19 +1,17 @@
-/* 
- GeoGebra - Dynamic Mathematics for Everyone
- http://www.geogebra.org
-
- This file is part of GeoGebra.
-
- This program is free software; you can redistribute it and/or modify it 
- under the terms of the GNU General Public License as published by 
- the Free Software Foundation.
- 
- */
-
 /*
- * GeoNumeric.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 18. September 2001, 12:04
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.geos;
@@ -30,12 +28,14 @@ import org.geogebra.common.euclidian.EuclidianConstants;
 import org.geogebra.common.euclidian.EuclidianViewInterfaceCommon;
 import org.geogebra.common.euclidian.EuclidianViewInterfaceSlim;
 import org.geogebra.common.gui.EdgeInsets;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.AnimationManager;
 import org.geogebra.common.kernel.CircularDefinitionException;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.SetRandomValue;
 import org.geogebra.common.kernel.StringTemplate;
+import org.geogebra.common.kernel.algos.AlgoBoxPlot;
 import org.geogebra.common.kernel.algos.AlgoDependentFunction;
 import org.geogebra.common.kernel.algos.AlgoElement;
 import org.geogebra.common.kernel.algos.SymbolicParametersBotanaAlgo;
@@ -83,6 +83,7 @@ public class GeoNumeric extends GeoElement
 	public static final int DEFAULT_THICKNESS = 2;
 	/** sliders */
 	public static final int DEFAULT_SLIDER_THICKNESS = 10;
+	public static final int DEFAULT_SLIDER_LINE_OPACITY = 100;
 	// on 10 range and 10 speed this should yield 0.1 increment
 	// (nextPrettyNumber(0.09)=0.1)
 	private static final double AUTO_STEP_MUL = 0.0009;
@@ -423,6 +424,9 @@ public class GeoNumeric extends GeoElement
 	@Override
 	public void set(GeoElementND geo) {
 		setValue(geo.evaluateDouble());
+		if (geo instanceof NumberValue numberValue) {
+			setExactValue(numberValue.toDecimal());
+		}
 		reuseDefinition(geo);
 	}
 
@@ -684,8 +688,8 @@ public class GeoNumeric extends GeoElement
 					&& !(getParentAlgorithm() instanceof SetRandomValue)) {
 				return "exact(rand(0,1))";
 			}
-			if (getDefinition() != null && Double.isFinite(value)) {
-				return getDefinition().toValueString(tpl);
+			if (definition != null && Double.isFinite(value)) {
+				return definition.toValueString(tpl);
 			}
 			return StringUtil.wrapInExact(kernel.format(value, tpl), tpl);
 		}
@@ -704,10 +708,13 @@ public class GeoNumeric extends GeoElement
 		// in general toFractionString falls back to printing evaluation result if not a fraction
 		// do not rely on it for leaf nodes: MySpecialDouble overrides rounding
 		if ((symbolicMode || DoubleUtil.isInteger(value))
-				&& getDefinition() != null
 				&& tpl.supportsFractions()
-				&& (!getDefinition().isLeaf() || isDecimalFraction())) {
-			return getDefinition().toFractionString(tpl);
+				&& definition != null
+				&& (!definition.isLeaf() || isWrappedFraction(definition))) {
+			return definition.toFractionString(tpl);
+		}
+		if (exactValue != null) {
+			return kernel.format(exactValue, tpl);
 		}
 		return kernel.format(value, tpl);
 	}
@@ -716,8 +723,11 @@ public class GeoNumeric extends GeoElement
 	 * @return whether this is a decimal that can be converted to a fraction, e.g. 0.25
 	 */
 	public boolean isDecimalFraction() {
-		return getDefinition() != null && getDefinition().unwrap() instanceof MySpecialDouble
-				&& ((MySpecialDouble) getDefinition().unwrap()).isFraction();
+		return definition != null && isWrappedFraction(definition);
+	}
+
+	private static boolean isWrappedFraction(ExpressionNode definition) {
+		return definition.unwrap() instanceof MySpecialDouble asDouble && asDouble.isFraction();
 	}
 
 	/**
@@ -733,7 +743,7 @@ public class GeoNumeric extends GeoElement
 	}
 
 	private boolean hasExactConstantValue() {
-		return toDecimal() != null && getDefinition().isConstant();
+		return toDecimal() != null && definition != null && definition.isConstant();
 	}
 
 	private MySpecialDouble getExactNumber() {
@@ -789,38 +799,37 @@ public class GeoNumeric extends GeoElement
 	 * returns all class-specific xml tags for saveXML
 	 */
 	@Override
-	protected void getXMLtags(StringBuilder sb) {
+	protected void getXMLTags(XMLStringBuilder sb) {
 		getValueXML(sb, value);
 		getStyleXML(sb);
 	}
 
-	protected void getValueXML(StringBuilder sb, double rawVal) {
-		sb.append("\t<value val=\"");
-		sb.append(rawVal);
-		sb.append("\"");
+	protected void getValueXML(XMLStringBuilder sb, double rawVal) {
+		sb.startTag("value");
+		sb.attr("val", rawVal);
 		if (isRandom()) {
-			sb.append(" random=\"true\"");
+			sb.attr("random", true);
 		}
-		sb.append("/>\n");
+		sb.endTag();
 	}
 
 	@Override
-	protected void getStyleXML(StringBuilder sb) {
+	protected void getStyleXML(XMLStringBuilder sb) {
 		XMLBuilder.appendSymbolicMode(sb, this, false);
 		// if number is drawable then we need to save visual options too
-		if (isDrawable || isSliderable()) {
+		if (isDrawable || hasIntervalMin() || hasIntervalMax()) {
 			// save slider info before show to have min and max set
 			// before setEuclidianVisible(true) is called
-			getXMLsliderTag(sb);
+			getXMLSliderTag(sb);
 
 			// line thickness and type
 			getLineStyleXML(sb);
 
 			// for slope triangle
 			if (slopeTriangleSize > 1) {
-				sb.append("\t<slopeTriangleSize val=\"");
-				sb.append(slopeTriangleSize);
-				sb.append("\"/>\n");
+				sb.startTag("slopeTriangleSize");
+				sb.attr("val", slopeTriangleSize);
+				sb.endTag();
 			}
 		}
 		getBasicStyleXML(sb);
@@ -831,12 +840,12 @@ public class GeoNumeric extends GeoElement
 	 * Expose parent implementation to angles
 	 * @param sb string builder
 	 */
-	protected void getBasicStyleXML(StringBuilder sb) {
+	protected void getBasicStyleXML(XMLStringBuilder sb) {
 		super.getStyleXML(sb);
 	}
 
 	@Override
-	protected void appendObjectColorXML(StringBuilder sb) {
+	protected void appendObjectColorXML(XMLStringBuilder sb) {
 		if (isDefaultGeo() || isColorSet()) {
 			super.appendObjectColorXML(sb);
 		}
@@ -852,19 +861,21 @@ public class GeoNumeric extends GeoElement
 	}
 
 	private boolean hasValidIntervals() {
-		return isIntervalMinActive()
-				&& isIntervalMaxActive()
-				&& getIntervalMin() < getIntervalMax();
+		return hasMinAndMaxIntervals() && getIntervalMin() < getIntervalMax();
+	}
+
+	private boolean hasMinAndMaxIntervals() {
+		return isIntervalMinActive() && isIntervalMaxActive();
 	}
 
 	@Override
 	public boolean isFixable() {
-		return !isSetEuclidianVisible() && !isDefaultGeo();
+		return (!isSetEuclidianVisible() || isBoxPlot()) && !isDefaultGeo();
 	}
 
 	@Override
 	public boolean showFixUnfix() {
-		return false;
+		return isBoxPlot();
 	}
 
 	/**
@@ -883,57 +894,58 @@ public class GeoNumeric extends GeoElement
 	}
 
 	/**
-	 * Adds the slider tag to the string builder
-	 * 
-	 * @param sb
-	 *            String builder to be written to
+	 * @return whether interval min should be stored to XML
 	 */
-	protected void getXMLsliderTag(StringBuilder sb) {
-		if (!isSliderable()) {
+	protected boolean hasIntervalMin() {
+		return isIntervalMinActive() || intervalMin instanceof GeoNumeric;
+	}
+
+	/**
+	 * @return whether interval max should be stored to XML
+	 */
+	protected boolean hasIntervalMax() {
+		return isIntervalMaxActive() || intervalMax instanceof GeoNumeric;
+	}
+
+	/**
+	 * Adds the slider tag to the string builder
+	 * @param sb StringBuilder to be written to
+	 */
+	protected void getXMLSliderTag(XMLStringBuilder sb) {
+		if (!isIndependent()) {
 			return;
 		}
-
 		StringTemplate tpl = StringTemplate.xmlTemplate;
-		sb.append("\t<slider");
-		if (isIntervalMinActive() || intervalMin instanceof GeoNumeric) {
-			sb.append(" min=\"");
-			StringUtil.encodeXML(sb, getIntervalMinObject().getLabel(tpl));
-			sb.append("\"");
+		sb.startTag("slider");
+		if (hasIntervalMin()) {
+			sb.attr("min", getIntervalMinObject().getLabel(tpl));
 		}
-		if (isIntervalMaxActive() || intervalMax instanceof GeoNumeric) {
-			sb.append(" max=\"");
-			StringUtil.encodeXML(sb, getIntervalMaxObject().getLabel(tpl));
-			sb.append("\"");
+		if (hasIntervalMax()) {
+			sb.attr("max", getIntervalMaxObject().getLabel(tpl));
 		}
 
 		if (hasAbsoluteScreenLocation) {
-			sb.append(" absoluteScreenLocation=\"true\"");
+			sb.attr("absoluteScreenLocation", true);
 		}
 
-		sb.append(" width=\"");
-		sb.append(sliderWidth);
+		sb.attr("width", sliderWidth);
 		if (startPoint != null) {
-			sb.append("\" x=\"");
-			sb.append(startPoint.getInhomX());
-			sb.append("\" y=\"");
-			sb.append(startPoint.getInhomY());
+			sb.attr("x", startPoint.getInhomX());
+			sb.attr("y", startPoint.getInhomY());
 		}
-		sb.append("\" fixed=\"");
-		sb.append(sliderFixed);
-		sb.append("\" horizontal=\"");
-		sb.append(sliderHorizontal);
-		sb.append("\" showAlgebra=\"");
-		sb.append(isAVSliderOrCheckboxVisible());
+		sb.attr("fixed", sliderFixed);
+		sb.attr("horizontal", sliderHorizontal);
+		sb.attr("showAlgebra", isAVSliderOrCheckboxVisible());
 
 		if (cons.getArbitraryConstants().values().contains(this)) {
-			sb.append("\" arbitraryConstant=\"true\"");
+			sb.attr("arbitraryConstant", true);
 		}
 
-		sb.append("\"/>\n");
+		sb.endTag();
 		if (sliderBlobSize != DEFAULT_SLIDER_BLOB_SIZE) {
-			sb.append("\t<pointSize val=\"");
-			sb.append(sliderBlobSize);
-			sb.append("\"/>\n");
+			sb.startTag("pointSize");
+			sb.attr("val", sliderBlobSize);
+			sb.endTag();
 		}
 		if (startPoint != null && !startPoint.isAbsoluteStartPoint()) {
 			startPoint.appendStartPointXML(sb, isAbsoluteScreenLocActive());
@@ -1181,6 +1193,11 @@ public class GeoNumeric extends GeoElement
 		this.sliderHorizontal = sliderHorizontal;
 	}
 
+	@Override
+	public boolean isPointerChangeable() {
+		return super.isPointerChangeable() || (!isLocked() && isBoxPlot());
+	}
+
 	/**
 	 * Sets the location of the slider for this number.
 	 * 
@@ -1394,7 +1411,7 @@ public class GeoNumeric extends GeoElement
 		double increment = getAnimationStep();
 		int n = 1 + (int) Math.round((max - min) / increment);
 		return DoubleUtil.checkDecimalFraction(
-				Math.floor(kernel.getApplication().getRandomNumber() * n)
+				Math.floor(kernel.randomNumberGenerator.getRandomNumber() * n)
 						* increment + min);
 	}
 
@@ -1422,10 +1439,10 @@ public class GeoNumeric extends GeoElement
 		boolean okMin = isIntervalMinActive();
 		boolean okMax = isIntervalMaxActive();
 		boolean ok = getIntervalMin() <= getIntervalMax();
-		ExpressionNode oldDefinition = getDefinition();
+		ExpressionNode oldDefinition = definition;
 		if (ok && okMin && okMax) {
 			setValue(isDefined() ? value : 1.0);
-			isDrawable = true;
+			isDrawable = getIntervalMin() < getIntervalMax();
 		} else if (okMin && okMax) {
 			setUndefined();
 		}
@@ -1449,6 +1466,12 @@ public class GeoNumeric extends GeoElement
 	public boolean isAnimatable() {
 		return isIndependent() && isIntervalMinActive()
 				&& isIntervalMaxActive();
+	}
+
+	@Override
+	public boolean needsAnimationAttributes() {
+		return !isLocked() && isIndependent()
+				&& (definition == null || isSliderable() || getAnimationSpeedObject() != null);
 	}
 
 	/**
@@ -1612,7 +1635,7 @@ public class GeoNumeric extends GeoElement
 	@Override
 	final public void updateRandomGeo() {
 		// set random value (for numbers used in trees using random())
-		setValue(kernel.getApplication().getRandomNumber());
+		setValue(kernel.randomNumberGenerator.getRandomNumber());
 
 		final AlgoElement algo = getParentAlgorithm();
 		if (algo != null) {
@@ -1799,6 +1822,7 @@ public class GeoNumeric extends GeoElement
 		num.setSliderWidth(defaultAngleOrNum.getSliderWidth(), true);
 		num.setRandom(defaultNum.isRandom());
 		num.setLineThickness(DEFAULT_SLIDER_THICKNESS);
+		num.setLineOpacity(DEFAULT_SLIDER_LINE_OPACITY);
 		num.update();
 		return num;
 	}
@@ -1818,9 +1842,7 @@ public class GeoNumeric extends GeoElement
 
 		// label visibility
 		App app = getKernel().getApplication();
-		LabelVisibility labelingStyle = app == null
-				? LabelVisibility.UseDefaults
-				: app.getCurrentLabelingStyle();
+		LabelVisibility labelingStyle = app.getCurrentLabelingStyle();
 
 		// automatic labelling:
 		// if algebra window open -> all labels
@@ -1931,7 +1953,6 @@ public class GeoNumeric extends GeoElement
 
 	@Override
 	public void initSymbolicMode() {
-		ExpressionNode definition = getDefinition();
 		boolean symbolicMode =
 				(definition == null)
 						|| (!definition.isSimpleFraction() && definition.isFractionNoPi())
@@ -1968,7 +1989,7 @@ public class GeoNumeric extends GeoElement
 	@Override
 	public DescriptionMode getDescriptionMode() {
 		boolean simple = isSimple() && !isDecimalFraction();
-		if (getDefinition() != null
+		if (definition != null
 				&& !simple
 				&& !"?".equals(getDefinition(StringTemplate.defaultTemplate))) {
 			return DescriptionMode.DEFINITION_VALUE;
@@ -2171,6 +2192,11 @@ public class GeoNumeric extends GeoElement
 	}
 
 	@Override
+	public boolean hasPolynomialNumerator(boolean forRoot) {
+		return true;
+	}
+
+	@Override
 	public boolean showLineProperties() {
 		return isDrawable() && !isSlider() && getDrawAlgorithm() != null;
 	}
@@ -2191,6 +2217,7 @@ public class GeoNumeric extends GeoElement
 	 * Removes the slider.
 	 */
 	public void removeSlider() {
+		setAnimating(false);
 		isDrawable = false;
 		symbolicMode = true;
 		setAVSliderOrCheckboxVisible(false);
@@ -2269,7 +2296,7 @@ public class GeoNumeric extends GeoElement
 
 	@Override
 	public boolean isRecurringDecimal() {
-		return getDefinition() != null && getDefinition().unwrap().isRecurringDecimal();
+		return asRecurringDecimal() != null;
 	}
 
 	/**
@@ -2277,10 +2304,10 @@ public class GeoNumeric extends GeoElement
 	 * @return the RecurringDecimal object if it is one, null otherwise.
 	 */
 	public RecurringDecimal asRecurringDecimal() {
-		if (!isRecurringDecimal()) {
-			return null;
+		if (definition != null && definition.unwrap() instanceof RecurringDecimal dec) {
+			return dec;
 		}
-		return (RecurringDecimal) getDefinition().unwrap();
+		return null;
 	}
 
 	/**
@@ -2288,17 +2315,21 @@ public class GeoNumeric extends GeoElement
 	 * @param expandPlusAndDecimals whether to expand + and - operations and convert decimal numbers
 	 */
 	public void getFraction(ExpressionValue[] parts, boolean expandPlusAndDecimals) {
-		if (getDefinition() == null) {
+		if (definition == null) {
 			parts[0] = getNumber();
 			parts[1] = null;
 			return;
 		}
-		getDefinition().isFraction(); // force fraction caching
-		getDefinition().getFraction(parts, expandPlusAndDecimals);
+		definition.isFraction(); // force fraction caching
+		definition.getFraction(parts, expandPlusAndDecimals);
 	}
 
 	@Override
 	public void setZero() {
 		setValue(0);
+	}
+
+	private boolean isBoxPlot() {
+		return algoParent instanceof AlgoBoxPlot;
 	}
 }

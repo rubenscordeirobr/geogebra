@@ -1,7 +1,24 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian;
 
 import java.util.ArrayList;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GBasicStroke;
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.awt.GDimension;
@@ -11,7 +28,6 @@ import org.geogebra.common.awt.GGraphics2D;
 import org.geogebra.common.awt.GPoint;
 import org.geogebra.common.awt.GRectangle;
 import org.geogebra.common.awt.font.GTextLayout;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.kernelND.GeoElementND;
 import org.geogebra.common.main.App;
@@ -61,7 +77,7 @@ public class EuclidianStatic {
 	 *            rendering context
 	 * @return text width
 	 */
-	public final static double textWidth(String str, GFont font,
+	public static double textWidth(String str, GFont font,
 			GFontRenderContext frc) {
 		if ("".equals(str)) {
 			return 0;
@@ -176,12 +192,12 @@ public class EuclidianStatic {
 	 * @param ret
 	 *            output rectangle
 	 */
-	public static final void drawMultilineLaTeX(App app,
+	public static void drawMultilineLaTeX(App app,
 			GGraphics2D tempGraphics, GeoElementND geo, GGraphics2D g2,
 			GFont font, GColor fgColor, GColor bgColor, String labelDesc,
 			int xLabel, int yLabel, boolean serif, Runnable callback,
 			GRectangle ret) {
-		int fontSize = g2.getFont().getSize();
+		double fontSize = g2.getFont().getSize();
 		int lineSpread = (int) (fontSize * 1.0f);
 		int lineSpace = (int) (fontSize * 0.5f);
 
@@ -195,8 +211,6 @@ public class EuclidianStatic {
 		ArrayList<Integer> lineHeights = new ArrayList<>();
 		lineHeights.add(lineSpread + lineSpace);
 		ArrayList<Integer> elementHeights = new ArrayList<>();
-
-		int depth = 0;
 
 		// use latex by default just if there is just a single element
 		boolean isLaTeX = elements.length == 1;
@@ -258,8 +272,8 @@ public class EuclidianStatic {
 			if (isLaTeX) {
 				// calculate the y offset of this element by: (lineHeight -
 				// elementHeight) / 2
-				yOffset = (((lineHeights.get(currentLine))).intValue()
-						- ((elementHeights.get(currentElement))).intValue())
+				yOffset = (lineHeights.get(currentLine)
+						- elementHeights.get(currentElement))
 						/ 2;
 
 				DrawEquation de = app.getDrawEquation();
@@ -275,8 +289,8 @@ public class EuclidianStatic {
 
 				for (int j = 0; j < lines.length; ++j) {
 					// calculate the y offset like done with the element
-					yOffset = (((lineHeights.get(currentLine))).intValue()
-							- ((elementHeights.get(currentElement))).intValue())
+					yOffset = (lineHeights.get(currentLine)
+							- elementHeights.get(currentElement))
 							/ 2;
 
 					// draw the string
@@ -287,7 +301,7 @@ public class EuclidianStatic {
 
 					// add the height of this line if more lines follow
 					if (j + 1 < lines.length) {
-						height += ((lineHeights.get(currentLine))).intValue();
+						height += lineHeights.get(currentLine);
 
 						if (xOffset > width) {
 							width = xOffset;
@@ -307,7 +321,7 @@ public class EuclidianStatic {
 			// last element, increase total height and check if this is the most
 			// wide element
 			if (i + 1 == elements.length) {
-				height += ((lineHeights.get(currentLine))).intValue();
+				height += lineHeights.get(currentLine);
 
 				if (xOffset > width) {
 					width = xOffset;
@@ -318,7 +332,7 @@ public class EuclidianStatic {
 		}
 
 		if (ret != null) {
-			ret.setBounds(xLabel - 3, yLabel - 3 + depth, width + 6,
+			ret.setBounds(xLabel - 3, yLabel - 3, width + 6,
 					height + 6);
 		}
 	}
@@ -459,25 +473,21 @@ public class EuclidianStatic {
 	public static GPoint drawIndexedString(App app, GGraphics2D g3, String str,
 			double xPos, double yPos, boolean serif,
 			boolean doDraw, EuclidianView view, GColor col) {
-
+		if (str == null) {
+			return null;
+		}
+		final int length = str.length();
 		GFont g2font = g3.getFont();
 		g2font = app.getFontCanDisplay(str, serif, g2font.getStyle(),
 				g2font.getSize());
 		GFont indexFont = getIndexFont(g2font);
-		GFont font = g2font;
-		// GTextLayout layout;
 		GFontRenderContext frc = g3.getFontRenderContext();
 
-		int indexOffset = indexFont.getSize() / 2;
+		double indexOffset = indexFont.getSize() / 2;
 		double maxY = 0;
 		int depth = 0;
 		double x = xPos;
-		double y = yPos;
 		int startPos = 0;
-		if (str == null) {
-			return null;
-		}
-		int length = str.length();
 
 		for (int i = 0; i < length; i++) {
 			switch (str.charAt(i)) {
@@ -487,8 +497,8 @@ public class EuclidianStatic {
 			case '_':
 				// draw everything before _
 				if (i > startPos) {
-					font = (depth == 0) ? g2font : indexFont;
-					y = yPos + depth * indexOffset;
+					GFont font = (depth == 0) ? g2font : indexFont;
+					double y = yPos + depth * indexOffset;
 					if (y > maxY) {
 						maxY = y;
 					}
@@ -508,8 +518,8 @@ public class EuclidianStatic {
 				// check if next character is a '{' (beginning of index with
 				// several chars)
 				if (startPos < length && str.charAt(startPos) != '{') {
-					font = (depth == 0) ? g2font : indexFont;
-					y = yPos + depth * indexOffset;
+					GFont font = (depth == 0) ? g2font : indexFont;
+					double y = yPos + depth * indexOffset;
 					if (y > maxY) {
 						maxY = y;
 					}
@@ -528,17 +538,16 @@ public class EuclidianStatic {
 			case '}': // end of index with several characters
 				if (depth > 0) {
 					if (i > startPos) {
-						font = indexFont;
-						y = yPos + depth * indexOffset;
+						double y = yPos + depth * indexOffset;
 						if (y > maxY) {
 							maxY = y;
 						}
 						String tempStr = str.substring(startPos, i);
 						if (doDraw) {
-							g3.setFont(font);
+							g3.setFont(indexFont);
 							drawString(view, g3, tempStr, x, y, col);
 						}
-						x += measureString(tempStr, font, frc);
+						x += measureString(tempStr, indexFont, frc);
 					}
 					startPos = i + 1;
 					depth--;
@@ -548,8 +557,8 @@ public class EuclidianStatic {
 		}
 
 		if (startPos < length) {
-			font = (depth == 0) ? g2font : indexFont;
-			y = yPos + depth * indexOffset;
+			GFont font = (depth == 0) ? g2font : indexFont;
+			double y = yPos + depth * indexOffset;
 			if (y > maxY) {
 				maxY = y;
 			}
@@ -609,14 +618,10 @@ public class EuclidianStatic {
 	 *            geo                  
 	 * @return border of resulting text drawing
 	 */
-	public final static GRectangle drawMultiLineText(App app, String labelDesc,
+	public static GRectangle drawMultiLineText(App app, String labelDesc,
 			int xLabel, int yLabel, GGraphics2D g2, boolean serif,
 			GFont textFont, GRectangle ret, GeoElement geo, int margin) {
-
-		int lines = 0;
-		int fontSize = textFont.getSize();
-		double lineSpread = fontSize * 1.5f;
-
+		double fontSize = textFont.getSize();
 		GFont font = app.getFontCanDisplay(labelDesc, serif,
 				textFont.getStyle(), fontSize);
 
@@ -628,6 +633,8 @@ public class EuclidianStatic {
 		int length = labelDesc.length();
 		// fix jumping text in mow text editor
 		int yPos = yLabel;
+		int lines = 0;
+		double lineSpread = fontSize * 1.5f;
 		for (int i = 0; i < length - 1; i++) {
 			if (labelDesc.charAt(i) == '\n') {
 
@@ -646,7 +653,7 @@ public class EuclidianStatic {
 
 				lines++;
 				lineBegin = i + 1;
-				yPos += lineSpread;
+				yPos = yPos + (int) lineSpread;
 			}
 		}
 
@@ -666,7 +673,7 @@ public class EuclidianStatic {
 		// labelRectangle.setLocation(xLabel, yLabel - fontSize);
 		int height = (int) ((lines + 1) * lineSpread);
 
-		ret.setBounds(xLabel - margin, yLabel - fontSize - margin,
+		ret.setBounds(xLabel - margin, (int) Math.round(yLabel - fontSize - margin),
 				xoffset + 2 * margin, height + 2 * margin);
 		return ret;
 	}
@@ -696,7 +703,7 @@ public class EuclidianStatic {
 		// draw text line by line
 		int lineBegin = 0;
 		int lines = 0;
-		int fontSize = textFont.getSize();
+		double fontSize = textFont.getSize();
 		double lineSpread = fontSize * 1.5;
 		int length = labelDesc.length();
 		int xoffset = 0, yoffset = 0;
@@ -735,7 +742,7 @@ public class EuclidianStatic {
 		}
 
 		int height = (int) ((lines + 1) * lineSpread);
-		labelRectangle.setBounds(xLabel - margin, yLabel - fontSize - margin,
+		labelRectangle.setBounds(xLabel - margin, (int) Math.round(yLabel - fontSize - margin),
 				xoffset + 2 * margin, height + 2 * margin);
 
 		return yoffset > 0;

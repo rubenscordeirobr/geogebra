@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian;
 
 import org.geogebra.common.awt.GColor;
@@ -208,7 +224,7 @@ public class DrawGrid {
 		// or if it's too close (eg sticky axes)
 		if (!view.showAxes[1] || Math.abs(pix - xCrossPix) > 2d) {
 			if (view.axesLabelsPositionsX.contains(
-					Integer.valueOf((int) (pix + Kernel.MIN_PRECISION)))) {
+					(int) (pix + Kernel.MIN_PRECISION))) {
 				// hits axis label, draw in 2 sections
 				drawLineAvoidingLabelsV(g2, pix, 0, pix, bottom, yCrossPix);
 			} else {
@@ -242,7 +258,7 @@ public class DrawGrid {
 
 			if (!view.showAxes[1] || Math.abs(pix - xCrossPix) > 2d) {
 				if (view.axesLabelsPositionsX.contains(
-						Integer.valueOf((int) (pix + Kernel.MIN_PRECISION)))) {
+						(int) (pix + Kernel.MIN_PRECISION))) {
 
 					// hits axis label, draw in 2 sections
 					drawLineAvoidingLabelsV(g2, pix, 0, pix, bottom, yCrossPix);
@@ -279,13 +295,14 @@ public class DrawGrid {
 		g2.addStraightLineToGeneralPath(x1, y1, x2, y2);
 	}
 
-	protected void drawDotsGrid(GGraphics2D g2) {
+	protected void drawDotsGrid(GGraphics2D g2, double xCrossPix, double yCrossPix) {
 		double tickStepX = view.getXscale() * view.gridDistances[0];
 		double tickStepY = view.getYscale() * view.gridDistances[1];
-		double startX = (view.getXZero() % tickStepX) - tickStepX;
+		double startX = getFirstVisibleVerticalLineX(xCrossPix, tickStepX);
 		double startY = (view.getYZero() % tickStepY) - tickStepY;
 		double endX = view.getWidth();
-		double endY = view.getHeight() + 2 * tickStepY;
+		double endY = (view.positiveAxes[1] && yCrossPix < view.getHeight())
+				? yCrossPix : view.getHeight();
 
 		DrawBackground.drawDots(g2, startX, endX, startY, endY, tickStepX, tickStepY,
 				view.getSettings());

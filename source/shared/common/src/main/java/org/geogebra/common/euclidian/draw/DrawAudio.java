@@ -1,5 +1,22 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian.draw;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GBasicStroke;
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.awt.GEllipse2DDouble;
@@ -11,7 +28,6 @@ import org.geogebra.common.awt.GRectangle;
 import org.geogebra.common.awt.font.GTextLayout;
 import org.geogebra.common.euclidian.EuclidianStatic;
 import org.geogebra.common.euclidian.EuclidianView;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.kernel.geos.GeoAudio;
 import org.geogebra.common.kernel.geos.GeoNumeric;
 import org.geogebra.common.kernel.geos.GeoWidget;
@@ -134,19 +150,16 @@ public class DrawAudio extends DrawWidget {
 	private void updateDot(double rwX, double rwY) {
 		coords[0] = rwX;
 		coords[1] = rwY;
-
-		double outerLeft = coords[0] - BLOB_RADIUS;
-		double outerTop = coords[1] - BLOB_RADIUS;
-
 		double innerLeft = coords[0] - INNER_BLOB_RADIUS;
 		double innerTop = coords[1] - INNER_BLOB_RADIUS;
-
 		diameter = 2 * BLOB_RADIUS + 1;
-		int innerDiameter = 2 * INNER_BLOB_RADIUS + 1;
 
+		int innerDiameter = 2 * INNER_BLOB_RADIUS + 1;
 		int highlightDiameter = 2 * BLOB_RADIUS + 1;
 		circle.setFrame(innerLeft, innerTop, innerDiameter, innerDiameter);
 		// selection area
+		double outerLeft = coords[0] - BLOB_RADIUS;
+		double outerTop = coords[1] - BLOB_RADIUS;
 		circleOuter.setFrame(outerLeft, outerTop, highlightDiameter, highlightDiameter);
 	}
 

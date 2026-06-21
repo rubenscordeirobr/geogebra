@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.dialog;
 
 import java.util.Arrays;
@@ -56,7 +72,7 @@ public class Export3dDialog extends ComponentDialog
 		private final Localization localization;
 		private double parsedValue;
 
-		public ParsableComponentInputField(AppW app, String placeholder,
+		ParsableComponentInputField(AppW app, String placeholder,
 				String labelTxt, String errorTxt, String defaultValue, String suffixTxt) {
 			super(app, placeholder, labelTxt, errorTxt, defaultValue, suffixTxt, false);
 			numberValidator = new NumberValidator(
@@ -64,12 +80,12 @@ public class Export3dDialog extends ComponentDialog
 			localization = app.getLocalization();
 		}
 
-		public void setValue(double v, NumberFormatAdapter nf) {
+		void setValue(double v, NumberFormatAdapter nf) {
 			parsedValue = v;
 			setInputText(nf.format(v));
 		}
 
-		public double getParsedValue() {
+		double getParsedValue() {
 			return parsedValue;
 		}
 
@@ -84,7 +100,7 @@ public class Export3dDialog extends ComponentDialog
 		 *            if text field can be empty (value is 0)
 		 * @return true if parsed ok
 		 */
-		public boolean parse(boolean showError, boolean canBeEqual,
+		boolean parse(boolean showError, boolean canBeEqual,
 				boolean canBeEmpty) {
 			if (canBeEmpty && StringUtil.emptyTrim(getText())) {
 				parsedValue = 0;
@@ -180,11 +196,11 @@ public class Export3dDialog extends ComponentDialog
 			isUsed = true;
 		}
 
-		public void setInputField(ParsableComponentInputField field) {
+		void setInputField(ParsableComponentInputField field) {
 			this.inputField = field;
 		}
 
-		public void setInitValue(double v) {
+		void setInitValue(double v) {
 			this.initValue = v * MM_TO_CM;
 			setValue(initValue);
 			if (DoubleUtil.isZero(initValue)) {
@@ -197,7 +213,7 @@ public class Export3dDialog extends ComponentDialog
 			inputField.setValue(v, nf);
 		}
 
-		public void setController() {
+		void setController() {
 			// from hardware keyboard
 			inputField.getTextField().getTextComponent()
 					.addKeyUpHandler(e -> parseAndUpdateOthers());
@@ -238,7 +254,7 @@ public class Export3dDialog extends ComponentDialog
 			setValue(initValue * ratio);
 		}
 
-		public boolean parse() {
+		boolean parse() {
 			return !isUsed || inputField.parse(true, false, false);
 		}
 	}

@@ -1,5 +1,22 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.main.undo;
 
+import static org.geogebra.common.BaseUnitTest.hasValue;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -20,19 +37,31 @@ import org.geogebra.common.geogebra3D.kernel3D.geos.GeoPoint3D;
 import org.geogebra.common.geogebra3D.kernel3D.geos.GeoSegment3D;
 import org.geogebra.common.jre.headless.EuclidianController3DNoGui;
 import org.geogebra.common.jre.headless.EuclidianView3DNoGui;
+import org.geogebra.common.kernel.Construction;
+import org.geogebra.common.kernel.MyPoint;
+import org.geogebra.common.kernel.algos.AlgoElement;
 import org.geogebra.common.kernel.geos.GeoElement;
+import org.geogebra.common.kernel.geos.GeoLocusStroke;
 import org.geogebra.common.kernel.geos.GeoNumeric;
 import org.geogebra.common.kernel.geos.GeoPoint;
 import org.geogebra.common.kernel.kernelND.GeoPointND;
 import org.geogebra.common.kernel.matrix.Coords;
 import org.geogebra.common.main.GeoGebraPreferencesXML;
+import org.geogebra.common.main.UndoRedoMode;
 import org.geogebra.common.main.settings.config.AppConfigGraphing;
 import org.geogebra.common.main.settings.config.AppConfigNotes;
+import org.geogebra.common.plugin.ActionType;
 import org.geogebra.common.plugin.GeoClass;
 import org.geogebra.test.annotation.Issue;
+import org.junit.Before;
 import org.junit.Test;
 
 public class UndoManagerTest extends BaseEuclidianControllerTest {
+
+	@Before
+	public void setUp() {
+		setUpController();
+	}
 
 	@Test
 	public void undoDeletionGraphing() {
@@ -242,6 +271,11 @@ public class UndoManagerTest extends BaseEuclidianControllerTest {
 		assertThat(pt, hasValue("(3, 0)"));
 	}
 
+	private void activateUndo() {
+		getApp().setUndoRedoMode(UndoRedoMode.GUI);
+		getApp().setUndoActive(true);
+	}
+
 	@Test
 	@Issue("APPS-5774")
 	public void undoDraggingSliderValue() {
@@ -307,7 +341,7 @@ public class UndoManagerTest extends BaseEuclidianControllerTest {
 		edgeJT.getChangeableParent3D().record(view3D, startPoint);
 		edgeJT.getChangeableParent3D().move(new Coords(1, 0, 0),
 				null, view3D.getViewDirection(),
-				null, null,  view3D);
+				null, null, view3D);
 		assertThat(edgeJT.getStartPointAsGeoElement(), hasValue("(2, 0, 0)"));
 		assertThat(param, hasValue("1"));
 		assertEquals(20, getConstruction().getGeoSetLabelOrder(GeoClass.POINT3D).size());
@@ -321,6 +355,27 @@ public class UndoManagerTest extends BaseEuclidianControllerTest {
 		assertThat(edgeJT.getStartPointAsGeoElement(), hasValue("(2, 0, 0)"));
 		assertThat(param, hasValue("1"));
 		assertEquals(20, getConstruction().getGeoSetLabelOrder(GeoClass.POINT3D).size());
+	}
+
+	@Test
+	@Issue("APPS-7170")
+	public void undoUpdateStroke() {
+		activateUndo();
+		GeoLocusStroke stroke = add("PenStroke(0,0,1,1)");
+		AlgoElement parentAlgo = stroke.getParentAlgorithm();
+		String oldXML = Objects.requireNonNull(parentAlgo).getXML();
+		stroke.appendPointArray(List.of(new MyPoint(2, 1)), null);
+		stroke.update();
+		String currentXML = parentAlgo.getXML();
+		getApp().getUndoManager().buildAction(ActionType.UPDATE, currentXML)
+				.withUndo(ActionType.UPDATE, oldXML).withLabels("stroke1").storeAndNotifyUnsaved();
+		getUndoManager().undo();
+		assertThat(stroke, hasValue("PenStrokeBezier[0.0000E0,0.0000E0,1,1.0000E0,1.0000E0,0,"
+				+ "NaN,NaN,0]"));
+		getUndoManager().redo();
+		assertThat(stroke, hasValue("PenStrokeBezier[0.0000E0,0.0000E0,1,1.0000E0,1.0000E0,0,"
+				+ "NaN,NaN,0,2.0000E0,1.0000E0,1,2.0000E0,1.0000E0,0,NaN,NaN,0]"));
+		assertThat(String.join(",", getApp().getGgbApi().getAllObjectNames()), equalTo("stroke1"));
 	}
 
 	@Test
@@ -343,7 +398,7 @@ public class UndoManagerTest extends BaseEuclidianControllerTest {
 	private EuclidianView3D get3Dview() {
 		return new EuclidianView3DNoGui(
 				new EuclidianController3DNoGui(getApp(), getKernel()),
-				this.getSettings().getEuclidian(3));
+				getApp().getSettings().getEuclidian(3));
 	}
 
 	@Test
@@ -359,6 +414,10 @@ public class UndoManagerTest extends BaseEuclidianControllerTest {
 	}
 
 	private AppState getCheckpoint() {
-		return getConstruction().getUndoManager().getCheckpoint(null).getAppState();
+		return getUndoManager().getCheckpoint(null).getAppState();
+	}
+
+	private Construction getConstruction() {
+		return getKernel().getConstruction();
 	}
 }

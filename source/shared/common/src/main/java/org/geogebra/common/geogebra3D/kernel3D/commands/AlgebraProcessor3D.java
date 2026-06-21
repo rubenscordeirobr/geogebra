@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.geogebra3D.kernel3D.commands;
@@ -167,9 +171,7 @@ public class AlgebraProcessor3D extends AlgebraProcessor {
 
 	private GeoElement[] processQuadric(Equation equ, ExpressionNode def,
 			EvalInfo info) {
-		double xx = 0, yy = 0, zz = 0, xy = 0, xz = 0, yz = 0, x = 0, y = 0,
-				z = 0, c = 0;
-		GeoElement[] ret = new GeoElement[1];
+
 		GeoQuadric3D quadric;
 		String label = equ.getLabel();
 		Polynomial lhs = equ.getNormalForm();
@@ -177,16 +179,16 @@ public class AlgebraProcessor3D extends AlgebraProcessor {
 		boolean isIndependent = lhs.isConstant(info);
 
 		if (isIndependent) {
-			xx = lhs.getCoeffValue("xx");
-			yy = lhs.getCoeffValue("yy");
-			zz = lhs.getCoeffValue("zz");
-			c = lhs.getCoeffValue("");
-			xy = lhs.getCoeffValue("xy") / 2;
-			xz = lhs.getCoeffValue("xz") / 2;
-			yz = lhs.getCoeffValue("yz") / 2;
-			x = lhs.getCoeffValue("x") / 2;
-			y = lhs.getCoeffValue("y") / 2;
-			z = lhs.getCoeffValue("z") / 2;
+			double xx = lhs.getCoeffValue("xx");
+			double yy = lhs.getCoeffValue("yy");
+			double zz = lhs.getCoeffValue("zz");
+			double c = lhs.getCoeffValue("");
+			double xy = lhs.getCoeffValue("xy") / 2;
+			double xz = lhs.getCoeffValue("xz") / 2;
+			double yz = lhs.getCoeffValue("yz") / 2;
+			double x = lhs.getCoeffValue("x") / 2;
+			double y = lhs.getCoeffValue("y") / 2;
+			double z = lhs.getCoeffValue("z") / 2;
 
 			double[] coeffs = { xx, yy, zz, c, xy, xz, yz, x, y, z };
 			quadric = new GeoQuadric3D(cons, coeffs);
@@ -202,8 +204,7 @@ public class AlgebraProcessor3D extends AlgebraProcessor {
 			quadric.setToImplicitForm();
 		}
 		setEquationLabelAndVisualStyle(quadric, label, info);
-		ret[0] = quadric;
-		return ret;
+		return new GeoElement[] {quadric};
 	}
 
 	/**

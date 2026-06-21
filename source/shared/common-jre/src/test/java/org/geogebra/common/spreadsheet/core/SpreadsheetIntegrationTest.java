@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.spreadsheet.core;
 
 import static org.geogebra.common.spreadsheet.core.SpreadsheetTestHelpers.simulateCellMouseClick;
@@ -7,20 +23,32 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.geogebra.common.SuiteSubApp;
 import org.geogebra.common.awt.GColor;
+import org.geogebra.common.awt.GGraphicsCommon;
 import org.geogebra.common.factories.FormatFactory;
 import org.geogebra.common.gui.GuiManager;
 import org.geogebra.common.io.FactoryProviderCommon;
 import org.geogebra.common.jre.factory.FormatFactoryJre;
 import org.geogebra.common.kernel.Construction;
+import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.geos.GeoNumeric;
 import org.geogebra.common.kernel.geos.GeoText;
+import org.geogebra.common.main.GeoGebraColorConstants;
 import org.geogebra.common.main.settings.SpreadsheetSettings;
 import org.geogebra.common.main.undo.UndoManager;
+import org.geogebra.common.spreadsheet.StringCapturingGraphics;
+import org.geogebra.common.spreadsheet.kernel.GeoElementCellRendererFactory;
 import org.geogebra.common.spreadsheet.kernel.KernelTabularDataAdapter;
 import org.geogebra.common.spreadsheet.settings.SpreadsheetSettingsAdapter;
 import org.geogebra.common.spreadsheet.style.SpreadsheetStyling;
@@ -63,7 +91,9 @@ public final class SpreadsheetIntegrationTest extends BaseAppTestSetup {
 		tabularData = new KernelTabularDataAdapter(getApp());
 		getKernel().attach((KernelTabularDataAdapter) tabularData);
 		spreadsheet = new Spreadsheet(tabularData,
-				new TestCellRenderableFactory(),
+				new GeoElementCellRendererFactory(graphics -> null,
+						getApp()::getFontSizeDouble),
+				null,
 				undoProvider);
 		spreadsheet.setViewportAdjustmentHandler(new DummyViewportAdjuster());
 		new SpreadsheetSettingsAdapter(spreadsheet, getApp()).registerListeners();
@@ -81,9 +111,34 @@ public final class SpreadsheetIntegrationTest extends BaseAppTestSetup {
 		spreadsheetSettings.getColumnWidths().put(1, 500.0);
 		Spreadsheet spreadsheet = new Spreadsheet(tabularData,
 				new TestCellRenderableFactory(),
+				null,
 				null);
 		new SpreadsheetSettingsAdapter(spreadsheet, getApp()).registerListeners();
 		Assertions.assertEquals(500 + 2 * 120 + 52, spreadsheet.getTotalWidth());
+	}
+
+	@Test
+	@Issue("APPS-6566")
+	public void testInitialSettings() {
+		SpreadsheetSettings spreadsheetSettings = getApp().getSettings().getSpreadsheet();
+		spreadsheetSettings.setColumnsNoFire(3);
+		spreadsheetSettings.setRowsNoFire(3);
+		spreadsheetSettings.setShowRowHeader(false);
+		spreadsheetSettings.setShowColumnHeader(false);
+		spreadsheetSettings.setShowGrid(false);
+		Spreadsheet spreadsheet = new Spreadsheet(tabularData,
+				new TestCellRenderableFactory(),
+				null,
+				null);
+		new SpreadsheetSettingsAdapter(spreadsheet, getApp()).registerListeners();
+		Assertions.assertEquals(3 * 120, spreadsheet.getTotalWidth());
+		Assertions.assertEquals(3 * 36, spreadsheet.getTotalHeight());
+		StringCapturingGraphics graphics = spy(new StringCapturingGraphics());
+		spreadsheet.draw(graphics);
+		assertEquals("", graphics.toString());
+		verify(graphics, never()).draw(any());
+		verify(graphics, never()).drawStraightLine(
+				anyDouble(), anyDouble(), anyDouble(), anyDouble());
 	}
 
 	@Test
@@ -185,8 +240,8 @@ public final class SpreadsheetIntegrationTest extends BaseAppTestSetup {
 		assertEquals(26, spreadsheet.getController().getLayout().numberOfColumns());
 	}
 
-	@Issue("APPS-6925")
 	@Test
+	@Issue("APPS-6925")
 	public void testClearAllClearsStyles() {
 		spreadsheet.getStyling().setBackgroundColor(GColor.BLUE,
 				Collections.singletonList(new TabularRange(0, 0)));
@@ -195,5 +250,89 @@ public final class SpreadsheetIntegrationTest extends BaseAppTestSetup {
 				.getStyling()
 				.getBackgroundColor(0, 0, null);
 		assertNotEquals(GColor.BLUE, background);
+	}
+
+	@Test
+	@Issue("APPS-6619")
+	public void spreadsheetShouldReflectColorChanges() {
+		getKernel().attach((KernelTabularDataAdapter) tabularData);
+		spreadsheet.setViewport(new Rectangle(0, 300, 0, 300));
+		evaluate("A1 = 1");
+		spreadsheet.draw(new GGraphicsCommon());
+		evaluate("SetBackgroundColor(A1,red)");
+		Set<GColor> usedColors = new HashSet<>();
+		spreadsheet.draw(getColorCollectingGraphics(usedColors));
+		assertTrue(usedColors.contains(GColor.RED), "Should contain red:" + usedColors);
+	}
+
+	@Test
+	@Issue("APPS-7335")
+	public void testDynamicColor() {
+		GeoElement point = evaluateGeoElement("A1=(0,0)");
+		point.setColorFunction(evaluateGeoElement("{x(A1),0,0}"));
+		Set<GColor> colors = new HashSet<>();
+		GGraphicsCommon graphics = getColorCollectingGraphics(colors);
+		spreadsheet.draw(graphics);
+		assertEquals(Set.of(GeoGebraColorConstants.NEUTRAL_900,
+				GeoGebraColorConstants.NEUTRAL_200, GeoGebraColorConstants.NEUTRAL_300), colors);
+		evaluate("SetValue(A1,1)");
+		colors.clear();
+		spreadsheet.draw(graphics);
+		assertEquals(Set.of(GeoGebraColorConstants.NEUTRAL_900,
+				GeoGebraColorConstants.NEUTRAL_200, GeoGebraColorConstants.NEUTRAL_300,
+				GColor.RED), colors);
+	}
+
+	@Test
+	@Issue("APPS-7336")
+	public void shouldIgnoreSliderLineColor() {
+		getKernel().attach((KernelTabularDataAdapter) tabularData);
+		spreadsheet.setViewport(new Rectangle(0, 300, 0, 300));
+		evaluate("A1 = Slider(1,2)");
+		lookup("A1").setBackgroundColor(GColor.RED);
+		evaluate("A2 = \"1\"");
+		lookup("A2").setBackgroundColor(GColor.BLUE);
+		Set<GColor> usedColors = new HashSet<>();
+		spreadsheet.draw(getColorCollectingGraphics(usedColors));
+		spreadsheet.draw(new GGraphicsCommon());
+		assertFalse(usedColors.contains(GColor.RED), "Should not contain red:" + usedColors);
+		assertTrue(usedColors.contains(GColor.BLUE), "Should contain blue:" + usedColors);
+	}
+
+	@Test
+	public void testEnsureDimensions() {
+		getKernel().attach((KernelTabularDataAdapter) tabularData);
+		getApp().getSettings().getSpreadsheet().setPreferredColumnWidth(120);
+		assertEquals(3636.0, spreadsheet.getTotalHeight(), 0.0);
+		assertEquals(3172.0, spreadsheet.getTotalWidth(), 0.0);
+		getApp().getSettings().getSpreadsheet().ensureDimensions(300, 5);
+		assertEquals(10836.0, spreadsheet.getTotalHeight(), 0.0);
+		// changing spreadsheet dimensions normalizes column widths
+		assertEquals(3172.0, spreadsheet.getTotalWidth(), 0.0);
+	}
+
+	@Test
+	@Issue("APPS-7662")
+	public void testGrowingSpreadsheetSizeWithCommands() {
+		evaluate("l1 = Sequence(k, k, 1, 150)");
+		evaluate("FillColumn(1, l1)");
+
+		assertEquals(150, tabularData.numberOfRows());
+		assertEquals(150, spreadsheet.getController().getLayout().numberOfRows());
+
+		spreadsheet.getController().selectCell(149, 0, false, false);
+		spreadsheet.getController().moveDown(false);
+
+		assertEquals(151, tabularData.numberOfRows());
+		assertEquals(151, spreadsheet.getController().getLayout().numberOfRows());
+	}
+
+	private GGraphicsCommon getColorCollectingGraphics(Set<GColor> colors) {
+		return new GGraphicsCommon() {
+			@Override
+			public void setColor(GColor color) {
+				colors.add(color);
+			}
+		};
 	}
 }

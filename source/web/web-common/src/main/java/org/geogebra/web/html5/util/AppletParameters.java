@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.html5.util;
 
 import java.util.Arrays;
@@ -157,7 +173,7 @@ public class AppletParameters {
 	 *            fallback if parameter not set
 	 * @return data-param-enableCAS: whether CAS is enabled
 	 */
-	public boolean getDataParamEnableCAS(boolean def) {
+	public boolean getParamEnableCAS(boolean def) {
 		return getBoolDataParam("enableCAS", def);
 	}
 
@@ -166,8 +182,16 @@ public class AppletParameters {
 	 *            fallback if parameter not set
 	 * @return data-param-enable3D: whether 3D is enabled
 	 */
-	public boolean getDataParamEnable3D(boolean def) {
+	public boolean getParamEnable3D(boolean def) {
 		return getBoolDataParam("enable3D", def);
+	}
+
+	/**
+	 * @param def fallback if parameter not set
+	 * @return data-param-enableProbability: whether probability calculator is enabled
+	 */
+	public boolean getParamEnableProbability(boolean def) {
+		return getBoolDataParam("enableProbability", def);
 	}
 
 	/**
@@ -836,8 +860,8 @@ public class AppletParameters {
 	 * @param fallback value to be used if not set
 	 * @return value of the data-param-fontAwesome attribute
 	 */
-	public boolean getParamFontAwesome(boolean fallback) {
-		return getBoolDataParam("fontAwesome", fallback);
+	public String getParamFontAwesome(String fallback) {
+		return getStringDataParam("fontAwesome", fallback);
 	}
 
 	/**

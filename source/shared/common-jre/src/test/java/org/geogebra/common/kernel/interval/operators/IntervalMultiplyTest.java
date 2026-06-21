@@ -1,10 +1,26 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.interval.operators;
 
 import static org.geogebra.common.kernel.interval.IntervalConstants.one;
 import static org.geogebra.common.kernel.interval.IntervalConstants.whole;
 import static org.geogebra.common.kernel.interval.IntervalConstants.zero;
+import static org.geogebra.common.kernel.interval.IntervalHelper.invertedPayload;
 import static org.geogebra.common.kernel.interval.IntervalTest.interval;
-import static org.geogebra.common.kernel.interval.IntervalTest.invertedInterval;
 import static org.geogebra.common.kernel.interval.operators.IntervalDivide.next;
 import static org.geogebra.common.kernel.interval.operators.IntervalDivide.prev;
 import static org.junit.Assert.assertEquals;
@@ -395,6 +411,28 @@ public class IntervalMultiplyTest {
 	@Test
 	public void multiplyInvertedWithZero() {
 		assertEquals(zero(), evaluator.multiply(interval(0),
-				invertedInterval(1, 2)));
+				invertedPayload(1, 2)));
+	}
+
+	@Test
+	public void multiplyWholeWithZeroShouldBeZero() {
+		assertEquals(zero(), evaluator.multiply(zero(), whole()));
+		assertEquals(zero(), evaluator.multiply(whole(), zero()));
+	}
+
+	@Test
+	public void multiplyInvertedWithOneShouldPreserveInvertedTopology() {
+		assertEquals(invertedPayload(1, 2),
+				evaluator.multiply(invertedPayload(1, 2), one()));
+		assertEquals(invertedPayload(1, 2),
+				evaluator.multiply(one(), invertedPayload(1, 2)));
+	}
+
+	@Test
+	public void multiplyInvertedWithMinusOneShouldFlipInvertedTopology() {
+		assertEquals(invertedPayload(-2, -1),
+				evaluator.multiply(interval(-1), invertedPayload(1, 2)));
+		assertEquals(invertedPayload(-2, -1),
+				evaluator.multiply(invertedPayload(1, 2), interval(-1)));
 	}
 }

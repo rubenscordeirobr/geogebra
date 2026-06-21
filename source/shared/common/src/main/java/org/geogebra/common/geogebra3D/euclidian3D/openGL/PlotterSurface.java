@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.openGL;
 
 import org.geogebra.common.geogebra3D.euclidian3D.draw.Drawable3D;
@@ -1256,17 +1272,7 @@ public class PlotterSurface {
                        Coords vz, double r1, double r2, double start, double extent,
                        double height, float fading) {
 		manager.startGeometry(Manager.Type.TRIANGLE_STRIP);
-
 		int longitude = manager.getLongitudeDefault();
-
-		double u, v;
-
-		float dt = (float) 1 / longitude;
-		float da = (float) (extent * dt);
-		// if (height > 0){ // ensure correct back/front face culling
-		// da *= -1;
-		// }
-
 		if (fading == 1) { // no fading
 			manager.setDummyTexture();
 		}
@@ -1274,14 +1280,14 @@ public class PlotterSurface {
 		center2.set(vz);
 		center2.mulInside3(height);
 		center2.addInside(center);
-
+		float dt = (float) 1 / longitude;
+		float da = (float) (extent * dt);
 		double r1h = r1 * -height;
 		double r2h = r2 * -height;
 		double rr = r1 * r2;
-
 		for (int i = 0; i <= longitude; i++) {
-			u = Math.cos(start + i * da);
-			v = Math.sin(start + i * da);
+			double u = Math.cos(start + i * da);
+			double v = Math.sin(start + i * da);
 
 			m.setAdd(tmpCoords2.setMul(vx, u * r1h),
 					tmpCoords3.setMul(vy, v * r2h));
@@ -1311,7 +1317,6 @@ public class PlotterSurface {
 		manager.endGeometry(longitude * 2, TypeElement.TRIANGLE_STRIP);
 
 		return center2;
-
 	}
 
 	/**
@@ -1354,7 +1359,10 @@ public class PlotterSurface {
 		center2.set(vz);
 		center2.mulInside3(max);
 		center2.addInside(center);
-
+		boolean fading = minFading || maxFading;
+		if (!fading) {
+			manager.setDummyTexture();
+		}
 		double rmin = r1 * min;
 		double rmax = r1 * max;
 		double ratio = r2 / r1;
@@ -1367,20 +1375,13 @@ public class PlotterSurface {
 			rmin *= -1;
 			rmax *= -1;
 		}
-
 		double rr = r1 * r2 * sgn;
-
-		boolean fading = minFading || maxFading;
-		if (!fading) {
-			manager.setDummyTexture();
-		}
 		int longitude = manager.getLongitudeDefault();
-		float u, v;
 		float dt = (float) 1 / longitude;
 		float da = (float) (extent * dt);
 		for (int i = 0; i <= longitude; i++) {
-			u = (float) Math.cos(start + i * da);
-			v = (float) Math.sin(start + i * da);
+			double u = (float) Math.cos(start + i * da);
+			double v = (float) Math.sin(start + i * da);
 
 			m.setAdd(tmpCoords2.setMul(vx, u),
 					tmpCoords3.setMul(vy, v * ratio));
@@ -1596,17 +1597,11 @@ public class PlotterSurface {
 
 		manager.texture(0, 0);
 		manager.normalToScale(v1.crossProduct(v2));
-
-		int longitude = manager.getLongitudeDefault();
-
-		Coords m1;
-
-		float dt = (float) (tMax - tMin) / longitude;
 		// first point
 		double t = tMin;
 		float u = (float) (p * t * t / 2);
 		float v = (float) (p * t);
-		m1 = v1.mul(u).add(v2.mul(v));
+		Coords m1 = v1.mul(u).add(v2.mul(v));
 
 		// center of the fan is midpoint of branch ends
 		t = tMax;
@@ -1617,7 +1612,8 @@ public class PlotterSurface {
 
 		// first point
 		manager.triangleFanVertex(center.add(m1));
-
+		int longitude = manager.getLongitudeDefault();
+		float dt = (float) (tMax - tMin) / longitude;
 		for (int i = 1; i <= longitude; i++) {
 			t = tMin + i * dt;
 			u = (float) (p * t * t / 2);

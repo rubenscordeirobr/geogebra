@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.exam.restrictions;
 
 import static org.geogebra.common.SuiteSubApp.CAS;
@@ -163,7 +179,6 @@ import static org.geogebra.common.kernel.commands.Commands.Insert;
 import static org.geogebra.common.kernel.commands.Commands.IntegralBetween;
 import static org.geogebra.common.kernel.commands.Commands.IntegralSymbolic;
 import static org.geogebra.common.kernel.commands.Commands.InteriorAngles;
-import static org.geogebra.common.kernel.commands.Commands.Intersect;
 import static org.geogebra.common.kernel.commands.Commands.IntersectConic;
 import static org.geogebra.common.kernel.commands.Commands.IntersectPath;
 import static org.geogebra.common.kernel.commands.Commands.Intersection;
@@ -354,7 +369,6 @@ import static org.geogebra.common.plugin.Operation.RANDOM;
 import java.util.Map;
 import java.util.Set;
 
-import org.geogebra.common.exam.ExamType;
 import org.geogebra.common.exam.restrictions.ib.IBCommandArgumentFilter;
 import org.geogebra.common.exam.restrictions.ib.IBSyntaxFilter;
 import org.geogebra.common.exam.restrictions.ib.PointDerivativeFilter;
@@ -364,17 +378,22 @@ import org.geogebra.common.kernel.algos.DisabledAlgorithms;
 import org.geogebra.common.kernel.arithmetic.filter.ExpressionFilter;
 import org.geogebra.common.kernel.arithmetic.filter.OperationFilter;
 import org.geogebra.common.kernel.commands.filter.CommandArgumentFilter;
+import org.geogebra.common.kernel.commands.filter.ExamCommandArgumentFilter;
 import org.geogebra.common.kernel.commands.selector.CommandFilter;
 import org.geogebra.common.kernel.commands.selector.CommandNameFilter;
 import org.geogebra.common.main.settings.ProbabilityCalculatorSettings;
 import org.geogebra.common.main.syntax.suggestionfilter.SyntaxFilter;
 import org.geogebra.common.plugin.Operation;
+import org.geogebra.common.properties.PropertyKey;
+import org.geogebra.common.properties.impl.distribution.DistributionTypeProperty;
+import org.geogebra.common.restrictions.PropertyRestriction;
+import org.geogebra.common.restrictions.Restrictions;
 
-public final class IBExamRestrictions extends ExamRestrictions {
+public final class IBExamRestrictions extends Restrictions {
 
-	IBExamRestrictions() {
-		super(ExamType.IB,
-				Set.of(CAS, G3D, GEOMETRY, SCIENTIFIC),
+	/** Constructs the restrictions for IB exam. */
+	public IBExamRestrictions() {
+		super(Set.of(CAS, G3D, GEOMETRY, SCIENTIFIC),
 				GRAPHING,
 				null,
 				createExpressionFilters(),
@@ -389,6 +408,7 @@ public final class IBExamRestrictions extends ExamRestrictions {
 				null,
 				null,
 				createDisabledAlgorithms(),
+				null,
 				null,
 				null);
 	}
@@ -443,13 +463,13 @@ public final class IBExamRestrictions extends ExamRestrictions {
 				Dilate, Reflect, Rotate, Shear, Stretch, Translate, MatrixRank,
 				PerpendicularVector, UnitPerpendicularVector, UnitVector, Vector, CFactor,
 				GroebnerDegRevLex, GroebnerLexDeg, GroebnerLex, Substitute, BetaDist,
-				InverseBeta, InteriorAngles, Random, Execute, ExportImage, Intersect, Turtle,
+				InverseBeta, InteriorAngles, Random, Execute, ExportImage, Turtle,
 				TurtleBack, TurtleForward, TurtleLeft, TurtleRight, TurtleUp, TurtleDown);
 		return Set.of(nameFilter);
 	}
 
 	private static Set<CommandArgumentFilter> createCommandArgumentFilters() {
-		return Set.of(new IBCommandArgumentFilter());
+		return Set.of(new ExamCommandArgumentFilter(), new IBCommandArgumentFilter());
 	}
 
 	private static OperationFilter createOperationFilter() {
@@ -477,12 +497,13 @@ public final class IBExamRestrictions extends ExamRestrictions {
 				MODE_MIRROR_AT_CIRCLE, MODE_FREEHAND_SHAPE, MODE_RELATION);
 	}
 
-	private static Map<String, PropertyRestriction> createDistributionPropertyRestriction() {
+	private static Map<PropertyKey, PropertyRestriction> createDistributionPropertyRestriction() {
 		Set<ProbabilityCalculatorSettings.Dist> restrictedDistributions = Set.of(
 				EXPONENTIAL, CAUCHY, WEIBULL, GAMMA, BETA, LOGNORMAL, LOGISTIC, PASCAL
 		);
-		return Map.of("Distribution", new PropertyRestriction(false, value ->
-				!restrictedDistributions.contains(value)));
+		return Map.of(PropertyKey.of(DistributionTypeProperty.class),
+				new PropertyRestriction(false, value ->
+						!restrictedDistributions.contains(value)));
 	}
 
 	private static Set<DisabledAlgorithms> createDisabledAlgorithms() {

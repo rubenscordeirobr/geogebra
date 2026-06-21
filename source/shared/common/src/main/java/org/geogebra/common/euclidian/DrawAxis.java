@@ -1,7 +1,24 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian;
 
 import java.util.ArrayList;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.awt.GDimension;
 import org.geogebra.common.awt.GFont;
@@ -10,7 +27,6 @@ import org.geogebra.common.awt.GGeneralPath;
 import org.geogebra.common.awt.GGraphics2D;
 import org.geogebra.common.awt.font.GTextLayout;
 import org.geogebra.common.euclidian.draw.CanvasDrawable;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.arithmetic.ExpressionNode;
@@ -20,8 +36,7 @@ import org.geogebra.common.plugin.EuclidianStyleConstants;
 import org.geogebra.common.util.DoubleUtil;
 import org.geogebra.common.util.MyMath;
 import org.geogebra.common.util.StringUtil;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * Draws axes in 2D
@@ -36,7 +51,7 @@ public class DrawAxis {
 	// used for deciding if there is a number to close for "0" on the x axis
 	private Integer beforeZeroX;
 	// used for deciding if there is a number to close for "0" on the y axis
-	private Integer beforeZeroY;
+	private Double beforeZeroY;
 	private boolean firstCallX = true;
 	private boolean firstCallY = true;
 	private String zeroStr = "0";
@@ -56,13 +71,13 @@ public class DrawAxis {
 	protected void drawAxes(GGraphics2D g2) {
 
 		// xCrossPix: yAxis crosses the xAxis at this x pixel
-		double xCrossPix = view.getXAxisCrossingPixel();
+		final double xCrossPix = view.getXAxisCrossingPixel();
 
 		// yCrossPix: xAxis crosses the yAxis at this y pixel
 		double yCrossPix = view.getYAxisCrossingPixel();
 
 		// yAxis end value (for drawing half-axis)
-		int yAxisEnd = view.positiveAxes[1] ? (int) yCrossPix
+		final int yAxisEnd = view.positiveAxes[1] ? (int) yCrossPix
 				: view.getHeight();
 
 		// for axes ticks
@@ -74,31 +89,26 @@ public class DrawAxis {
 			gp = AwtFactory.getPrototype().newGeneralPath();
 		}
 
-		boolean drawRightArrow = ((view.axesLineType
+		final boolean drawRightArrow = ((view.axesLineType
 				& EuclidianStyleConstants.AXES_RIGHT_ARROW) != 0)
 				&& !(view.positiveAxes[0]
 						&& (view.getXmax() < view.axisCross[1]));
-		boolean drawTopArrow = ((view.axesLineType
+		final boolean drawTopArrow = ((view.axesLineType
 				& EuclidianStyleConstants.AXES_RIGHT_ARROW) != 0)
 				&& !(view.positiveAxes[1]
 						&& (view.getYmax() < view.axisCross[0]));
 
-		boolean drawLeftArrow = ((view.axesLineType
+		final boolean drawLeftArrow = ((view.axesLineType
 				& EuclidianStyleConstants.AXES_LEFT_ARROW) != 0)
 				&& !view.positiveAxes[0];
-		boolean drawBottomArrow = ((view.axesLineType
+		final boolean drawBottomArrow = ((view.axesLineType
 				& EuclidianStyleConstants.AXES_LEFT_ARROW) != 0)
 				&& !view.positiveAxes[1];
 
-		// AXES_TICK_STYLE_MAJOR_MINOR = 0;
-		// AXES_TICK_STYLE_MAJOR = 1;
-		// AXES_TICK_STYLE_NONE = 2;
-
 		g2.setFont(view.getFontAxes());
-		int fontsize = view.getFontAxes().getSize();
-		int arrowSize = fontsize / 3;
+		double fontsize = view.getFontAxes().getSize();
+		double arrowSize = fontsize / 3;
 		g2.setPaint(view.axesColor);
-		GFontRenderContext frc = g2.getFontRenderContext();
 
 		if (bold) {
 			view.axesStroke = EuclidianView.boldAxesStroke;
@@ -133,6 +143,7 @@ public class DrawAxis {
 				.getAxisMinusSign();
 		// xAxis start value (for drawing half-axis)
 		int xAxisStart = view.positiveAxes[0] ? (int) xCrossPix : 0;
+		GFontRenderContext frc = g2.getFontRenderContext();
 		// ========================================
 		// X-AXIS
 		if (view.showAxes[0]) {
@@ -370,10 +381,10 @@ public class DrawAxis {
 	}
 
 	private void drawYticksLinear(GGraphics2D g2, double xCrossPix,
-			int fontsize, char minusSign, boolean drawTopArrow,
+			double fontsize, char minusSign, boolean drawTopArrow,
 			double yCrossPix, double yAxisEnd) {
-		double xoffset = -4 - (fontsize / 4d);
-		double yoffset = (fontsize / 2d) - 1;
+		final double xoffset = -4 - (fontsize / 4d);
+		final double yoffset = (fontsize / 2d) - 1;
 
 		boolean enableTicks = !view.getShowGrid()
 				|| (view.axesNumberingDistances[1] != view.getGridDistances()[1]);
@@ -384,11 +395,10 @@ public class DrawAxis {
 				view.getAxisTickStyle(0) == 0 && enableTicks,
 				view.getAxisTickStyle(1) == 0 && enableTicks };
 
-		double xSmall1 = xCrossPix - 0;
+		final double xSmall1 = xCrossPix - 0;
 		double xSmall2 = xCrossPix - 2;
-		double xBig = xCrossPix - 3;
+		final double xBig = xCrossPix - 3;
 		double smallTickOffset = 0;
-		double xZeroTick = xCrossPix;
 		if (view.areAxesBold()) {
 			xSmall2--;
 		}
@@ -425,7 +435,7 @@ public class DrawAxis {
 			// big tick
 			if (drawMajorTicks[1]) {
 				g2.setStroke(view.tickStroke);
-				g2.drawStraightLine(xBig, pix, xZeroTick, pix);
+				g2.drawStraightLine(xBig, pix, xCrossPix, pix);
 			}
 			pix -= axesStep;
 			rw += view.axesNumberingDistances[1];
@@ -517,12 +527,12 @@ public class DrawAxis {
 				if (drawMajorTicks[1] && (!view.showAxes[0]
 						|| !DoubleUtil.isEqual(rw, view.axisCross[0]))) {
 					g2.setStroke(view.tickStroke);
-					g2.drawStraightLine(xBig, pix, xZeroTick, pix);
+					g2.drawStraightLine(xBig, pix, xCrossPix, pix);
 				}
 			} else if (drawMajorTicks[1] && !drawTopArrow) {
 				// draw last tick if there is no arrow
 				g2.setStroke(view.tickStroke);
-				g2.drawStraightLine(xBig, pix, xZeroTick, pix);
+				g2.drawStraightLine(xBig, pix, xCrossPix, pix);
 			}
 
 			// small tick
@@ -592,7 +602,7 @@ public class DrawAxis {
 	}
 
 	private void drawZero(GGraphics2D g2, double xCrossPix, double yCrossPix,
-			int fontsize) {
+			double fontsize) {
 
 		if ((!view.showAxes[0] || !view.showAxesNumbers[0])
 				&& (!view.showAxes[1] || !view.showAxesNumbers[1])) {
@@ -688,7 +698,7 @@ public class DrawAxis {
 			g2 = graphics;
 		}
 
-		public void draw() {
+		void draw() {
 			// At the left and right edge numbers will stay at the border
 
 			Integer x2 = getXPositionAtEdge(xCrossPix, xoffset, width);
@@ -701,18 +711,17 @@ public class DrawAxis {
 
 	}
 
-	private void drawYticksLog(GGraphics2D g2, double xCrossPix, int fontsize,
+	private void drawYticksLog(GGraphics2D g2, double xCrossPix, double fontsize,
 			char minusSign, boolean drawTopArrow, double yCrossPix,
 			double yAxisEnd) {
-		double xoffset = -4 - (fontsize / 4d);
-		double yoffset = (fontsize / 2d) - 1;
+		final double xoffset = -4 - (fontsize / 4d);
+		final double yoffset = (fontsize / 2d) - 1;
 		boolean[] drawMajorTicks = { view.getAxisTickStyle(0) <= 1, view.getAxisTickStyle(1) <= 1 };
 		boolean[] drawMinorTicks = { view.getAxisTickStyle(0) == 0, view.getAxisTickStyle(1) == 0 };
-		double xSmall1 = xCrossPix - 0;
+		final double xSmall1 = xCrossPix - 0;
 		double xSmall2 = xCrossPix - 2;
-		double xBig = xCrossPix - 3;
+		final double xBig = xCrossPix - 3;
 		double smallTickOffset = 0;
-		double xZeroTick = xCrossPix;
 		if (view.areAxesBold()) {
 			xSmall2--;
 		}
@@ -751,7 +760,7 @@ public class DrawAxis {
 			// big tick
 			if (drawMajorTicks[1]) {
 				g2.setStroke(view.tickStroke);
-				g2.drawStraightLine(xBig, pix, xZeroTick, pix);
+				g2.drawStraightLine(xBig, pix, xCrossPix, pix);
 			}
 			pix -= axisStep;
 			rw += view.axesNumberingDistances[1];
@@ -827,12 +836,12 @@ public class DrawAxis {
 				if (drawMajorTicks[1] && (!view.showAxes[0]
 						|| !DoubleUtil.isEqual(rw, view.axisCross[0]))) {
 					g2.setStroke(view.tickStroke);
-					g2.drawStraightLine(xBig, pix, xZeroTick, pix);
+					g2.drawStraightLine(xBig, pix, xCrossPix, pix);
 				}
 			} else if (drawMajorTicks[1] && !drawTopArrow) {
 				// draw last tick if there is no arrow
 				g2.setStroke(view.tickStroke);
-				g2.drawStraightLine(xBig, pix, xZeroTick, pix);
+				g2.drawStraightLine(xBig, pix, xCrossPix, pix);
 			}
 
 			// small tick
@@ -862,7 +871,7 @@ public class DrawAxis {
 	}
 
 	private void drawXTicksLinear(GGraphics2D g2, double yCrossPix,
-			char minusSign, boolean drawRightArrow, int fontsize,
+			char minusSign, boolean drawRightArrow, double fontsize,
 			double xAxisStart) {
 		double yoffset = view.getYOffsetForXAxis(fontsize);
 
@@ -877,7 +886,7 @@ public class DrawAxis {
 		double rw = view.getXmin()
 				- (view.getXmin() % view.axesNumberingDistances[0]);
 		long labelno = Math.round(rw / view.axesNumberingDistances[0]);
-		// by default we start with minor tick to the left of first major
+		// by default, we start with minor tick to the left of first major
 		// tick, exception is for positive only
 		double smallTickOffset = 0;
 		double axesStep = view.getXscale() * view.axesNumberingDistances[0]; // pixelstep
@@ -893,11 +902,8 @@ public class DrawAxis {
 			smallTickOffset = axesStep;
 			labelno = Math.round(rw / view.axesNumberingDistances[0]);
 		}
-		int maxX = view.getWidth() - EuclidianView.SCREEN_BORDER;
-		double pix = view.getXZero() + (rw * view.getXscale());
-
-		double smallTickPix;
-		double tickStep = axesStep / 2;
+		final int maxX = view.getWidth() - EuclidianView.SCREEN_BORDER;
+		final double tickStep = axesStep / 2;
 		double labelLengthMax = Math.max(
 				view.estimateNumberWidth(rw, view.getFontAxes()),
 				view.estimateNumberWidth(
@@ -908,23 +914,23 @@ public class DrawAxis {
 				.nextPrettyNumber(labelLengthMax / axesStep, 1);
 		String crossAtStr = view.kernel.formatPiE(view.axisCross[1],
 				view.axesNumberFormat[0], StringTemplate.defaultTemplate);
-		double yZeroTick = yCrossPix;
 		double yBig = yCrossPix + 3;
 		double ySmall1 = yCrossPix + 0;
 		double ySmall2 = yCrossPix + 2;
 		if (view.areAxesBold()) {
 			ySmall2++;
 		}
+		double pix = view.getXZero() + (rw * view.getXscale());
 		if (pix < EuclidianView.SCREEN_BORDER) {
 			// big tick
 			if (drawMajorTicks[0]) {
 				g2.setStroke(view.tickStroke);
-				g2.drawStraightLine(pix, yZeroTick, pix, yBig);
+				g2.drawStraightLine(pix, yCrossPix, pix, yBig);
 			}
 			pix += axesStep;
 			labelno += 1;
 		}
-
+		double smallTickPix;
 		for (; pix < view.getWidth(); pix += axesStep) {
 
 			// 285, 285.1, 285.2 -> rounding problems
@@ -977,8 +983,7 @@ public class DrawAxis {
 
 						// store position of number, so grid line can avoid
 						// it
-						view.axesLabelsPositionsX.add(Integer
-								.valueOf((int) (pix + Kernel.MIN_PRECISION)));
+						view.axesLabelsPositionsX.add((int) (pix + Kernel.MIN_PRECISION));
 					}
 				}
 				// big tick
@@ -986,11 +991,11 @@ public class DrawAxis {
 						&& (!view.showAxes[1] || !DoubleUtil.isEqual(pix,
 								view.toScreenCoordX(view.axisCross[1])))) {
 					g2.setStroke(view.tickStroke);
-					g2.drawStraightLine(pix, yZeroTick, pix, yBig);
+					g2.drawStraightLine(pix, yCrossPix, pix, yBig);
 				}
 			} else if (drawMajorTicks[0] && !drawRightArrow) {
 				// draw last tick if there is no arrow
-				g2.drawStraightLine(pix, yZeroTick, pix, yBig);
+				g2.drawStraightLine(pix, yCrossPix, pix, yBig);
 			}
 
 			// small tick
@@ -1011,22 +1016,19 @@ public class DrawAxis {
 	}
 
 	private void drawXTicksLog(GGraphics2D g2, double yCrossPix, char minusSign,
-			boolean drawRightArrow, int fontsize, double xAxisStart) {
-		double yoffset = view.getYOffsetForXAxis(fontsize);
+			boolean drawRightArrow, double fontsize, double xAxisStart) {
+		final double yoffset = view.getYOffsetForXAxis(fontsize);
 		boolean[] drawMajorTicks = { view.getAxisTickStyle(0) <= 1, view.getAxisTickStyle(1) <= 1 };
 		boolean[] drawMinorTicks = { view.getAxisTickStyle(0) == 0, view.getAxisTickStyle(1) == 0 };
 		// by default we start with minor tick to the left of first major
 		// tick, exception is for positive only
-		double smallTickOffset = 0;
 
-		int maxX = view.getWidth() - EuclidianView.SCREEN_BORDER;
+		final int maxX = view.getWidth() - EuclidianView.SCREEN_BORDER;
 
-		double smallTickPix;
 		// TODO use only pretty numbers when zoomed
 		String crossAtStr = view.kernel.formatPiE(view.axisCross[1],
 				view.axesNumberFormat[0], StringTemplate.defaultTemplate);
-		double yZeroTick = yCrossPix;
-		double yBig = yCrossPix + 3;
+		final double yBig = yCrossPix + 3;
 		double ySmall1 = yCrossPix + 0;
 		double ySmall2 = yCrossPix + 2;
 		if (view.areAxesBold()) {
@@ -1037,6 +1039,7 @@ public class DrawAxis {
 		double axisStep = view.getWidth()
 				/ (Math.log10(view.getXmax()) - Math.log10(view.getXmin()));
 		double pix = (Math.log10(pow) - Math.log10(view.getXmin())) * axisStep;
+		double smallTickPix;
 		while (pow < view.getXmax()) {
 
 			// 285, 285.1, 285.2 -> rounding problems
@@ -1076,8 +1079,7 @@ public class DrawAxis {
 
 					// store position of number, so grid line can avoid
 					// it
-					view.axesLabelsPositionsX.add(Integer
-							.valueOf((int) (pix + Kernel.MIN_PRECISION)));
+					view.axesLabelsPositionsX.add((int) (pix + Kernel.MIN_PRECISION));
 				}
 
 				// big tick
@@ -1085,15 +1087,15 @@ public class DrawAxis {
 						&& (!view.showAxes[1] || !DoubleUtil.isEqual(pix,
 								view.toScreenCoordX(view.axisCross[1])))) {
 					g2.setStroke(view.tickStroke);
-					g2.drawStraightLine(pix, yZeroTick, pix, yBig);
+					g2.drawStraightLine(pix, yCrossPix, pix, yBig);
 				}
 			} else if (drawMajorTicks[0] && !drawRightArrow) {
 				// draw last tick if there is no arrow
-				g2.drawStraightLine(pix, yZeroTick, pix, yBig);
+				g2.drawStraightLine(pix, yCrossPix, pix, yBig);
 			}
 
 			// small tick
-			smallTickPix = pix + smallTickOffset;
+			smallTickPix = pix;
 			if (drawMinorTicks[0]) {
 				g2.setStroke(view.tickStroke);
 				g2.drawStraightLine(smallTickPix, ySmall1, smallTickPix,
@@ -1103,7 +1105,7 @@ public class DrawAxis {
 			pix += axisStep;
 		}
 		// last small tick
-		smallTickPix = pix + smallTickOffset;
+		smallTickPix = pix;
 		if (drawMinorTicks[0]) {
 			g2.drawStraightLine(smallTickPix, ySmall1, smallTickPix, ySmall2);
 		}

@@ -1,7 +1,23 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.util.lang;
 
-import static com.himamis.retex.editor.share.util.Unicode.ITALIAN_ORDINAL_INDICATOR;
-import static com.himamis.retex.editor.share.util.Unicode.SPANISH_ORDINAL_INDICATOR;
+import static org.geogebra.editor.share.util.Unicode.ITALIAN_ORDINAL_INDICATOR;
+import static org.geogebra.editor.share.util.Unicode.SPANISH_ORDINAL_INDICATOR;
 
 import java.util.Locale;
 
@@ -10,8 +26,7 @@ import javax.annotation.CheckForNull;
 import org.geogebra.common.main.OrdinalConverter;
 import org.geogebra.common.plugin.EuclidianStyleConstants;
 import org.geogebra.common.util.debug.Log;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * Collection of which languages are official in which countries (only includes
@@ -55,7 +70,7 @@ public enum Language {
 			Script.ARABIC, ',', '0', "MA", ""),
 
 	Arabic_Tunisia(EuclidianStyleConstants.RIGHT_ANGLE_STYLE_SQUARE, '$',
-			true,  "ar",
+			true, "ar",
 			Unicode.LEFT_TO_RIGHT_MARK + "Arabic (Tunisia)"
 					+ Unicode.LEFT_TO_RIGHT_MARK + " / "
 					+ Unicode.RIGHT_TO_LEFT_MARK
@@ -76,6 +91,11 @@ public enum Language {
 			"Armenian / \u0540\u0561\u0575\u0565\u0580\u0565\u0576",
 			Script.ARMENIAN, ',', ""),
 
+	// Assamese(EuclidianStyleConstants.RIGHT_ANGLE_STYLE_SQUARE, Unicode.CURRENCY_INDIAN_RUPEE,
+	// false, "as",
+	// "Assamese / \u0985\u09B8\u09AE\u09C0\u09AF\u09BC\u09BE",
+	// Script.BENGALI, ""),*/
+
 	Azerbaijani(EuclidianStyleConstants.RIGHT_ANGLE_STYLE_SQUARE, '$',
 			false, "az", "Azerbaijani", Script.LATIN, ',', ""),
 
@@ -84,13 +104,18 @@ public enum Language {
 			"Basque / Euskara", Script.LATIN, ',', '0', null, "."),
 
 	Bengali(EuclidianStyleConstants.RIGHT_ANGLE_STYLE_SQUARE,
-			Unicode.CURRENCY_EURO, false, "bn",
+			Unicode.CURRENCY_INDIAN_RUPEE, false, "bn",
 			"Bengali / \u09AC\u09BE\u0982\u09B2\u09BE", Script.BENGALI, ""),
 
 	Bosnian(EuclidianStyleConstants.RIGHT_ANGLE_STYLE_SQUARE,
 			Unicode.CURRENCY_EURO, true, "bs",
 			"Bosnian / \u0431\u043E\u0441\u0430\u043D\u0441\u043A\u0438",
 			Script.LATIN, "-ti"),
+
+	Breton(EuclidianStyleConstants.RIGHT_ANGLE_STYLE_SQUARE,
+			Unicode.CURRENCY_EURO, false, "br",
+			"Breton",
+			Script.LATIN, ""),
 
 	Bulgarian(EuclidianStyleConstants.RIGHT_ANGLE_STYLE_SQUARE,
 			Unicode.CURRENCY_EURO, true, "bg",
@@ -207,7 +232,7 @@ public enum Language {
 	 * Code "id" from  <a href="https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes">ISO 639-1</a>
 	 */
 	Indonesian(EuclidianStyleConstants.RIGHT_ANGLE_STYLE_SQUARE, '$',
-			true,  "id", "Indonesian / Bahasa Indonesia",
+			true, "id", "Indonesian / Bahasa Indonesia",
 			Script.LATIN, ',', '0', null, null),
 
 	Italian(EuclidianStyleConstants.RIGHT_ANGLE_STYLE_SQUARE,
@@ -271,7 +296,7 @@ public enum Language {
 			Unicode.CURRENCY_TUGHRIK, false, "mn",
 			"Mongolian Traditional / "
 					+ "\u182E\u1823\u1829\u182D\u1823\u182F \u182A\u1822\u1834\u1822\u182D\u180C",
-			Script.MONG, ',', '\u1810', null,  false, ""),
+			Script.MONG, ',', '\u1810', null, false, ""),
 
 	Nepalese(EuclidianStyleConstants.RIGHT_ANGLE_STYLE_SQUARE,
 			Unicode.CURRENCY_RUPEE, true, "ne",
@@ -353,6 +378,9 @@ public enum Language {
 
 	Tajik(EuclidianStyleConstants.RIGHT_ANGLE_STYLE_SQUARE, '$', false,
 			"tg", "Tajik", Script.LATIN, ""),
+
+	// Tetun(EuclidianStyleConstants.RIGHT_ANGLE_STYLE_SQUARE, '$', false,
+	// "tet", "Tetun", Script.LATIN, ""),
 
 	// Telugu("\u0C24", false, "te","te",
 	// "Telugu / \u0C24\u0C46\u0C32\u0C41\u0C17\u0C41", Country.India),
@@ -550,22 +578,22 @@ public enum Language {
 		return decimalSeparator == ',';
 	}
 
-	final public int getRightAngleStyle() {
+	public int getRightAngleStyle() {
 		return this.rightAngleStyle;
 	}
 
-	final public char getUnicodeZero() {
+	public char getUnicodeZero() {
 		return this.unicodeZero;
 	}
 
-	final public char getDecimalSeparator() {
+	public char getDecimalSeparator() {
 		return this.decimalSeparator;
 	}
 
 	/**
 	 * @return whether localized keyboard is supported
 	 */
-	final public boolean hasTranslatedKeyboard() {
+	public boolean hasTranslatedKeyboard() {
 		return this != Language.Chinese_Traditional;
 	}
 

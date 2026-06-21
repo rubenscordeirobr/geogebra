@@ -1,19 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * MyDouble.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 07. October 2001, 12:23
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.arithmetic;
@@ -47,7 +45,7 @@ import com.google.j2objc.annotations.Weak;
  */
 
 public class MyDouble extends ValidExpression
-		implements NumberValue, Comparable<MyDouble> {
+		implements NumberValue {
 	/**
 	 * Euler-Mascheroni constant
 	 */
@@ -135,7 +133,7 @@ public class MyDouble extends ValidExpression
 			// // http://code.google.com/p/geogebra/issues/detail?id=87
 			// double angleVal = Kernel.convertToAngleValue(val);
 			// return kernel.formatAngle(angleVal, tpl, false).toString();
-			return kernel.formatAngle(val, tpl, true).toString();
+			return kernel.formatAngle(val, null, tpl, true).toString();
 		}
 
 		// String ret = kernel.format(Kernel.checkDecimalFraction(val), tpl);
@@ -188,6 +186,11 @@ public class MyDouble extends ValidExpression
 		return this;
 	}
 
+	@Override
+	public Localization getLocalization() {
+		return kernel.getLocalization();
+	}
+
 	/**
 	 * @return whether this is angle
 	 */
@@ -204,7 +207,7 @@ public class MyDouble extends ValidExpression
 	 * @return random MyDouble
 	 */
 	final public MyDouble random() {
-		set(kernel.getApplication().getRandomNumber());
+		set(kernel.randomNumberGenerator.getRandomNumber());
 		angleDim = 0;
 		return this;
 	}
@@ -219,7 +222,7 @@ public class MyDouble extends ValidExpression
 	 * @param c
 	 *            result
 	 */
-	final public static void add(MyDouble a, NumberValue b, MyDouble c) {
+	public static void add(MyDouble a, NumberValue b, MyDouble c) {
 		c.angleDim = a.angleDim == b.getAngleDim() ? a.angleDim : 0;
 		DoubleOperation.PLUS.apply(a, b, c);
 	}
@@ -234,7 +237,7 @@ public class MyDouble extends ValidExpression
 	 * @param c
 	 *            result
 	 */
-	final public static void sub(MyDouble a, NumberValue b, MyDouble c) {
+	public static void sub(MyDouble a, NumberValue b, MyDouble c) {
 		c.angleDim = a.angleDim == b.getAngleDim() ? a.angleDim : 0;
 		DoubleOperation.MINUS.apply(a, b, c);
 	}
@@ -253,7 +256,7 @@ public class MyDouble extends ValidExpression
 	 * @param c
 	 *            result
 	 */
-	final public static void mult(MyDouble a, NumberValue b, MyDouble c) {
+	public static void mult(MyDouble a, NumberValue b, MyDouble c) {
 		c.angleDim = a.angleDim + b.getAngleDim();
 		double bval = b.getDouble();
 		// ? * anything = ?
@@ -280,7 +283,7 @@ public class MyDouble extends ValidExpression
 	 * @param c
 	 *            result
 	 */
-	final public static void div(MyDouble a, NumberValue b, MyDouble c) {
+	public static void div(MyDouble a, NumberValue b, MyDouble c) {
 		c.angleDim = a.angleDim - b.getAngleDim();
 		if (b.getDouble() == 0) {
 			c.set(a.val / b.getDouble());
@@ -300,7 +303,7 @@ public class MyDouble extends ValidExpression
 	 * @param c
 	 *            result
 	 */
-	final public static void pow(MyDouble a, NumberValue b, MyDouble c) {
+	public static void pow(MyDouble a, NumberValue b, MyDouble c) {
 		c.angleDim = b.getAngleDim() > 0 ? 0 : a.angleDim;
 		double bVal = b.getDouble();
 		if (bVal >= 0 && bVal < 1E6 && DoubleUtil.isInteger(bVal)) {
@@ -319,7 +322,7 @@ public class MyDouble extends ValidExpression
 	 *            exponent
 	 * @return power a^b
 	 */
-	final public static double pow(double a, double b) {
+	public static double pow(double a, double b) {
 
 		// Infinity ^ 0 -> NaN
 		// http://functions.wolfram.com/Constants/ComplexInfinity/introductions/Symbols/ShowAll.html
@@ -346,7 +349,7 @@ public class MyDouble extends ValidExpression
 	 * @param c
 	 *            result
 	 */
-	final public static void powDoubleSgnChange(MyDouble a, MyDouble b,
+	public static void powDoubleSgnChange(MyDouble a, MyDouble b,
 			MyDouble c) {
 		c.angleDim = b.angleDim > 0 ? 0 : a.angleDim;
 		c.set(-pow(-a.val, b.val));
@@ -415,7 +418,7 @@ public class MyDouble extends ValidExpression
 	 *            whether result should be degrees
 	 */
 	final public MyDouble acos(boolean deg) {
-		angleDim = deg ? 1 : 0;
+		makeAngle(deg);
 		set(MyMath.acos(val));
 		return this;
 	}
@@ -426,7 +429,7 @@ public class MyDouble extends ValidExpression
 	 *            whether result should be degrees
 	 */
 	final public MyDouble asin(boolean deg) {
-		angleDim = deg ? 1 : 0;
+		makeAngle(deg);
 		set(MyMath.asin(val));
 		return this;
 	}
@@ -437,7 +440,7 @@ public class MyDouble extends ValidExpression
 	 *            whether result should be degrees
 	 */
 	final public MyDouble atan(boolean deg) {
-		angleDim = deg ? 1 : 0;
+		makeAngle(deg);
 		set(Math.atan(val));
 		return this;
 	}
@@ -450,9 +453,13 @@ public class MyDouble extends ValidExpression
 	 * @return atan2(this,y)
 	 */
 	final public MyDouble atan2(NumberValue y, boolean deg) {
-		angleDim = deg ? 1 : 0;
+		makeAngle(deg);
 		set(Math.atan2(val, y.getDouble()));
 		return this;
+	}
+
+	protected void makeAngle(boolean deg) {
+		angleDim = deg ? 1 : 0;
 	}
 
 	/**
@@ -595,9 +602,13 @@ public class MyDouble extends ValidExpression
 					.floor(DoubleUtil.checkInteger(val * Kernel.CONST_180_PI)));
 		} else {
 			// number or angle in radians
-			set(Math.floor(DoubleUtil.checkInteger(val)));
+			setPrecise(Math.floor(DoubleUtil.checkInteger(val)));
 		}
 		return this;
+	}
+
+	protected void setPrecise(double newVal) {
+		set(newVal);
 	}
 
 	/**
@@ -613,7 +624,7 @@ public class MyDouble extends ValidExpression
 					.ceil(DoubleUtil.checkInteger(val * Kernel.CONST_180_PI)));
 		} else {
 			// number or angle in radians
-			set(Math.ceil(DoubleUtil.checkInteger(val)));
+			setPrecise(Math.ceil(DoubleUtil.checkInteger(val)));
 		}
 		return this;
 	}
@@ -645,12 +656,12 @@ public class MyDouble extends ValidExpression
 		return this;
 	}
 
-	private void doRound(int digits, int angleUnit) {
+	protected void doRound(int digits, int angleUnit) {
 		if (angleDim == 1 && Kernel.angleUnitUsesDegrees(angleUnit)) {
 			set(Kernel.PI_180 * Precision.round(val * Kernel.CONST_180_PI, digits));
 		} else {
 			// number or angle in radians
-			set(Precision.round(val, digits));
+			setPrecise(Precision.round(val, digits));
 		}
 	}
 
@@ -885,8 +896,7 @@ public class MyDouble extends ValidExpression
 
 	@Override
 	final public GeoElement toGeoElement(Construction cons) {
-		GeoNumeric num = new GeoNumeric(cons, val);
-		return num;
+		return new GeoNumeric(cons, val);
 	}
 
 	@Override
@@ -1069,34 +1079,6 @@ public class MyDouble extends ValidExpression
 	@Override
 	public String toOutputValueString(StringTemplate tpl) {
 		return toValueString(tpl);
-	}
-
-	/*
-	 * needed for AlgoUnique (non-Javadoc) so that Kernel.isZero() is used
-	 */
-	@Override
-	public int compareTo(MyDouble d) {
-		if (DoubleUtil.isEqual(val, d.getDouble())) {
-			return 0;
-		}
-		return val - d.getDouble() < 0 ? -1 : 1;
-	}
-
-	@Override
-	public boolean equals(Object d) {
-		if (d == null) {
-			return false;
-		}
-
-		if (d instanceof MyDouble) {
-			return DoubleUtil.isEqual(((MyDouble) d).getDouble(), val);
-		}
-		return false;
-	}
-
-	@Override
-	public int hashCode() {
-		return DoubleUtil.hashCode(val);
 	}
 
 	@Override

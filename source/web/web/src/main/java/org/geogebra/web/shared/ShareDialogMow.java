@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.shared;
 
 import java.util.ArrayList;
@@ -281,7 +297,7 @@ public class ShareDialogMow extends ComponentDialog
 			changedGroups.put(groupID, shared);
 		}
 
-		if (shared.booleanValue()) {
+		if (shared) {
 			sharedWithGroupCounter++;
 		} else {
 			sharedWithGroupCounter--;
@@ -386,7 +402,7 @@ public class ShareDialogMow extends ComponentDialog
 
 	protected void getGroupsSharedWith() {
 		final AsyncOperation<List<GroupIdentifier>> partial =
-				new AsyncOperation<List<GroupIdentifier>>() {
+				new AsyncOperation<>() {
 					private int counter = 2;
 					private List<GroupIdentifier> all = new ArrayList<>();
 

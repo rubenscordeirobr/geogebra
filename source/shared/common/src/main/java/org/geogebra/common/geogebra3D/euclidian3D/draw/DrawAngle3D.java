@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.draw;
 
 import org.geogebra.common.geogebra3D.euclidian3D.EuclidianView3D;
@@ -88,14 +104,9 @@ public class DrawAngle3D extends Drawable3DCurves {
 
 	@Override
 	protected boolean updateForItSelf() {
-
 		// update alpha value
 		updateColors();
-
 		initCoords();
-
-		Renderer renderer = getView3D().getRenderer();
-
 		GeoAngle angle = (GeoAngle) getGeoElement();
 		angleValue = angle.getDouble();
 
@@ -105,9 +116,8 @@ public class DrawAngle3D extends Drawable3DCurves {
 			angleVisible = false;
 			return true;
 		}
-
+		Renderer renderer = getView3D().getRenderer();
 		size = angle.getArcSize() / getView3D().getScale();
-		double labelRadius = 1;
 
 		angleVisible = true;
 
@@ -178,7 +188,7 @@ public class DrawAngle3D extends Drawable3DCurves {
 				}
 			}
 
-			labelRadius = size / 1.7;
+			double labelRadius = size / 1.7;
 			labelCenter.mulInside3(labelRadius);
 			labelCenter.addInside(center);
 
@@ -449,9 +459,9 @@ public class DrawAngle3D extends Drawable3DCurves {
 		double y = tmpCoords.getY();
 
 		if (show90degrees) {
-			switch (getView3D().getRightAngleStyle()) {
-			case EuclidianStyleConstants.RIGHT_ANGLE_STYLE_SQUARE:
-			case EuclidianStyleConstants.RIGHT_ANGLE_STYLE_L:
+			int rightAngleStyle = getView3D().getRightAngleStyle();
+			if (rightAngleStyle == EuclidianStyleConstants.RIGHT_ANGLE_STYLE_SQUARE
+					|| rightAngleStyle == EuclidianStyleConstants.RIGHT_ANGLE_STYLE_L) {
 				if (x < offset || x > size + offset || y < offset
 						|| y > size + offset) {
 					return false;

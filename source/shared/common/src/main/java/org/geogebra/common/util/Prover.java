@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.util;
 
 import java.util.ArrayList;
@@ -8,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.algos.AlgoDependentBoolean;
@@ -21,7 +38,6 @@ import org.geogebra.common.kernel.geos.GeoPoint;
 import org.geogebra.common.kernel.prover.AbstractProverReciosMethod;
 import org.geogebra.common.kernel.prover.ProverBotanasMethod;
 import org.geogebra.common.kernel.prover.ProverPureSymbolicMethod;
-import org.geogebra.common.main.Localization;
 import org.geogebra.common.plugin.EuclidianStyleConstants;
 import org.geogebra.common.util.debug.Log;
 
@@ -273,7 +289,7 @@ public abstract class Prover {
 				}
 			}
 			// If there is no such line, we simply create one.
-			boolean oldMacroMode = cons.isSuppressLabelsActive();
+			final boolean oldMacroMode = cons.isSuppressLabelsActive();
 			cons.setSuppressLabelCreation(false);
 			AlgoJoinPoints ajp = new AlgoJoinPoints(cons, null, P1, P2);
 			GeoLine line = ajp.getLine();
@@ -561,17 +577,13 @@ public abstract class Prover {
 		if (currentEngine == ProverEngine.BOTANAS_PROVER) {
 			ProverBotanasMethod pbm = new ProverBotanasMethod();
 			result = override(pbm.prove(this));
-			return;
 		} else if (currentEngine == ProverEngine.RECIOS_PROVER) {
 			result = override(getReciosProver().prove(this));
-			return;
 		} else if (currentEngine == ProverEngine.PURE_SYMBOLIC_PROVER) {
 			result = override(ProverPureSymbolicMethod.prove(this));
-			return;
 		} else if (currentEngine == ProverEngine.OPENGEOPROVER_WU
 				|| currentEngine == ProverEngine.OPENGEOPROVER_AREA) {
 			result = override(openGeoProver(currentEngine));
-			return;
 		}
 
 	}
@@ -628,7 +640,7 @@ public abstract class Prover {
 	// and GeoGebra.
 	protected static String simplifiedXML(Construction cons,
 			GeoElement statement) {
-		StringBuilder sb = new StringBuilder();
+		XMLStringBuilder sb = new XMLStringBuilder();
 		cons.getConstructionElementsXML_OGP(sb, statement);
 
 		// /* FIXME: EXTREMELY DIRTY HACK. This should be handled in OGP instead
@@ -689,7 +701,6 @@ public abstract class Prover {
 	 * @return a localized statement in readable format
 	 */
 	public static String getTextFormat(GeoElement statement) {
-		Localization loc = statement.getKernel().getLocalization();
 		ArrayList<String> freePoints = new ArrayList<>();
 		Iterator<GeoElement> it = statement.getAllPredecessors().iterator();
 		StringBuilder hypotheses = new StringBuilder();
@@ -700,7 +711,7 @@ public abstract class Prover {
 			} else if (!(geo instanceof GeoNumeric)) {
 				String definition = geo.getDefinitionDescription(
 						StringTemplate.noLocalDefault);
-				String textLocalized = loc.getPlain("LetABeB",
+				String textLocalized = getPhrase("LetABeB",
 						geo.getLabelSimple(), definition);
 				hypotheses.append(textLocalized).append(".\n");
 			}
@@ -715,15 +726,21 @@ public abstract class Prover {
 		int l = freePointsText.length();
 		if (l > 0) {
 			freePointsText.deleteCharAt(l - 1);
-			theoremText.append(loc.getPlain("LetABeArbitraryPoints",
+			theoremText.append(getPhrase("LetABeArbitraryPoints",
 					freePointsText.toString())).append(".\n");
 		}
 
 		theoremText.append(hypotheses);
 
 		String toProveStr = String.valueOf(statement.getParentAlgorithm());
-		theoremText.append(loc.getPlain("ProveThat", toProveStr)).append(".");
+		theoremText.append(getPhrase("ProveThat", toProveStr)).append(".");
 		return theoremText.toString();
+	}
+
+	// If we ever need this to be a user-facing string, use localization.
+	// For the moment this is only used for fingerprinting => keep locale independent.
+	private static String getPhrase(String key, String... parameters) {
+		return key + " " + String.join(", ", parameters);
 	}
 
 	/**

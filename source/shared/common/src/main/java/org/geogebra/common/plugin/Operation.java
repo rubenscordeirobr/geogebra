@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.plugin;
 
 import org.geogebra.common.kernel.Kernel;
@@ -1953,16 +1969,15 @@ public enum Operation {
 		}
 	};
 
-	private static void checkImprecise(ExpressionValue value, ExpressionValue rt) {
-		if (!(value instanceof ValidExpression)) {
+	private static void checkImprecise(ExpressionValue expression, ExpressionValue value) {
+		if (!(expression instanceof ValidExpression expressionVE)) {
 			return;
 		}
-		ValidExpression ve = (ValidExpression) value;
-		if (ve.containsFunctionVariable()) {
-			ve.setImprecise(true);
-			if (rt instanceof ValidExpression) {
-				((ValidExpression) rt).setImprecise(true);
-			}
+		if (!expressionVE.isImprecise() && expressionVE.containsFunctionVariable()) {
+			expressionVE.setImprecise(true);
+		}
+		if (value instanceof ValidExpression valueVE && expressionVE.isImprecise()) {
+			valueVE.setImprecise(true);
 		}
 	}
 
@@ -2226,14 +2241,7 @@ public enum Operation {
 	 * @return whether operation is one of (freehand, data)
 	 */
 	public static boolean includesFreehandOrData(Operation op) {
-		switch (op) {
-		case DATA:
-		case FREEHAND:
-
-			return true;
-		}
-
-		return false;
+		return op == DATA || op == FREEHAND;
 	}
 
 	/**

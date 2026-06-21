@@ -1,9 +1,24 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.linker;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.gwt.core.ext.LinkerContext;
@@ -72,7 +87,7 @@ public class StandardIframeLinker extends CrossSiteIframeLinker {
 	}
 
 	private List<String> getExportFilename(LinkerContext context) {
-		return getConfigurationProperty(context, "es6export").collect(Collectors.toList());
+		return getConfigurationProperty(context, "es6export").toList();
 	}
 
 	private Stream<String> getConfigurationProperty(LinkerContext context, String name) {

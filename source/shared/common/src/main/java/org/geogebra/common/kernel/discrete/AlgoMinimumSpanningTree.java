@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.discrete;
 
 import java.util.ArrayList;
@@ -87,7 +103,7 @@ public class AlgoMinimumSpanningTree extends AlgoDiscrete {
 			}
 
 			MinimumSpanningForest2<TreeNode, TreeLink> prim = new MinimumSpanningForest2<>(
-					g, new DelegateForest<TreeNode, TreeLink>(),
+					g, new DelegateForest<>(),
 					DelegateTree.<TreeNode, TreeLink> getFactory(), wtTransformer);
 
 			Forest<TreeNode, TreeLink> tree = prim.getForest();
@@ -120,11 +136,11 @@ public class AlgoMinimumSpanningTree extends AlgoDiscrete {
 	}
 
 	/** Graph edge */
-	static class TreeLink {
+	static final class TreeLink {
 		/** start point */
-		protected TreeNode n1;
+		TreeNode n1;
 		/** end point */
-		protected TreeNode n2;
+		TreeNode n2;
 		/** length */
 		double weight;
 		/** identifier */
@@ -140,7 +156,7 @@ public class AlgoMinimumSpanningTree extends AlgoDiscrete {
 		 * @param id
 		 *            identifier
 		 */
-		public TreeLink(double weight, TreeNode n1, TreeNode n2, int id) {
+		TreeLink(double weight, TreeNode n1, TreeNode n2, int id) {
 			this.id = id; // This is defined in the outer class.
 			this.weight = weight;
 			this.n1 = n1;

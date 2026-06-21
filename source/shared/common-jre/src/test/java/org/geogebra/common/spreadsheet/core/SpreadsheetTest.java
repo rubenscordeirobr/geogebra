@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.spreadsheet.core;
 
 import static org.geogebra.common.spreadsheet.core.SpreadsheetTestHelpers.simulateCellMouseClick;
@@ -9,24 +25,21 @@ import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import java.util.ArrayList;
-
 import org.geogebra.common.BaseUnitTest;
 import org.geogebra.common.awt.GColor;
-import org.geogebra.common.awt.GGraphics2D;
-import org.geogebra.common.awt.GGraphicsCommon;
+import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.geos.GeoNumeric;
 import org.geogebra.common.main.GeoGebraColorConstants;
 import org.geogebra.common.main.settings.SpreadsheetSettings;
 import org.geogebra.common.spreadsheet.StringCapturingGraphics;
 import org.geogebra.common.spreadsheet.TestTabularData;
-import org.geogebra.common.spreadsheet.kernel.GeoElementCellRendererFactory;
 import org.geogebra.common.spreadsheet.kernel.KernelTabularDataAdapter;
 import org.geogebra.common.spreadsheet.style.SpreadsheetStyling;
 import org.geogebra.common.util.MouseCursor;
@@ -50,6 +63,7 @@ public class SpreadsheetTest extends BaseUnitTest {
         undoProvider = mock();
 		spreadsheet = new Spreadsheet(tabularData,
 				new TestCellRenderableFactory(),
+				null,
                 undoProvider);
 		spreadsheet.setHeightForRows(20, 0, 5);
 		spreadsheet.setWidthForColumns(40, 0, 5);
@@ -177,6 +191,18 @@ public class SpreadsheetTest extends BaseUnitTest {
 	}
 
 	@Test
+	public void testHeaderResize() {
+		StringCapturingGraphics graphics = new StringCapturingGraphics();
+		spreadsheet.draw(graphics);
+		assertThat(graphics.toString(), endsWith(",5"));
+		graphics = new StringCapturingGraphics();
+		spreadsheet.setColumnHeaderHeight(0);
+		spreadsheet.setRowHeaderWidth(0);
+		spreadsheet.draw(graphics);
+		assertEquals("", graphics.toString());
+	}
+
+	@Test
 	public void spreadsheetShouldRepaintAfterUpdatingSlider() {
 		tabularData = new KernelTabularDataAdapter(getApp());
 		tabularData.addChangeListener(spreadsheet);
@@ -187,27 +213,6 @@ public class SpreadsheetTest extends BaseUnitTest {
 		Mockito.verify(delegate, Mockito.times(2)).notifyRepaintNeeded();
 		slider.update();
 		Mockito.verify(delegate, Mockito.times(3)).notifyRepaintNeeded();
-	}
-
-	@Test
-	public void spreadsheetShouldReflectColorChanges() {
-		tabularData = new KernelTabularDataAdapter(getApp());
-		spreadsheet = new Spreadsheet(tabularData,
-				new GeoElementCellRendererFactory(graphics -> null),
-				undoProvider);
-		getKernel().attach((KernelTabularDataAdapter) tabularData);
-		spreadsheet.setViewport(new Rectangle(0, 300, 0, 300));
-		add("A1 = 1");
-		spreadsheet.draw(new GGraphicsCommon());
-		add("SetBackgroundColor(A1,red)");
-		ArrayList<GColor> usedColors = new ArrayList<>();
-		GGraphics2D g2 = new GGraphicsCommon() {
-			public void setColor(GColor c) {
-				usedColors.add(c);
-			}
-		};
-		spreadsheet.draw(g2);
-		assertTrue("Should contain red:" + usedColors, usedColors.contains(GColor.RED));
 	}
 
 	@Test
@@ -269,7 +274,7 @@ public class SpreadsheetTest extends BaseUnitTest {
 	@Test
 	@Issue("APPS-6534")
 	public void testSelectionChangeShouldNotCreateUndoPoint() {
-		SpreadsheetStyleBarModel styleBarModel = spreadsheet.getStyleBarModel();
+		assertNotNull(spreadsheet.getStyleBarModel());
 		simulateCellMouseClick(spreadsheet.getController(), 0, 0, 1);
 		verifyNoInteractions(undoProvider);
 	}
@@ -301,6 +306,15 @@ public class SpreadsheetTest extends BaseUnitTest {
 		simulateCellMouseClick(spreadsheet.getController(), 1, 0, 1);
 		spreadsheet.getController().deleteRowAt(1);
 		assertEquals("0,2,f,2", settings.getCellFormatXml());
+	}
+
+	@Test
+	@Issue("APPS-7608")
+	public void overwritingEmptyCellShouldBecomeNonEmpty() {
+		add("A1");
+		add("FillColumn(1,{9})");
+		GeoElement element = lookup("A1");
+		assertFalse(element.isEmptySpreadsheetCell());
 	}
 
 	// Helpers

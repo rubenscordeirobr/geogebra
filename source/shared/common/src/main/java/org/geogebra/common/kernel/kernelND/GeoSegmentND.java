@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.kernelND;
 
 import org.geogebra.common.kernel.MyPoint;
@@ -25,7 +41,7 @@ public interface GeoSegmentND extends GeoLineND, LimitedPath, GeoNumberValue,
 	 * @param end
 	 *            end point
 	 */
-	public void setTwoPointsInhomCoords(Coords start, Coords end);
+	void setTwoPointsInhomCoords(Coords start, Coords end);
 
 	/** @return length of the segment */
 	double getLength();
@@ -33,12 +49,12 @@ public interface GeoSegmentND extends GeoLineND, LimitedPath, GeoNumberValue,
 	/**
 	 * @return start point
 	 */
-	public GeoElement getStartPointAsGeoElement();
+	GeoElement getStartPointAsGeoElement();
 
 	/**
 	 * @return end point
 	 */
-	public GeoElement getEndPointAsGeoElement();
+	GeoElement getEndPointAsGeoElement();
 
 	/**
 	 * return the x-coordinate of the point on the segment according to the
@@ -48,7 +64,7 @@ public interface GeoSegmentND extends GeoLineND, LimitedPath, GeoNumberValue,
 	 *            the parameter
 	 * @return the x-coordinate of the point
 	 */
-	public double getPointX(double parameter);
+	double getPointX(double parameter);
 
 	/**
 	 * return the y-coordinate of the point on the segment according to the
@@ -58,7 +74,7 @@ public interface GeoSegmentND extends GeoLineND, LimitedPath, GeoNumberValue,
 	 *            the parameter
 	 * @return the y-coordinate of the point
 	 */
-	public double getPointY(double parameter);
+	double getPointY(double parameter);
 
 	/**
 	 * modify the input points
@@ -68,7 +84,7 @@ public interface GeoSegmentND extends GeoLineND, LimitedPath, GeoNumberValue,
 	 * @param Q
 	 *            new second point
 	 */
-	public void modifyInputPoints(GeoPointND P, GeoPointND Q);
+	void modifyInputPoints(GeoPointND P, GeoPointND Q);
 
 	/**
 	 * set the segment through the two points
@@ -78,7 +94,7 @@ public interface GeoSegmentND extends GeoLineND, LimitedPath, GeoNumberValue,
 	 * @param locusPoint2
 	 *            second point
 	 */
-	public void setCoords(MyPoint locusPoint, MyPoint locusPoint2);
+	void setCoords(MyPoint locusPoint, MyPoint locusPoint2);
 
 	/**
 	 * 
@@ -92,6 +108,6 @@ public interface GeoSegmentND extends GeoLineND, LimitedPath, GeoNumberValue,
 	 * @param ccp
 	 *            changeable coord parent
 	 */
-	public void setChangeableParentIfNull(ChangeableParent ccp);
+	void setChangeableParentIfNull(ChangeableParent ccp);
 
 }

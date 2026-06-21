@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.kernel3D.geos;
 
 import java.util.ArrayList;
@@ -6,6 +22,7 @@ import javax.annotation.CheckForNull;
 
 import org.geogebra.common.geogebra3D.kernel3D.algos.AlgoLinePoint;
 import org.geogebra.common.geogebra3D.kernel3D.transform.MirrorableAtPlane;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.MatrixTransformable;
@@ -470,7 +487,7 @@ public abstract class GeoCoordSys1D extends GeoElement3D
 	 * returns all class-specific xml tags for saveXML
 	 */
 	@Override
-	protected void getStyleXML(StringBuilder sb) {
+	protected void getStyleXML(XMLStringBuilder sb) {
 		super.getStyleXML(sb);
 		// line thickness and type
 		getLineStyleXML(sb);
@@ -720,16 +737,6 @@ public abstract class GeoCoordSys1D extends GeoElement3D
 		Coords o = getCoordSys().getOrigin();
 
 		double z = o.getZ();
-		/*
-		 * if (!Kernel.isZero(z)){ setUndefined(); return; }
-		 */
-
-		Coords v = getCoordSys().getVx();
-
-		double vz = v.getZ();
-		/*
-		 * if (!Kernel.isZero(vz)){ setUndefined(); return; }
-		 */
 
 		double phi = phiValue.getDouble();
 		double cos = Math.cos(phi);
@@ -740,7 +747,8 @@ public abstract class GeoCoordSys1D extends GeoElement3D
 		double w = o.getW();
 
 		Coords oRot = new Coords(x * cos - y * sin, x * sin + y * cos, z, w);
-
+		Coords v = getCoordSys().getVx();
+		double vz = v.getZ();
 		double vx = v.getX();
 		double vy = v.getY();
 		double vw = v.getW();
@@ -749,24 +757,11 @@ public abstract class GeoCoordSys1D extends GeoElement3D
 				vw);
 
 		setCoord(oRot, vRot);
-
 	}
 
 	@Override
 	final public void rotate(NumberValue phiValue, GeoPointND point) {
 		Coords o = getCoordSys().getOrigin();
-
-		double z = o.getZ();
-		/*
-		 * if (!Kernel.isZero(z)){ setUndefined(); return; }
-		 */
-
-		Coords v = getCoordSys().getVx();
-
-		double vz = v.getZ();
-		/*
-		 * if (!Kernel.isZero(vz)){ setUndefined(); return; }
-		 */
 
 		double phi = phiValue.getDouble();
 		double cos = Math.cos(phi);
@@ -774,6 +769,7 @@ public abstract class GeoCoordSys1D extends GeoElement3D
 
 		double x = o.getX();
 		double y = o.getY();
+		double z = o.getZ();
 		double w = o.getW();
 
 		Coords Q = point.getInhomCoords();
@@ -783,15 +779,16 @@ public abstract class GeoCoordSys1D extends GeoElement3D
 		Coords oRot = new Coords((x - qx) * cos + (qy - y) * sin + qx,
 				(x - qx) * sin + (y - qy) * cos + qy, z, w);
 
+		Coords v = getCoordSys().getVx();
 		double vx = v.getX();
 		double vy = v.getY();
+		double vz = v.getZ();
 		double vw = v.getW();
 
 		Coords vRot = new Coords(vx * cos - vy * sin, vx * sin + vy * cos, vz,
 				vw);
 
 		setCoord(oRot, vRot);
-
 	}
 
 	private void rotate(NumberValue phiValue, Coords o1, Coords vn) {

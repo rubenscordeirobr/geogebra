@@ -1,8 +1,23 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.kernel3D.implicit3D;
 
 import java.util.ArrayList;
 
-import org.geogebra.common.annotation.MissingDoc;
 import org.geogebra.common.geogebra3D.kernel3D.geos.GeoElement3D;
 import org.geogebra.common.geogebra3D.kernel3D.geos.GeoTriangulatedSurface3D;
 import org.geogebra.common.kernel.Construction;
@@ -646,11 +661,11 @@ public class GeoImplicitSurface extends GeoElement3D
 		private final Coords n2 = new Coords(0, 0, 0);
 		private final Coords n3 = new Coords(0, 0, 0);
 
-		public ImplicitSurface(GeoImplicitSurface s) {
+		ImplicitSurface(GeoImplicitSurface s) {
 			this.s = s;
 		}
 
-		public void update(double[] bounds) {
+		void update(double[] bounds) {
 			this.x1 = bounds[0];
 			this.y1 = bounds[2];
 			this.z1 = bounds[4];
@@ -664,10 +679,9 @@ public class GeoImplicitSurface extends GeoElement3D
 			this.update();
 		}
 
-		@MissingDoc
-		public abstract void update();
+		abstract void update();
 
-		public int config(Cube cube) {
+		int config(Cube cube) {
 			int config = cube.sign(Cube.V7);
 			config = (config << 1) | cube.sign(Cube.V6);
 			config = (config << 1) | cube.sign(Cube.V5);
@@ -682,7 +696,7 @@ public class GeoImplicitSurface extends GeoElement3D
 			return config > 0x7f ? (config ^ 0xff) : config;
 		}
 
-		public void addSurface(Cube cube) {
+		void addSurface(Cube cube) {
 			int config = config(cube);
 			double det;
 			if (config != EMPTY_OR_INVALID) {
@@ -723,7 +737,7 @@ public class GeoImplicitSurface extends GeoElement3D
 		private int sizeY = 20;
 		private int sizeZ = 20;
 
-		public MarchingCube(GeoImplicitSurface s) {
+		MarchingCube(GeoImplicitSurface s) {
 			super(s);
 		}
 
@@ -732,7 +746,7 @@ public class GeoImplicitSurface extends GeoElement3D
 		}
 
 		@Override
-		public void update() {
+		void update() {
 
 			sizeX = Math.min(MAX_SUB_DIV, pixels(x1, x2, scaleX) / AVE_PXL + 1);
 			sizeY = Math.min(MAX_SUB_DIV, pixels(y1, y2, scaleY) / AVE_PXL + 1);
@@ -828,23 +842,23 @@ public class GeoImplicitSurface extends GeoElement3D
 	// ...|./......................|./
 	// ...7/___________10__________6/
 	//
-	private static class Cube {
+	private static final class Cube {
 
-		public static final int X1 = 0x00;
-		public static final int Y1 = 0x01;
-		public static final int Z1 = 0x02;
-		public static final int X2 = 0x03;
-		public static final int Y2 = 0x04;
-		public static final int Z2 = 0x05;
+		static final int X1 = 0x00;
+		static final int Y1 = 0x01;
+		static final int Z1 = 0x02;
+		static final int X2 = 0x03;
+		static final int Y2 = 0x04;
+		static final int Z2 = 0x05;
 
-		public static final int V0 = 0x00;
-		public static final int V1 = 0x01;
-		public static final int V2 = 0x02;
-		public static final int V3 = 0x03;
-		public static final int V4 = 0x04;
-		public static final int V5 = 0x05;
-		public static final int V6 = 0x06;
-		public static final int V7 = 0x07;
+		static final int V0 = 0x00;
+		static final int V1 = 0x01;
+		static final int V2 = 0x02;
+		static final int V3 = 0x03;
+		static final int V4 = 0x04;
+		static final int V5 = 0x05;
+		static final int V6 = 0x06;
+		static final int V7 = 0x07;
 
 		private static final int[][] EDGES = { { 0, 1 }, { 1, 2 }, { 2, 3 },
 				{ 3, 0 }, { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 }, { 4, 5 },
@@ -857,15 +871,11 @@ public class GeoImplicitSurface extends GeoElement3D
 		/**
 		 * Coordinates of the cube (x1, y1, z1) (x2, y2, z2)
 		 */
-		public double[] coords = new double[6];
+		private double[] coords = new double[6];
 		/**
 		 * Cached evaluated value at each corner of the cube
 		 */
-		public double[] cache = new double[8];
-
-		protected Cube() {
-
-		}
+		private double[] cache = new double[8];
 
 		/**
 		 * Fill point array with point of intersection of edge e with the plane.
@@ -877,7 +887,7 @@ public class GeoImplicitSurface extends GeoElement3D
 		 * @param pts
 		 *            an array of length at least 3
 		 */
-		public void pointOfIntersection(int e, double[] pts) {
+		private void pointOfIntersection(int e, double[] pts) {
 			int[] v = EDGES[e];
 			int[] v1 = VERTICES[v[0]];
 			int[] v2 = VERTICES[v[1]];
@@ -910,7 +920,7 @@ public class GeoImplicitSurface extends GeoElement3D
 		 *         evaluated value at given vertex
 		 * 
 		 */
-		public int sign(int vertex) {
+		private int sign(int vertex) {
 			double v = eval(vertex);
 			if (Double.isFinite(v)) {
 				return v <= 0.0 ? 0 : 1;
@@ -918,11 +928,11 @@ public class GeoImplicitSurface extends GeoElement3D
 			return -1;
 		}
 
-		public double eval(int vertex) {
+		private double eval(int vertex) {
 			return cache[vertex];
 		}
 
-		public static double interpolate(double fa, double fb, double p1,
+		private static double interpolate(double fa, double fb, double p1,
 				double p2) {
 			double r = -fb / (fa - fb);
 			if (r <= 1.0 && r >= 0.0) {

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.view.spreadsheet;
 
 import java.awt.Toolkit;
@@ -20,8 +36,15 @@ import org.geogebra.common.util.StringUtil;
 
 public class CopyPasteCutD extends CopyPasteCut {
 
-	public CopyPasteCutD(App app) {
-		super(app);
+	private final MyTableD table;
+
+	/**
+	 * @param app application
+	 * @param table table
+	 */
+	public CopyPasteCutD(App app, MyTableD table) {
+		super(app, table);
+		this.table = table;
 	}
 
 	@Override
@@ -51,13 +74,13 @@ public class CopyPasteCutD extends CopyPasteCut {
 		} else {
 			sourceColumn1 = column1;
 			sourceRow1 = row1;
-			setCellBufferGeo(RelativeCopy.getValues(app, column1, row1, column2,
+			setCellBufferGeo(RelativeCopy.getValues(tableModel, column1, row1, column2,
 					row2));
 		}
 	}
 
-	@Override
 	/** Paste data from the clipboard */
+	@Override
 	public boolean paste(int column1, int row1, int column2, int row2) {
 
 		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -121,6 +144,7 @@ public class CopyPasteCutD extends CopyPasteCut {
 
 	/**
 	 * Default paste: clear spreadsheet and then paste from upper left corner
+	 * @param url file URL
 	 * @return success
 	 */
 	public boolean pasteFromURL(URL url) {
@@ -177,6 +201,13 @@ public class CopyPasteCutD extends CopyPasteCut {
 
 		return succ;
 
+	}
+
+	/**
+	 * Delete all cells.
+	 */
+	public void deleteAll() {
+		delete(0, 0, tableModel.getColumnCount() - 1, tableModel.getRowCount() - 1);
 	}
 
 	/**

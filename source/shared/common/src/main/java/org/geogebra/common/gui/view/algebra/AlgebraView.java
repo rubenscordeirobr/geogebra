@@ -1,17 +1,24 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
-*/
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
 
 package org.geogebra.common.gui.view.algebra;
 
+import javax.annotation.CheckForNull;
+
+import org.geogebra.common.euclidian.ScreenReaderAdapter;
 import org.geogebra.common.gui.Editing;
 import org.geogebra.common.gui.SetLabels;
 import org.geogebra.common.kernel.geos.GeoElement;
@@ -26,24 +33,31 @@ public interface AlgebraView extends Editing, SetLabels {
 	 * 
 	 * @return whether this view is currently visible
 	 */
-	public boolean isVisible();
+	boolean isVisible();
 
 	/**
 	 * Start editing an element
 	 * @param geo construction element
 	 */
-	public void startEditItem(GeoElement geo);
+	void startEditItem(GeoElement geo);
 
 	/**
 	 * @return whether any item is being edited
 	 */
-	public boolean isEditItem();
+	boolean isEditItem();
 
 	/**
 	 * (Web only, moved here because of WebSimple)
 	 * @return element dragged from AV to graphics
 	 */
-	public GeoElement getDraggedGeo();
+	GeoElement getDraggedGeo();
+
+	/**
+	 * @return screen reader adapter for reading selected rows
+	 */
+	default @CheckForNull ScreenReaderAdapter getScreenReaderAdapter() {
+		return null;
+	}
 
 	/**
 	 * DEPENDENCY: Tree mode where the objects are categorized by their
@@ -53,7 +67,7 @@ public interface AlgebraView extends Editing, SetLabels {
 	 * their value is computed (xOyPlane, space, ...) ORDER: Construction
 	 * Protocol order
 	 */
-	public static enum SortMode {
+	enum SortMode {
 		DEPENDENCY {
 			@Override
 			public String toString() {
@@ -121,7 +135,7 @@ public interface AlgebraView extends Editing, SetLabels {
 	 * Focus or blur the view.
 	 * @param b true to focus
 	 */
-	public void setFocus(boolean b);
+	void setFocus(boolean b);
 
 	/**
 	 * @return last selected element

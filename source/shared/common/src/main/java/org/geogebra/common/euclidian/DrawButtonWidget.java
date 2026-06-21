@@ -1,9 +1,26 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian;
 
 import static org.geogebra.common.kernel.geos.GeoButton.DEFAULT_BUTTON_HEIGHT;
 
 import java.util.Objects;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.awt.GDimension;
 import org.geogebra.common.awt.GFont;
@@ -12,13 +29,14 @@ import org.geogebra.common.awt.GGraphics2D;
 import org.geogebra.common.awt.GRectangle;
 import org.geogebra.common.awt.MyImage;
 import org.geogebra.common.awt.font.GTextLayout;
+import org.geogebra.common.awt.font.TextSizeUtil;
 import org.geogebra.common.euclidian.draw.CanvasDrawable;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.geos.GeoButton;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.geos.GeoText;
 import org.geogebra.common.main.App;
+import org.geogebra.common.main.GeoGebraColorConstants;
 import org.geogebra.common.main.settings.StyleSettings;
 import org.geogebra.common.util.StringUtil;
 
@@ -27,9 +45,9 @@ import org.geogebra.common.util.StringUtil;
  */
 public class DrawButtonWidget {
 
-	private GeoButton geoButton;
-	private EuclidianView view;
-	private StyleSettings styleSettings;
+	private final GeoButton geoButton;
+	private final EuclidianView view;
+	private final StyleSettings styleSettings;
 
 	private int x;
 	private int y;
@@ -49,7 +67,8 @@ public class DrawButtonWidget {
 	private GColor lastTintColor;
 	private String lastTintImage;
 	private boolean hasText;
-	private GTextLayout t = null;
+	private GTextLayout textLayout;
+	private double aboveBaselineRatio = TextSizeUtil.getAboveBaselineRatio("");
 	private int startX = 0;
 	private int startY = 0;
 	private int imgHeight = 0;
@@ -140,7 +159,9 @@ public class DrawButtonWidget {
 				getHeight() - 1 - shadowSize, arcSize, arcSize);
 
 		// Basic border (the same with and without focus)
-		if (styleSettings.getButtonBorderColor() != null) {
+		if (geoButton.usesDisabledStyle(null)) {
+			g2.setColor(GeoGebraColorConstants.NEUTRAL_300);
+		} else if (styleSettings.getButtonBorderColor() != null) {
 			g2.setColor(styleSettings.getButtonBorderColor());
 		} else {
 			if (bg.getContrast(view.getBackgroundCommon()) >= 3.0) {
@@ -154,7 +175,11 @@ public class DrawButtonWidget {
 				getHeight() - 1 - shadowSize, arcSize, arcSize);
 
 		// prepare to draw text
-		g2.setColor(geoButton.getObjectColor());
+		if (geoButton.usesDisabledStyle(null)) {
+			g2.setColor(GeoGebraColorConstants.NEUTRAL_500);
+		} else {
+			g2.setColor(geoButton.getObjectColor());
+		}
 
 		MyImage im = geoButton.getFillImage();
 		// Starting position of the image
@@ -179,7 +204,7 @@ public class DrawButtonWidget {
 
 		// draw the text center-aligned to the button
 		if (hasText) {
-			drawText(g2, t, imgStart + imgGap + imgHeight, latex, widthCorrection,
+			drawText(g2, imgStart + imgGap + imgHeight, latex, widthCorrection,
 					shadowSize);
 		}
 	}
@@ -199,7 +224,7 @@ public class DrawButtonWidget {
 		font = font.deriveFont(geoButton.getFontStyle(),
 				(int) (multiplier * 12));
 		GGraphics2D g = view.getTempGraphics2D(font);
-		hasText = geoButton.isLabelVisible() && caption.length() > 0;
+		hasText = geoButton.isLabelVisible() && !caption.isEmpty();
 
 		textHeight = 0;
 		textWidth = 0;
@@ -211,7 +236,7 @@ public class DrawButtonWidget {
 		} else {
 			imgHeight = imgWidth = imgGap = 0;
 		}
-		t = null;
+		textLayout = null;
 		// get dimensions
 		if (hasText) {
 			if (latex) {
@@ -221,10 +246,11 @@ public class DrawButtonWidget {
 				textHeight = d.getHeight();
 				textWidth = d.getWidth();
 			} else {
-				t = AwtFactory.getPrototype().newTextLayout(caption, font,
+				textLayout = AwtFactory.getPrototype().newTextLayout(caption, font,
 						g.getFontRenderContext());
-				textHeight = t.getAscent() + t.getDescent();
-				textWidth = t.getAdvance();
+				aboveBaselineRatio = TextSizeUtil.getAboveBaselineRatio(caption);
+				textHeight = font.getSize();
+				textWidth = textLayout.getAdvance();
 			}
 		}
 		// With fixed size the font are resized if is too big
@@ -250,13 +276,13 @@ public class DrawButtonWidget {
 			// Some combinations of style, serif / sans and letters
 			// overflow from the drawing if the text is extra large
 			if (geoButton.getFontStyle() >= 2) {
-				widthCorrection = Math.sin(0.50) * t.getDescent();
+				widthCorrection = Math.sin(0.50) * getDescent();
 				currentWidth += (int) widthCorrection;
 			}
 			if (geoButton.isSerifFont()) {
 				currentWidth += currentWidth / 10;
 			}
-			if (geoButton.isSerifFont() && geoButton.getFontStyle() >= 2) {
+			if (geoButton.isSerifFont() && (geoButton.getFontStyle() & GFont.ITALIC) > 0) {
 				widthCorrection = -widthCorrection;
 				currentWidth += currentWidth / 4;
 			}
@@ -324,20 +350,20 @@ public class DrawButtonWidget {
 		return path;
 	}
 
-	private void drawText(GGraphics2D g, GTextLayout t, int imgEnd,
+	private void drawText(GGraphics2D g, int imgEnd,
 			boolean latex, double add, int shadowSize) {
 		int xPos = latex ? (int) (x + (getWidth() - textWidth) / 2)
-				: (int) (x + (getWidth() - t.getAdvance() + add) / 2);
+				: (int) (x + (getWidth() - textLayout.getAdvance() + add) / 2);
 
 		int yPos;
 		if (geoButton.getFillImage() == null) {
 			yPos = latex
 					? (int) (y + (getHeight() - textHeight) / 2)
-					: (int) (y + (getHeight() + t.getAscent()) / 2);
+					: (int) (y + (getHeight() + getAscent()) / 2);
 
 			yPos -= shadowSize / 2;
 		} else {
-			yPos = latex ? y + imgEnd : (int) (y + t.getAscent() + imgEnd);
+			yPos = latex ? y + imgEnd : (int) (y + getAscent() + imgEnd);
 		}
 
 		if (latex) {
@@ -361,6 +387,14 @@ public class DrawButtonWidget {
 		}
 	}
 
+	private double getAscent() {
+		return font.getSize() * aboveBaselineRatio;
+	}
+
+	private double getDescent() {
+		return font.getSize() * (1 - aboveBaselineRatio);
+	}
+
 	private void resize(GGraphics2D g, int imgGap, boolean latex) {
 		String caption = getCaption();
 
@@ -380,10 +414,10 @@ public class DrawButtonWidget {
 				textHeight = d.getHeight();
 				textWidth = d.getWidth();
 			} else {
-				GTextLayout t = AwtFactory.getPrototype().newTextLayout(caption, font,
+				GTextLayout resized = AwtFactory.getPrototype().newTextLayout(caption, font,
 						g.getFontRenderContext());
-				textHeight = t.getAscent() + t.getDescent();
-				textWidth = t.getAdvance();
+				textHeight = resized.getAscent() + resized.getDescent();
+				textWidth = resized.getAdvance();
 			}
 		}
 

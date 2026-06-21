@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.menubar;
 
 import org.geogebra.common.exam.ExamController;
@@ -21,7 +37,7 @@ public class PerspectivesMenuW extends Submenu {
 
 	/** Application */
 	AppW app;
-	private final ExamController examController = GlobalScope.examController;
+	private final ExamController examController;
 
 	/**
 	 * @param app application
@@ -29,6 +45,7 @@ public class PerspectivesMenuW extends Submenu {
 	public PerspectivesMenuW(AppW app) {
 		super("apps", app);
 		this.app = app;
+		this.examController = GlobalScope.getExamController(app);
 		addExpandableStyleWithColor(false);
 		initActions();
 	}
@@ -71,7 +88,7 @@ public class PerspectivesMenuW extends Submenu {
 					@Override
 					public void doExecute() {
 						setPerspective(app, perspective);
-						if (!examController.isExamActive()) {
+						if (!GlobalScope.isExamActive(app)) {
 							app.showStartTooltip(perspective);
 						}
 					}

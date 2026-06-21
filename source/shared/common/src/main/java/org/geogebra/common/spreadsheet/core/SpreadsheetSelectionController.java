@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.spreadsheet.core;
 
 import java.util.ArrayList;
@@ -58,7 +74,7 @@ final class SpreadsheetSelectionController {
 	 * Clears the list of selection and adds a single element to it
 	 * @param selection Selection
 	 */
-	public void setSelection(Selection selection) {
+	void setSelection(Selection selection) {
 		this.selections.clear();
 		this.selections.add(selection);
 		notifySelectionChanged();
@@ -149,7 +165,7 @@ final class SpreadsheetSelectionController {
 	 * @param extendSelection Whether we want to extend the current selection (SHIFT)
 	 * @param addSelection Whether we want to add this selection to the current selections (CTRL)
 	 */
-	public void select(@Nonnull Selection selection, boolean extendSelection,
+	void select(@Nonnull Selection selection, boolean extendSelection,
 			boolean addSelection) {
 		Selection lastSelection = getLastSelection();
 		if (extendSelection && lastSelection != null) {
@@ -201,14 +217,14 @@ final class SpreadsheetSelectionController {
 		previousSelections = List.copyOf(selections);
 	}
 
-	public boolean isSelected(int row, int column) {
+	boolean isSelected(int row, int column) {
 		return selections.stream().anyMatch(s -> s.contains(row, column));
 	}
 
 	/**
 	 * @return True if there is currently at least one cell selected, false else
 	 */
-	public boolean hasSelection() {
+	boolean hasSelection() {
 		return !selections.isEmpty();
 	}
 
@@ -221,11 +237,23 @@ final class SpreadsheetSelectionController {
 	}
 
 	/**
+	 * @param coords spreadsheet coordinates
+	 * @return {@code false} if {@code coords} is {@code null},
+	 * or {@link #isOnlyCellSelected(int, int)} for the given row/column pair.
+	 */
+	boolean isOnlyCellSelected(@CheckForNull SpreadsheetCoords coords) {
+		if (coords == null) {
+			return false;
+		}
+		return isOnlyCellSelected(coords.row, coords.column);
+	}
+
+	/**
 	 * @param row Row index
 	 * @param column Column index
 	 * @return Whether there is only a single cell selected, and that cell is (row, col).
 	 */
-	public boolean isOnlyCellSelected(int row, int column) {
+	boolean isOnlyCellSelected(int row, int column) {
 		return selections.size() == 1 && selections.get(0).getRange().isSingleCell()
 				&& isSelected(row, column);
 	}
@@ -233,7 +261,7 @@ final class SpreadsheetSelectionController {
 	/**
 	 * @return {@code true} if a single cell is selected, {@code false} otherwise.
 	 */
-	public boolean isSingleCellSelected() {
+	boolean isSingleCellSelected() {
 		return selections.size() == 1 && selections.get(0).getRange().isSingleCell();
 	}
 

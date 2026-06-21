@@ -1,17 +1,22 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.geos;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.TreeSet;
 import java.util.function.UnaryOperator;
@@ -27,6 +32,7 @@ import org.geogebra.common.euclidian.EuclidianViewInterfaceCommon;
 import org.geogebra.common.euclidian.EuclidianViewInterfaceSlim;
 import org.geogebra.common.euclidian.draw.CanvasDrawable;
 import org.geogebra.common.euclidian.draw.dropdown.DrawDropDownList;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.CircularDefinitionException;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.ConstructionDefaults;
@@ -64,6 +70,7 @@ import org.geogebra.common.kernel.kernelND.GeoEvaluatable;
 import org.geogebra.common.kernel.kernelND.GeoPointND;
 import org.geogebra.common.kernel.kernelND.GeoQuadricND;
 import org.geogebra.common.kernel.matrix.Coords;
+import org.geogebra.common.main.GeoGebraColorConstants;
 import org.geogebra.common.main.Localization;
 import org.geogebra.common.plugin.EuclidianStyleConstants;
 import org.geogebra.common.plugin.EventType;
@@ -110,6 +117,9 @@ public class GeoList extends GeoElement
 	// Selection index for lists used in comboBoxes
 	private int selectedIndex = 0;
 
+	/**
+	 * Index of the nearest PathOrPoint element, or -1 if there is none.
+	 */
 	private int closestPointIndex;
 
 	private TraceModesEnum traceModes = null;
@@ -334,9 +344,9 @@ public class GeoList extends GeoElement
 			ret = geo.copy();
 		}
 		ret.setParentAlgorithm(getParentAlgorithm());
-		if (geo.getDefinition() != null
-				&& !geo.getDefinition().any(Inspecting::isDynamicGeoElement)) {
-			ret.setDefinition(geo.getDefinition().deepCopy(kernel));
+		if (geo.definition != null
+				&& !geo.definition.any(Inspecting::isDynamicGeoElement)) {
+			ret.setDefinition(geo.definition.deepCopy(kernel));
 		}
 		return ret;
 	}
@@ -727,7 +737,7 @@ public class GeoList extends GeoElement
 		elements.add(geo.toGeoElement());
 
 		if (elements.size() == 1) {
-			setTypeStringForXML(geo.getXMLtypeString());
+			setTypeStringForXML(geo.getXMLTypeString());
 		}
 
 		/*
@@ -928,9 +938,9 @@ public class GeoList extends GeoElement
 	// ignores isDefined on purpose
 	private StringBuilder buildValueString(StringTemplate tpl) {
 		sbBuildValueString.setLength(0);
-		tpl.leftCurlyBracket(sbBuildValueString);
+		tpl.leftCurlyBracket(sbBuildValueString, kernel.getLocalization());
 		appendElements(sbBuildValueString, tpl);
-		tpl.rightCurlyBracket(sbBuildValueString);
+		tpl.rightCurlyBracket(sbBuildValueString, kernel.getLocalization());
 		return sbBuildValueString;
 	}
 
@@ -950,13 +960,13 @@ public class GeoList extends GeoElement
 		return sb;
 	}
 
-	private void appendElementsForXml(StringBuilder sb) {
+	private void appendElementLabels(StringBuilder sb) {
 		for (int i = 0; i < elements.size(); i++) {
 			final GeoElement geo = elements.get(i);
 			if (i != 0) {
 				sb.append(',');
 			}
-			StringUtil.encodeXML(sb, geo.getLabel(StringTemplate.xmlTemplate));
+			sb.append(geo.getLabel(StringTemplate.xmlTemplate));
 		}
 	}
 
@@ -974,35 +984,40 @@ public class GeoList extends GeoElement
 	 * save object in XML format
 	 */
 	@Override
-	public final void getExpressionXML(final StringBuilder sb) {
+	public final void getExpressionXML(final XMLStringBuilder builder) {
 		// an independent list needs to add
 		// its expression itself
 		// e.g. {1,2,3}
 		if ((isDefined() || isUndefinedMatrix()) && isIndependent() && (getDefaultGeoType() < 0)) {
-			sb.append("<expression label=\"");
-			StringUtil.encodeXML(sb, label);
-			sb.append("\" exp=\"");
+			builder.startTag("expression", 0).attr("label", label);
 			if (isUndefinedMatrix()) {
+				StringBuilder sb = new StringBuilder();
 				sb.append('{');
+				int idx = 0;
 				for (GeoElement geo: elements) {
+					if (idx > 0) {
+						sb.append(',');
+					}
 					sb.append(((GeoList) geo).buildValueString(StringTemplate.xmlTemplate));
-					sb.append(',');
+					idx++;
 				}
-				sb.setLength(sb.length() - 1); // remove extra comma
 				sb.append('}');
-			} else if (getDefinition() != null) {
-				getDefinitionXML(sb);
+				builder.attr("exp", sb);
+			} else if (definition != null) {
+				builder.attr("exp", getDefinitionXML());
 			} else if (!isDefined) {
-				sb.append('?');
+				builder.attr("exp", "?");
 			} else {
+				StringBuilder sb = new StringBuilder();
 				sb.append('{');
-				appendElementsForXml(sb);
+				appendElementLabels(sb);
 				sb.append('}');
+				builder.attr("exp", sb);
 			}
 			if (getTableColumn() != -1) {
-				sb.append("\" type=\"list");
+				builder.attr("type", "list");
 			}
-			sb.append("\"/>\n");
+			builder.endTag();
 		}
 	}
 
@@ -1613,24 +1628,20 @@ public class GeoList extends GeoElement
 	}
 
 	@Override
-	protected void getStyleXML(StringBuilder sb) {
+	protected void getStyleXML(XMLStringBuilder sb) {
 		super.getStyleXML(sb);
 
 		getLineStyleXML(sb);
 		if (isElementTypeXMLNeeded()) {
-			sb.append("\t<listType val=\"");
-			sb.append(getTypeStringForXML());
-			sb.append("\"/>\n");
+			sb.startTag("listType").attrRaw("val", getTypeStringForXML()).endTag();
 		}
 
 		if (selectedIndex != 0) {
-			sb.append("\t<selectedIndex val=\"");
-			sb.append(selectedIndex);
-			sb.append("\"/>\n");
+			sb.startTag("selectedIndex").attr("val", selectedIndex).endTag();
 		}
 
 		if (drawAsComboBox) {
-			sb.append("\t<comboBox val=\"true\"/>\n");
+			sb.startTag("comboBox").attr("val", true).endTag();
 		}
 
 		// point style
@@ -1641,23 +1652,19 @@ public class GeoList extends GeoElement
 
 		// print decimals
 		if ((printDecimals >= 0) && !useSignificantFigures) {
-			sb.append("\t<decimals val=\"");
-			sb.append(printDecimals);
-			sb.append("\"/>\n");
+			sb.startTag("decimals").attr("val", printDecimals).endTag();
 		}
 
 		// print significant figures
 		if ((printFigures >= 0) && useSignificantFigures) {
-			sb.append("\t<significantfigures val=\"");
-			sb.append(printFigures);
-			sb.append("\"/>\n");
+			sb.startTag("significantfigures").attr("val", printFigures).endTag();
 		}
 
 		// AngleProperties
 		XMLBuilder.appendAngleStyle(sb, angleStyle, emphasizeRightAngle);
 
 		if (isSymbolicMode()) {
-			sb.append("\t<symbolic val=\"true\" />\n");
+			sb.startTag("symbolic").attr("val", true).endTag();
 		}
 		if (startPoint != null) {
 			startPoint.appendStartPointXML(sb, isAbsoluteScreenLocActive());
@@ -1754,12 +1761,11 @@ public class GeoList extends GeoElement
 	 */
 	@Override
 	public void pointChanged(final GeoPointND P) {
-
 		P.updateCoords();
 
 		// update closestPointIndex
 		getNearestPoint(P);
-		if (elements.size() == 0) {
+		if (elements.isEmpty() || closestPointIndex < 0) {
 			if (P.isDefined()) {
 				P.setUndefined();
 			}
@@ -1767,8 +1773,7 @@ public class GeoList extends GeoElement
 		}
 		final GeoElement geo = get(closestPointIndex);
 		if (!(geo instanceof PathOrPoint)) {
-			Log.debug("TODO: " + geo.getGeoClassType()
-					+ " should implement PathOrPoint interface");
+			Log.debug("TODO: " + geo.getGeoClassType() + " should implement PathOrPoint interface");
 			return;
 		}
 		final PathOrPoint path = (PathOrPoint) get(closestPointIndex);
@@ -1817,13 +1822,12 @@ public class GeoList extends GeoElement
 	 */
 	public void getNearestPoint(final GeoPointND p) {
 		double distance = Double.POSITIVE_INFINITY;
-		closestPointIndex = 0; // default - first object
+		closestPointIndex = -1;
 
-		// double closestIndex = -1;
 		for (int i = 0; i < elements.size(); i++) {
 			final GeoElement geo = elements.get(i);
-			if (geo instanceof PathOrPoint) {
-				final double d = p.distanceToPath((PathOrPoint) geo);
+			if (geo instanceof PathOrPoint pathOrPoint) {
+				final double d = p.distanceToPath(pathOrPoint);
 
 				// Log.debug(i+" "+d+" "+distance+" "+geo);
 				if (d < distance) {
@@ -1836,23 +1840,13 @@ public class GeoList extends GeoElement
 
 	@Override
 	public double distance(final GeoPoint p) {
-		double distance = Double.POSITIVE_INFINITY;
-		for (int i = 0; i < elements.size(); i++) {
-			final GeoElement geo = elements.get(i);
-			final double d = geo.distance(p);
-			if (d < distance) {
-				distance = d;
-			}
-		}
-
-		return distance;
+		return distance((GeoPointND) p);
 	}
 
 	@Override
 	public double distance(final GeoPointND p) {
 		double distance = Double.POSITIVE_INFINITY;
-		for (int i = 0; i < elements.size(); i++) {
-			final GeoElement geo = elements.get(i);
+		for (final GeoElement geo : elements) {
 			final double d = geo.distance(p);
 			if (d < distance) {
 				distance = d;
@@ -1946,7 +1940,7 @@ public class GeoList extends GeoElement
 	public boolean isOnPath(final GeoPointND PI, final double eps) {
 		for (int i = 0; i < elements.size(); i++) {
 			final GeoElement geo = elements.get(i);
-			if (((PathOrPoint) geo).isOnPath(PI, eps)) {
+			if (geo instanceof PathOrPoint pathOrPoint && pathOrPoint.isOnPath(PI, eps)) {
 				return true;
 			}
 		}
@@ -2136,7 +2130,7 @@ public class GeoList extends GeoElement
 	 * @return available trace to spreadsheet mode (values/copy) for the geos
 	 *         list
 	 */
-	final static public TraceModesEnum getTraceModes(
+	public static TraceModesEnum getTraceModes(
 			ArrayList<GeoElement> geos) {
 
 		TraceModesEnum traceModes = null;
@@ -2295,7 +2289,7 @@ public class GeoList extends GeoElement
 	}
 
 	/**
-	 * @return whether this list should be drawn as combobox
+	 * @return whether this list should be drawn as combo box
 	 */
 	public boolean drawAsComboBox() {
 		return drawAsComboBox;
@@ -2303,7 +2297,7 @@ public class GeoList extends GeoElement
 
 	/**
 	 * @param b
-	 *            whether this list should be drawn as combobox
+	 *            whether this list should be drawn as combo box
 	 */
 	public void setDrawAsComboBox(boolean b) {
 		drawAsComboBox = b;
@@ -2622,7 +2616,7 @@ public class GeoList extends GeoElement
 
 	@Override
 	final public Coords getMainDirection() {
-		if (elements.size() <= closestPointIndex) {
+		if (closestPointIndex < 0 || elements.size() <= closestPointIndex) {
 			return Coords.VX;
 		}
 		return elements.get(closestPointIndex).getMainDirection();
@@ -2706,7 +2700,7 @@ public class GeoList extends GeoElement
 		case ISREFLEX:
 			// do nothing
 			break;
-		default: // ANGLE_ISANTICLOCKWISE
+		default: // ANTICLOCKWISE
 			if (!allowReflexAngle) {
 				setAngleStyle(AngleStyle.NOTREFLEX);
 			}
@@ -2866,7 +2860,22 @@ public class GeoList extends GeoElement
 	 * @param parent
 	 *            parent algo
 	 */
-	public void addNumber(double value, AlgoElement parent) {
+	public void addNumber(BigDecimal value, AlgoElement parent) {
+		GeoNumeric listElement = addNumber(value.doubleValue(), parent);
+		listElement.setExactValue(value);
+	}
+
+	/**
+	 * Add number to the end, use cache if possible. Assume all cached elements
+	 * are GeoNumerics.
+	 *
+	 * @param value
+	 *            value
+	 * @param parent
+	 *            parent algo
+	 * @return the number added
+	 */
+	public GeoNumeric addNumber(double value, AlgoElement parent) {
 		GeoNumeric listElement;
 		if (size() < getCacheSize()) {
 			// use existing list element
@@ -2881,6 +2890,7 @@ public class GeoList extends GeoElement
 
 		add(listElement);
 		listElement.setValue(value);
+		return listElement;
 	}
 
 	/**
@@ -3390,7 +3400,7 @@ public class GeoList extends GeoElement
 	 * @return localized "[index] of [size]"
 	 */
 	public String getIndexDescription(int selectedIndex) {
-		return kernel.getLocalization().getPlainDefault("AofB", "%0 of %1",
+		return kernel.getLocalization().getPlainDefault("AOfB", "%0 of %1",
 				(selectedIndex + 1) + "", size() + "");
 	}
 
@@ -3542,7 +3552,6 @@ public class GeoList extends GeoElement
 
 	@Override
 	public char getLabelDelimiter() {
-		ExpressionNode definition = getDefinition();
 		if (definition != null && definition.unwrap() instanceof Equation) {
 			return ':';
 		}
@@ -3571,5 +3580,11 @@ public class GeoList extends GeoElement
 	 */
 	public boolean isTableValuesOrPointList() {
 		return tableOrigin;
+	}
+
+	@Override
+	public boolean usesDisabledStyle(EuclidianViewInterfaceSlim ev) {
+		return !isSelectionAllowed(ev) && objColor == GeoGebraColorConstants.NEUTRAL_900
+				&& (bgColor == null || bgColor == GColor.WHITE);
 	}
 }

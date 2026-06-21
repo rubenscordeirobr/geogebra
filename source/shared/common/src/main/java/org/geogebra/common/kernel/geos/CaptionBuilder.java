@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.geos;
 
 import org.geogebra.common.kernel.Kernel;
@@ -31,20 +47,7 @@ public class CaptionBuilder {
 				switch (ch) {
 				case 'c':
 					// (text value) of next cell to the right
-					String cText = "";
-					String label = geo.getLabelSimple();
-					if (label != null) {
-						SpreadsheetCoords p = GeoElementSpreadsheet
-								.spreadsheetIndices(label);
-						if (p.column > -1 && p.row > -1) {
-							String labelR1 = GeoElementSpreadsheet
-									.getSpreadsheetCellName(p.column + 1, p.row);
-							GeoElement geoR1 = kernel.lookupLabel(labelR1);
-							if (geoR1 != null) {
-								cText = geoR1.toValueString(tpl);
-							}
-						}
-					}
+					String cText = buildCellText(geo, tpl);
 					captionSB.append(cText);
 					break;
 				case 'f':
@@ -120,13 +123,31 @@ public class CaptionBuilder {
 			}
 		}
 
-		if (captionSB.length() == 0) {
+		if (captionSB.isEmpty()) {
 			// can't return empty string
 			// eg if %c used when not a spreadsheet cell
 			return geo.getLabel(tpl);
 		}
 
 		return captionSB.toString();
+	}
+
+	private static String buildCellText(GeoElement geo, StringTemplate tpl) {
+		String cText = "";
+		String label = geo.getLabelSimple();
+		if (label != null) {
+			SpreadsheetCoords p = GeoElementSpreadsheet
+					.getSpreadsheetCoordsSafe(label);
+			if (p.column > -1 && p.row > -1) {
+				String labelR1 = GeoElementSpreadsheet
+						.getSpreadsheetCellName(p.column + 1, p.row);
+				GeoElement geoR1 = geo.getKernel().lookupLabel(labelR1);
+				if (geoR1 != null) {
+					cText = geoR1.toValueString(tpl);
+				}
+			}
+		}
+		return cText;
 	}
 
 }

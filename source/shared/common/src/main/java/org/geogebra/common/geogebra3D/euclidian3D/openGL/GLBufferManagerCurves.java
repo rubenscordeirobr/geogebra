@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.openGL;
 
 import java.util.List;
@@ -15,29 +31,23 @@ public class GLBufferManagerCurves extends GLBufferManager {
 	// and 3 indices per triangle
 	static final private int INDICES_SIZE_START = ELEMENTS_SIZE_START * 3;
 
-	private ManagerShaders manager;
-
 	/**
 	 * 
 	 * @param manager
 	 *            manager
 	 */
 	public GLBufferManagerCurves(ManagerShaders manager) {
-		this.manager = manager;
+		super(manager);
 	}
 
 	@Override
 	protected int calculateIndicesLength(int size, TypeElement type) {
-		switch (type) {
-		case CURVE:
-			return 3 * 2 * size * PlotterBrush.LATITUDES;
-		case TRIANGLES:
-			return 3 * size;
-		case TEMPLATE:
-			return size;
-		default: // should not happen
-			return 0;
-		}
+		return switch (type) {
+			case CURVE -> 3 * 2 * size * manager.getCurveLatitudeSplits();
+			case TRIANGLES -> 3 * size;
+			case TEMPLATE -> size;
+			default -> 0; // should not happen
+		};
 	}
 
 	@Override

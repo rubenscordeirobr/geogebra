@@ -1,9 +1,31 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.view.probcalculator;
+
+import static org.geogebra.common.gui.view.probcalculator.ProbabilityCalculatorView.PROB_INTERVAL;
+import static org.geogebra.common.gui.view.probcalculator.ProbabilityCalculatorView.PROB_LEFT;
+import static org.geogebra.common.gui.view.probcalculator.ProbabilityCalculatorView.PROB_RIGHT;
+import static org.geogebra.common.gui.view.probcalculator.ProbabilityCalculatorView.PROB_TWO_TAILED;
 
 import org.geogebra.common.gui.view.probcalculator.ResultPanel;
 import org.geogebra.common.gui.view.spreadsheet.SpreadsheetViewInterface;
 import org.geogebra.common.main.App;
 import org.geogebra.common.main.Localization;
+import org.geogebra.web.html5.gui.util.AriaHelper;
 import org.gwtproject.user.client.ui.FlowPanel;
 import org.gwtproject.user.client.ui.IsWidget;
 import org.gwtproject.user.client.ui.Label;
@@ -37,11 +59,12 @@ public class ResultPanelW extends FlowPanel implements ResultPanel {
 		loc = app.getLocalization();
 		this.insertHandler = insertHandler;
 		initGUI();
+		AriaHelper.setRole(this, "group");
 	}
 
 	private void initGUI() {
 		addStyleName("resultPanel");
-		lblTwoTailedResult = new Label();
+		lblTwoTailedResult = getHiddenLabel("");
 		lblEquals = " = ";
 		lblPlus = " + ";
 		lblXGreater = "X >";
@@ -49,6 +72,7 @@ public class ResultPanelW extends FlowPanel implements ResultPanel {
 		fldHigh = createField(80);
 		fldResult = createField(96);
 		lblResult = new Label();
+		AriaHelper.setLabel(lblResult, loc.getMenu("Probability"));
 	}
 
 	private MathTextFieldW createField(int width) {
@@ -70,11 +94,11 @@ public class ResultPanelW extends FlowPanel implements ResultPanel {
 	@Override
 	public void showInterval() {
 		clear();
-		add(new Label(loc.getMenu("ProbabilityOf")));
-		add(wrapInFocusHolder(fldLow));
-		add(new Label(SpreadsheetViewInterface.X_BETWEEN));
-		add(wrapInFocusHolder(fldHigh));
-		add(new Label(loc.getMenu("EndProbabilityOf") + " = "));
+		add(getHiddenLabel(loc.getMenu("ProbabilityOf")));
+		add(wrapInFocusHolder(fldLow, "Lower.Bound"));
+		add(getHiddenLabel(SpreadsheetViewInterface.X_BETWEEN));
+		add(wrapInFocusHolder(fldHigh, "Upper.Bound"));
+		add(getHiddenLabel(loc.getMenu("EndProbabilityOf") + " = "));
 		add(lblResult);
 	}
 
@@ -86,8 +110,8 @@ public class ResultPanelW extends FlowPanel implements ResultPanel {
 	private void showTwoTailed(String greaterSign) {
 		clear();
 		lblXSign = greaterSign;
-		wrapProbabilityOf(xLessThanEqual(), fldLow, "", lblPlus);
-		wrapProbabilityOf(lblXSign, fldHigh, "", lblEquals);
+		wrapProbabilityOf(xLessThanEqual(), fldLow, "", lblPlus, "Left.Upper.Bound");
+		wrapProbabilityOf(lblXSign, fldHigh, "", lblEquals, "Right.Lower.Bound");
 		add(lblTwoTailedResult);
 		add(lblResult);
 	}
@@ -100,8 +124,8 @@ public class ResultPanelW extends FlowPanel implements ResultPanel {
 	@Override
 	public void showLeft() {
 		clear();
-		wrapProbabilityOf(xLessThanEqual(), fldHigh, "", lblEquals);
-		add(wrapInFocusHolder(fldResult));
+		wrapProbabilityOf(xLessThanEqual(), fldHigh, "", lblEquals, "Upper.Bound");
+		add(wrapInFocusHolder(fldResult, "Probability"));
 	}
 
 	private String xLessThanEqual() {
@@ -111,8 +135,8 @@ public class ResultPanelW extends FlowPanel implements ResultPanel {
 	@Override
 	public void showRight() {
 		clear();
-		wrapProbabilityOf("", fldLow, lessThanEqual(), lblEquals);
-		add(wrapInFocusHolder(fldResult));
+		wrapProbabilityOf("", fldLow, lessThanEqual(), lblEquals, "Lower.Bound");
+		add(wrapInFocusHolder(fldResult, "Probability"));
 	}
 
 	private String lessThanEqual() {
@@ -124,18 +148,19 @@ public class ResultPanelW extends FlowPanel implements ResultPanel {
 	}
 
 	private void wrapProbabilityOf(String before, MathTextFieldW widget,
-			String after, String sign) {
-		Label begin = new Label(loc.getMenu("ProbabilityOf") + " " + before);
-		Label end = new Label(after + " " + loc.getMenu("EndProbabilityOf") + sign);
+			String after, String sign, String ariaLabel) {
+		Label begin = getHiddenLabel(loc.getMenu("ProbabilityOf") + " " + before);
+		Label end = getHiddenLabel(after + " " + loc.getMenu("EndProbabilityOf") + sign);
 		add(begin);
-		add(wrapInFocusHolder(widget));
+		add(wrapInFocusHolder(widget, ariaLabel));
 		add(end);
 	}
 
-	private IsWidget wrapInFocusHolder(MathTextFieldW widget) {
+	private IsWidget wrapInFocusHolder(MathTextFieldW widget, String ariaLabel) {
 		FlowPanel holder = new FlowPanel();
 		holder.setStyleName("holder");
 		holder.add(widget);
+		AriaHelper.setLabel(widget.asWidget(), loc.getMenu(ariaLabel));
 		return holder;
 	}
 
@@ -161,18 +186,15 @@ public class ResultPanelW extends FlowPanel implements ResultPanel {
 		lblTwoTailedResult.setText(low + " + " + high + " =");
 	}
 
-	@Override
-	public boolean isFieldLow(Object source) {
+	boolean isFieldLow(Object source) {
 		return source == fldLow;
 	}
 
-	@Override
-	public boolean isFieldHigh(Object source) {
+	boolean isFieldHigh(Object source) {
 		return source == fldHigh;
 	}
 
-	@Override
-	public boolean isFieldResult(Object source) {
+	boolean isFieldResult(Object source) {
 		return source == fldResult;
 	}
 
@@ -184,5 +206,26 @@ public class ResultPanelW extends FlowPanel implements ResultPanel {
 	@Override
 	public void setGreaterOrEqualThan() {
 		lblXSign = SpreadsheetViewInterface.GREATER_THAN_OR_EQUAL_TO_X;
+	}
+
+	/**
+	 * Updates the aria-label of the result panel based on the selected probability mode.
+	 * @param probMode probability mode
+	 */
+	public void updateAccessibleName(int probMode) {
+		String key = switch (probMode) {
+			case PROB_INTERVAL -> "Interval.Probability";
+			case PROB_LEFT -> "Left.Sided.Probability";
+			case PROB_RIGHT -> "Right.Sided.Probability";
+			case PROB_TWO_TAILED -> "Two.Tailed.Probability";
+			default -> "";
+		};
+		AriaHelper.setLabel(this, loc.getMenu(key));
+	}
+
+	private Label getHiddenLabel(String text) {
+		Label label = new Label(text);
+		AriaHelper.setAriaHidden(label);
+		return label;
 	}
 }

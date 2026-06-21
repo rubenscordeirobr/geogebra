@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui;
 
 import java.awt.Color;
@@ -6,6 +22,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -58,6 +75,7 @@ import org.geogebra.common.gui.VirtualKeyboardListener;
 import org.geogebra.common.gui.toolbar.ToolBar;
 import org.geogebra.common.gui.view.consprotocol.ConstructionProtocolNavigation;
 import org.geogebra.common.gui.view.consprotocol.ConstructionProtocolView;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.jre.util.Base64;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.ModeSetter;
@@ -134,8 +152,7 @@ import org.geogebra.desktop.main.KeyboardSettings;
 import org.geogebra.desktop.main.LocalizationD;
 import org.geogebra.desktop.util.GuiResourcesD;
 import org.geogebra.desktop.util.UtilD;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * Handles all geogebra.gui package related objects and methods for Application.
@@ -475,6 +492,20 @@ public class GuiManagerD extends GuiManager implements GuiManagerInterfaceD {
 	}
 
 	@Override
+	public boolean isSpreadsheetFocused() {
+		return hasSpreadsheetView()
+				&& this.getSpreadsheetView().hasFocus();
+	}
+
+	@Override
+	public void scrollSpreadsheetToCell(GeoElement geo, String labelNew) {
+		if (hasSpreadsheetView()) {
+			this.getSpreadsheetView()
+					.scrollIfNeeded(geo, labelNew);
+		}
+	}
+
+	@Override
 	public void updateSpreadsheetColumnWidths() {
 		if (spreadsheetView != null) {
 			spreadsheetView.updateColumnWidths();
@@ -485,12 +516,12 @@ public class GuiManagerD extends GuiManager implements GuiManagerInterfaceD {
 	// =====================================================
 
 	@Override
-	public void getSpreadsheetViewXML(StringBuilder sb, boolean asPreference) {
+	public void getSpreadsheetViewXML(XMLStringBuilder sb, boolean asPreference) {
 		getApp().getSettings().getSpreadsheet().getXML(sb, asPreference);
 	}
 
 	@Override
-	public void getAlgebraViewXML(StringBuilder sb, boolean asPreference) {
+	public void getAlgebraViewXML(XMLStringBuilder sb, boolean asPreference) {
 		if (algebraView != null) {
 			algebraView.getXML(sb, asPreference);
 		}
@@ -556,7 +587,7 @@ public class GuiManagerD extends GuiManager implements GuiManagerInterfaceD {
 
 	@Override
 	public void attachSpreadsheetView() {
-		getSpreadsheetView();
+		this.getSpreadsheetView();
 		spreadsheetView.attachView();
 	}
 
@@ -728,7 +759,7 @@ public class GuiManagerD extends GuiManager implements GuiManagerInterfaceD {
 			}
 
 			if (viewId == App.VIEW_SPREADSHEET) {
-				getSpreadsheetView().requestFocus();
+				this.getSpreadsheetView().requestFocus();
 			}
 		} else {
 			if (showView(viewId)) {
@@ -1726,7 +1757,7 @@ public class GuiManagerD extends GuiManager implements GuiManagerInterfaceD {
 							JOptionPane.WARNING_MESSAGE, null, options,
 							options[1]);
 
-					done = (n == 0);
+					done = n == 0;
 				} else {
 					done = true;
 				}
@@ -1788,7 +1819,7 @@ public class GuiManagerD extends GuiManager implements GuiManagerInterfaceD {
 			// check first for ggb/ggt file
 			if ((processedUrlString.endsWith(".ggb")
 					|| processedUrlString.endsWith(".ggt"))
-					&& (!processedUrlString.contains("?"))) {
+					&& !processedUrlString.contains("?")) {
 				// This isn't a ggb file,
 				// however ends with ".ggb":
 				// script.php?file=_circles5.ggb

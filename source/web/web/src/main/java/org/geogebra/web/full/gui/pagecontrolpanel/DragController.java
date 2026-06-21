@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.pagecontrolpanel;
 
 import java.util.ArrayList;
@@ -13,7 +29,7 @@ import org.gwtproject.timer.client.Timer;
 
 class DragController {
 
-	private static final int DROPANIM_SPEED = 5;
+	private static final int DROP_ANIMATION_SPEED = 5;
 
 	private final Cards cards;
 	private final App app;
@@ -79,7 +95,7 @@ class DragController {
 		void resetCardPositions();
 	}
 
-	private class AutoScrollTimer extends Timer {
+	private final class AutoScrollTimer extends Timer {
 
 		private static final int SCROLL_TIME = 5;
 		private int scroll;
@@ -99,7 +115,7 @@ class DragController {
 			scheduleRepeating(SCROLL_TIME);
 		}
 		
-		public void checkIfNeeded(int y) {
+		void checkIfNeeded(int y) {
 			if (y < getApp().getAbsTop() + PagePreviewCard.MARGIN) {
 				start(-2);
 			} else if (y > getApp().getHeight() - PagePreviewCard.MARGIN) {
@@ -220,7 +236,7 @@ class DragController {
 		target = dragged.getPageIndex() + diff;
 	}
 
-	public void adjustTop(PagePreviewCard current) {
+	private void adjustTop(PagePreviewCard current) {
 		int index = current.getPageIndex();
 		if (dragged.getPageIndex() > index && index > target) {
 			index++;
@@ -235,7 +251,7 @@ class DragController {
 		return index() != -1 && getDropIndex() != -1;
 	}
 
-	public void cancel() {
+	private void cancel() {
 		CancelEventTimer.resetDrag();
 		if (isValid()) {
 			dragged.removeStyleName("dragged");
@@ -248,7 +264,7 @@ class DragController {
 	/**
 	 * @return see {@link App}
 	 */
-	public AppW getApp() {
+	private AppW getApp() {
 		return (AppW) app;
 	}
 
@@ -288,7 +304,7 @@ class DragController {
 	 * @param x - coordinate.
 	 * @param y - coordinate.
 	 */
-	public void start(int x, int y) {
+	void start(int x, int y) {
 		if (clicked != null || isValid()) {
 			cancelDrag();
 		}
@@ -373,7 +389,7 @@ class DragController {
 
 	private void createDropAnimation() {
 		CancelEventTimer.resetDrag();
-		dropAnimTimer.scheduleRepeating(DROPANIM_SPEED);
+		dropAnimTimer.scheduleRepeating(DROP_ANIMATION_SPEED);
 	}
 
 	/**
@@ -420,7 +436,7 @@ class DragController {
 	 * @param y vertical position
 	 * @return true, if a card is found at position (x,y)
 	 */
-	public boolean hitCard(int x, int y) {
+	boolean hitCard(int x, int y) {
 		return cardIndexAt(x, y) != -1;
 	}
 }

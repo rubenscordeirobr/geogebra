@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.view.spreadsheet;
 
 import java.awt.BorderLayout;
@@ -84,7 +100,7 @@ public class CreateObjectDialog extends InputDialogD
 		super(app.getFrame(), false, app.getLocalization());
 		this.table = (MyTableD) view.getSpreadsheetTable();
 		coModel = new CreateObjectModel(app, objectType, this);
-		coModel.setCellRangeProcessor(table.getCellRangeProcessor());
+		coModel.setToolProcessor(table.getToolProcessor(app));
 		coModel.setSelectedRanges(table.getSelectedRanges());
 		this.app = app;
 		createGUI(coModel.getTitle(), "", false, 16, 1, false, false, false,

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.spreadsheet.kernel;
 
 import java.util.ArrayList;
@@ -13,8 +29,11 @@ import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.ModeSetter;
 import org.geogebra.common.kernel.UpdateLocationView;
 import org.geogebra.common.kernel.geos.GProperty;
+import org.geogebra.common.kernel.geos.GeoBoolean;
+import org.geogebra.common.kernel.geos.GeoButton;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.geos.GeoElementSpreadsheet;
+import org.geogebra.common.kernel.geos.GeoImage;
 import org.geogebra.common.kernel.geos.GeoSymbolic;
 import org.geogebra.common.kernel.geos.GeoText;
 import org.geogebra.common.kernel.kernelND.GeoElementND;
@@ -51,7 +70,7 @@ public final class KernelTabularDataAdapter implements UpdateLocationView, Tabul
 		spreadsheetSettings.addListener((settings) -> {
 			// changeListeners is really just the Spreadsheet instance
 			for (TabularDataChangeListener listener: changeListeners) {
-				listener.tabularDataDimensionsDidChange((SpreadsheetSettings) settings);
+				listener.tabularDataDimensionsDidChange(settings);
 			}
 		});
 		this.kernel = app.getKernel();
@@ -82,7 +101,7 @@ public final class KernelTabularDataAdapter implements UpdateLocationView, Tabul
 
 	@Override
 	public void update(GeoElement geo) {
-		SpreadsheetCoords pt = GeoElementSpreadsheet.spreadsheetIndices(geo.getLabelSimple());
+		SpreadsheetCoords pt = GeoElementSpreadsheet.getSpreadsheetCoordsSafe(geo.getLabelSimple());
 		if (pt.column != -1) {
 			setContent(pt.row, pt.column, geo);
 			changeListeners.forEach(listener -> listener.tabularDataDidChange(pt.row, pt.column));
@@ -91,7 +110,7 @@ public final class KernelTabularDataAdapter implements UpdateLocationView, Tabul
 
 	@Override
 	public void updateVisualStyle(GeoElement geo, GProperty prop) {
-		SpreadsheetCoords pt = GeoElementSpreadsheet.spreadsheetIndices(geo.getLabelSimple());
+		SpreadsheetCoords pt = GeoElementSpreadsheet.getSpreadsheetCoordsSafe(geo.getLabelSimple());
 		if (pt.column != -1) {
 			changeListeners.forEach(listener -> listener.tabularDataDidChange(pt.row, pt.column));
 		}
@@ -146,7 +165,7 @@ public final class KernelTabularDataAdapter implements UpdateLocationView, Tabul
 	// Helpers
 	
 	private void removeByLabel(String labelSimple) {
-		SpreadsheetCoords pt = GeoElementSpreadsheet.spreadsheetIndices(labelSimple);
+		SpreadsheetCoords pt = GeoElementSpreadsheet.getSpreadsheetCoordsSafe(labelSimple);
 		if (pt != null && pt.column != -1) {
 			setContent(pt.row, pt.column, null);
 			changeListeners.forEach(listener -> listener.tabularDataDidChange(pt.row, pt.column));
@@ -254,11 +273,18 @@ public final class KernelTabularDataAdapter implements UpdateLocationView, Tabul
 			unfixSymbolic(geo);
 			setLabel(geo, row, column);
 			data.computeIfAbsent(row, ignore -> new HashMap<>()).put(column, geo);
+			boolean dimensionsChanged = false;
 			if (numberOfRows() <= row) {
 				app.getSettings().getSpreadsheet().setRowsNoFire(row + 1);
+				dimensionsChanged = true;
 			}
 			if (numberOfColumns() <= column) {
 				app.getSettings().getSpreadsheet().setColumnsNoFire(column + 1);
+				dimensionsChanged = true;
+			}
+			if (dimensionsChanged) {
+				changeListeners.forEach(listener -> listener.tabularDataDimensionsDidChange(
+						app.getSettings().getSpreadsheet()));
 			}
 		} else {
 			data.computeIfAbsent(row, ignore -> new HashMap<>()).put(column, null);
@@ -292,6 +318,13 @@ public final class KernelTabularDataAdapter implements UpdateLocationView, Tabul
 	}
 
 	@Override
+	public boolean hasFormulaAt(int row, int column) {
+		GeoElement geo = contentAt(row, column);
+		return geo != null && (geo.getParentAlgorithm() != null
+				|| (geo.getDefinition() != null && geo.getDefinition().hasOperations()));
+	}
+
+	@Override
 	public boolean hasError(int row, int column) {
 		if (data.get(row) == null || data.get(row).get(column) == null) {
 			return false;
@@ -303,5 +336,21 @@ public final class KernelTabularDataAdapter implements UpdateLocationView, Tabul
 	@Override
 	public String getErrorString() {
 		return kernel.getLocalization().getError("Error").toUpperCase(Locale.ROOT);
+	}
+
+	@Override
+	public boolean handleMouseDown(int row, int column) {
+		GeoElement geo = contentAt(row, column);
+		if (geo instanceof GeoBoolean bool && geo.isIndependent()) {
+			bool.setValue(!bool.getBoolean());
+			bool.updateRepaint();
+			return true;
+		}
+		if (geo instanceof GeoButton) {
+			geo.runClickScripts(null);
+			return true;
+		}
+		// just prevent editor for images
+		return geo instanceof GeoImage;
 	}
 }

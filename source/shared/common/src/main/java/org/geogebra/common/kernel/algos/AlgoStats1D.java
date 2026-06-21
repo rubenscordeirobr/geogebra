@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.algos;
@@ -184,8 +188,6 @@ public abstract class AlgoStats1D extends AlgoElement {
 		double product = 1;
 		double sumFreq = 0;
 		double frequency = 1;
-		double var, mu;
-		GeoElement geo, geoFreq, geo2;
 		boolean useMidpoint = false;
 		double n = 0;
 
@@ -193,7 +195,7 @@ public abstract class AlgoStats1D extends AlgoElement {
 		if (geoList2 == null) {
 			double val;
 			for (int i = 0; i < size; i++) {
-				geo = geoList.get(i);
+				GeoElement geo = geoList.get(i);
 				if (geo instanceof NumberValue) {
 					val = geo.evaluateDouble();
 					sumVal += val;
@@ -218,8 +220,8 @@ public abstract class AlgoStats1D extends AlgoElement {
 			double val;
 			double val_by_freq;
 			for (int i = 0; i < size; i++) {
-				geo = geoList.get(i);
-				geoFreq = geoList2.get(i);
+				GeoElement geo = geoList.get(i);
+				GeoElement geoFreq = geoList2.get(i);
 				if (!(geo instanceof NumberValue)
 						|| !(geoFreq instanceof NumberValue)) {
 					result.setUndefined();
@@ -230,7 +232,7 @@ public abstract class AlgoStats1D extends AlgoElement {
 
 				// compute midpoint value if needed
 				if (useMidpoint) {
-					geo2 = geoList.get(i + 1);
+					GeoElement geo2 = geoList.get(i + 1);
 					if (!(geo2 instanceof NumberValue)) {
 						result.setUndefined();
 						return;
@@ -257,8 +259,8 @@ public abstract class AlgoStats1D extends AlgoElement {
 			n = sumFreq;
 		}
 
-		mu = sumVal / n;
-
+		double mu = sumVal / n;
+		double var;
 		switch (stat) {
 		default:
 			result.setValue(Double.NaN);
@@ -269,7 +271,7 @@ public abstract class AlgoStats1D extends AlgoElement {
 			if (geoList2 == null) {
 				double val;
 				for (int i = 0; i < size; i++) {
-					geo = geoList.get(i);
+					GeoElement geo = geoList.get(i);
 					val = geo.evaluateDouble();
 					sumAbsoluteDeviation += Math.abs(mu - val);
 				}
@@ -279,14 +281,14 @@ public abstract class AlgoStats1D extends AlgoElement {
 
 				double val;
 				for (int i = 0; i < size; i++) {
-					geo = geoList.get(i);
-					geoFreq = geoList2.get(i);
+					GeoElement geo = geoList.get(i);
+					GeoElement geoFreq = geoList2.get(i);
 
 					val = geo.evaluateDouble();
 
 					// compute midpoint value if needed
 					if (useMidpoint) {
-						geo2 = geoList.get(i + 1);
+						GeoElement geo2 = geoList.get(i + 1);
 						val = (val + geo2.evaluateDouble()) / 2;
 					}
 

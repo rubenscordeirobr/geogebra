@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.spreadsheet;
 
 import java.util.ArrayList;
@@ -6,7 +22,6 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 import org.geogebra.common.spreadsheet.core.CellDragPasteHandler;
-import org.geogebra.common.spreadsheet.core.Spreadsheet;
 import org.geogebra.common.spreadsheet.core.SpreadsheetCellProcessor;
 import org.geogebra.common.spreadsheet.core.TabularData;
 import org.geogebra.common.spreadsheet.core.TabularDataChangeListener;
@@ -32,14 +47,23 @@ public class TestTabularData implements TabularData<String> {
 	 * Simple tabular data (initial size 100 x 100).
 	 */
 	public TestTabularData() {
-		for (int i = 0; i < 100; i++) {
-			data.add(buildRow(100));
+		this(100, 100);
+	}
+
+	/**
+	 * Simple tabular data.
+	 * @param rows number of rows
+	 * @param columns number of columns
+	 */
+	public TestTabularData(int rows, int columns) {
+		for (int i = 0; i < rows; i++) {
+			data.add(buildRow(columns));
 		}
 	}
 
-	private List<String> buildRow(int i) {
-		ArrayList<String> row = new ArrayList<>(100);
-		for (int j = 0; j < i; j++) {
+	private List<String> buildRow(int size) {
+		ArrayList<String> row = new ArrayList<>(size);
+		for (int j = 0; j < size; j++) {
 			row.add(null);
 		}
 		return row;
@@ -102,6 +126,12 @@ public class TestTabularData implements TabularData<String> {
 	@Override
 	public @Nonnull String serializeContentAt(int row, int column) {
 		return data.get(row).get(column);
+	}
+
+	@Override
+	public boolean hasFormulaAt(int row, int column) {
+		// Currently not tested
+		return false;
 	}
 
 	@Override

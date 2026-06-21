@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.view.algebra;
 
 import static org.geogebra.common.gui.view.algebra.AlgebraOutputOperator.APPROXIMATELY_EQUALS;
@@ -17,6 +33,7 @@ import org.geogebra.common.kernel.cas.AlgoSolve;
 import org.geogebra.common.kernel.commands.Commands;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.geos.HasSymbolicMode;
+import org.geogebra.common.main.ScreenReaderSupport;
 import org.geogebra.common.util.SymbolicUtil;
 
 /**
@@ -25,8 +42,22 @@ import org.geogebra.common.util.SymbolicUtil;
  * This class also contains utility methods to get the possible output formats for a {@code GeoElement},
  * and methods to cycle through them.
  */
-public enum AlgebraOutputFormat {
-    FRACTION, EXACT, APPROXIMATION, ENGINEERING;
+public enum AlgebraOutputFormat implements ScreenReaderSupport {
+    FRACTION("FormatFraction"),
+	EXACT("FormatExact"),
+	APPROXIMATION("FormatApproximate"),
+	ENGINEERING("FormatEngineering");
+
+	private final String screenReaderLabel;
+
+	AlgebraOutputFormat(String screenReaderLabel) {
+		this.screenReaderLabel = screenReaderLabel;
+	}
+
+	@Override
+	public String getScreenReaderLabel() {
+		return screenReaderLabel;
+	}
 
 	/**
 	 * Retrieves all the possible output formats for the given {@code GeoElement}.

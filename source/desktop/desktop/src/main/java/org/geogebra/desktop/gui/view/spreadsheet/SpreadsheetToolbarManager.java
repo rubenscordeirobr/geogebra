@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.view.spreadsheet;
 
 import org.geogebra.common.euclidian.EuclidianConstants;
@@ -39,7 +55,7 @@ public class SpreadsheetToolbarManager {
 		switch (mode) {
 
 		case EuclidianConstants.MODE_SPREADSHEET_CREATE_LIST:
-			if (!CellRangeUtil.isEmpty(table.getFirstSelection(), app)) {
+			if (!CellRangeUtil.isEmpty(table.getFirstSelection(), app.getSpreadsheetTableModel())) {
 				id = new CreateObjectDialog(app, view,
 						CreateObjectModel.TYPE_LIST);
 				id.setVisible(true);
@@ -47,7 +63,7 @@ public class SpreadsheetToolbarManager {
 			break;
 
 		case EuclidianConstants.MODE_SPREADSHEET_CREATE_LISTOFPOINTS:
-			if (table.getCellRangeProcessor()
+			if (table.getToolProcessor(app)
 					.isCreatePointListPossible(table.getSelectedRanges())) {
 				id = new CreateObjectDialog(app, view,
 						CreateObjectModel.TYPE_LISTOFPOINTS);
@@ -57,7 +73,7 @@ public class SpreadsheetToolbarManager {
 			break;
 
 		case EuclidianConstants.MODE_SPREADSHEET_CREATE_MATRIX:
-			if (table.getCellRangeProcessor()
+			if (table.getToolProcessor(app)
 					.isCreateMatrixPossible(table.getSelectedRanges())) {
 				id = new CreateObjectDialog(app, view,
 						CreateObjectModel.TYPE_MATRIX);
@@ -66,7 +82,7 @@ public class SpreadsheetToolbarManager {
 			break;
 
 		case EuclidianConstants.MODE_SPREADSHEET_CREATE_TABLETEXT:
-			if (table.getCellRangeProcessor()
+			if (table.getToolProcessor(app)
 					.isCreateMatrixPossible(table.getSelectedRanges())) {
 				id = new CreateObjectDialog(app, view,
 						CreateObjectModel.TYPE_TABLETEXT);
@@ -75,7 +91,7 @@ public class SpreadsheetToolbarManager {
 			break;
 
 		case EuclidianConstants.MODE_SPREADSHEET_CREATE_POLYLINE:
-			if (table.getCellRangeProcessor()
+			if (table.getToolProcessor(app)
 					.isCreatePointListPossible(table.getSelectedRanges())) {
 				id = new CreateObjectDialog(app, view,
 						CreateObjectModel.TYPE_POLYLINE);

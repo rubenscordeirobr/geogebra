@@ -1,3 +1,4 @@
+// vendored
 /*
  * NeuQuant Neural-Net Quantization Algorithm
  * ------------------------------------------
@@ -532,7 +533,7 @@ class NeuQuant {
 				bestbiasd = biasdist;
 				bestbiaspos = i;
 			}
-			betafreq = (freq[i] >> betashift);
+			betafreq = freq[i] >> betashift;
 			freq[i] -= betafreq;
 			bias[i] += betafreq << gammashift;
 		}

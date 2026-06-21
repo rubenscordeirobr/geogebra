@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.arithmetic.simplifiers;
 
 import static org.geogebra.common.kernel.arithmetic.simplifiers.ExpressionValueUtils.isIntegerValue;
@@ -32,7 +48,7 @@ final class SurdAddition {
 
 	}
 
-	public @CheckForNull ExpressionNode factorOut() {
+	@CheckForNull ExpressionNode factorOut() {
 		ensureIntegerFirst();
 		if (ExpressionValueUtils.isSqrtNode(b) || ExpressionValueUtils.isNegativeSqrt(b)) {
 			return null;
@@ -106,7 +122,7 @@ final class SurdAddition {
 		return node;
 	}
 
-	public ExpressionValue multiply(double multiplier) {
+	ExpressionValue multiply(double multiplier) {
 		a = multiply(a, multiplier).wrap();
 		b = multiply(b, multiplier).wrap();
 		Operation operation = node.getOperation();
@@ -135,7 +151,7 @@ final class SurdAddition {
 		return node.multiplyR(multiplier);
 	}
 
-	public ExpressionValue multiply(ExpressionValue ev) {
+	ExpressionValue multiply(ExpressionValue ev) {
 		ExpressionValue a1 = utils.reduceProduct(a.multiply(ev));
 		ExpressionValue b1 = utils.reduceProduct(b.multiply(ev));
 		return utils.newNode(a1, Operation.PLUS, b1);

@@ -1,6 +1,23 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.view.data;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.geogebra.common.annotation.MissingDoc;
 import org.geogebra.common.euclidian.EuclidianView;
@@ -179,7 +196,7 @@ public class DataDisplayModel {
 
 		}
 
-		final public String getKey() {
+		public String getKey() {
 			return key;
 		}
 
@@ -385,10 +402,11 @@ public class DataDisplayModel {
 				} else {
 					listener.removeFrequencyTable();
 				}
-
 				// update settings
-				statGeo.getHistogramSettings(dataListSelected, histogram,
-						settings);
+				if (histogram != null) {
+					statGeo.getHistogramSettings(dataListSelected, histogram,
+							settings);
+				}
 
 				listener.updatePlotPanelSettings();
 
@@ -544,17 +562,13 @@ public class DataDisplayModel {
 				if (doCreate) {
 					GeoElement[] boxPlots = statGeo
 							.createMultipleBoxPlot(dataListSelected, settings);
-					for (int i = 0; i < boxPlots.length; i++) {
-						plotGeoList.add(boxPlots[i]);
-					}
+					plotGeoList.addAll(Arrays.asList(boxPlots));
 				}
 
 				statGeo.getMultipleBoxPlotSettings(dataListSelected, settings);
 				listener.updatePlotPanelSettings();
 				boxPlotTitles = statGeo.createBoxPlotTitles(daModel, settings);
-				for (int i = 0; i < boxPlotTitles.length; i++) {
-					plotGeoList.add(boxPlotTitles[i]);
-				}
+				plotGeoList.addAll(Arrays.asList(boxPlotTitles));
 
 				listener.showPlotPanel();
 				break;
@@ -620,7 +634,7 @@ public class DataDisplayModel {
 		// in multivar mode create dynamic boxplots linked to separate lists
 
 		app.setWaitCursor();
-		EuclidianView targetEV = (EuclidianView) app.getView(euclidianViewID);
+		EuclidianView targetEV = (EuclidianView) app.getEuclidianViewById(euclidianViewID);
 
 		try {
 

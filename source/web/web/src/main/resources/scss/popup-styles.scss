@@ -198,7 +198,7 @@
 	}
 
 	.quickStyleBarPopup {
-		z-index: z-index.$z-dialog-under-keyboard;
+		z-index: z-index.$z-dialog-over-keyboard;
 		border-radius: 12px;
 		padding: 8px;
 		background-color: white;
@@ -246,7 +246,7 @@
 				}
 
 				img {
-					opacity: 0.54;
+					opacity: 1;
 					position: absolute;
 					right: 8px;
 					padding: 4px;
@@ -280,6 +280,17 @@
 				width: 252px;
 				height: 148px;
 			}
+
+			&.fontStyle {
+				.colorPalette {
+					width: 144px;
+					height: 36px;
+					margin-bottom: 16px;
+				}
+				.checkbox {
+					margin-left: 0;
+				}
+			}
 		}
 
 		.noColBtn {
@@ -292,9 +303,13 @@
 				background-color: neutral(200);
 			}
 
-			img {
+			img, .fa-solid, .fa-light {
 				opacity: 0.54;
 				margin: 8px 0;
+			}
+
+			.fa-solid, .fa-light {
+				padding: 4px;
 			}
 
 			.gwt-Label {
@@ -331,6 +346,11 @@
 
 				&.selected {
 					opacity: 0.54;
+				}
+
+				&.fa-solid, &.fa-light {
+					width: 24px;
+					padding: 3px 0px;
 				}
 			}
 
@@ -423,5 +443,40 @@
 	.gridPopup {
 		padding: 8px;
 		max-width: 366px;
+	}
+
+	.insertPopup {
+		width: 360px;
+		flex-wrap: wrap;
+
+		.tabPanel {
+			padding: 8px 16px;
+			height: 180px;
+			overflow: scroll;
+		}
+		.group {
+			display: flex;
+			flex-wrap: wrap;
+
+			.gwt-Label {
+				padding: 4px;
+				cursor: pointer;
+			}
+			canvas {
+				margin: auto 2px;
+				cursor: pointer;
+			}
+			.gwt-Label:hover, canvas:hover {
+				background-color: neutral(200);
+			}
+		}
+		.tabPanel.objects .gwt-Label {
+			flex-basis: 50%;
+			box-sizing: border-box;
+		}
+		.divider {
+			height: 1px;
+			margin: 8px 0;
+		}
 	}
 }

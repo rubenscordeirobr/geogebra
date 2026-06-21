@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.view.table;
 
 import java.util.ArrayList;
@@ -144,7 +160,7 @@ public class ModelEventCollector implements TableValuesListener {
 		event = new ModelEvent();
 	}
 
-	private static class ModelEvent {
+	private static final class ModelEvent {
 		private final List<ColumnEvent> columnsRemoved = new ArrayList<>();
 		private final List<ColumnEvent> columnsChanged = new ArrayList<>();
 		private final List<ColumnEvent> columnsAdded = new ArrayList<>();
@@ -154,7 +170,7 @@ public class ModelEventCollector implements TableValuesListener {
 		private boolean datasetChanged = false;
 		private int counter = 0;
 
-		public ModelEvent copy() {
+		private ModelEvent copy() {
 			ModelEvent event = new ModelEvent();
 			event.columnsRemoved.addAll(columnsRemoved);
 			event.columnsChanged.addAll(columnsChanged);

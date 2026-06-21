@@ -1,6 +1,20 @@
-package org.geogebra.common;
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
 
-import static org.junit.Assert.fail;
+package org.geogebra.common;
 
 import java.util.function.Function;
 
@@ -21,7 +35,6 @@ import org.geogebra.common.main.Localization;
 import org.geogebra.common.main.UndoRedoMode;
 import org.geogebra.common.main.error.ErrorHandler;
 import org.geogebra.common.main.settings.Settings;
-import org.geogebra.common.util.AsyncOperation;
 import org.geogebra.test.TestErrorHandler;
 import org.geogebra.test.commands.AlgebraTestHelper;
 import org.hamcrest.Description;
@@ -216,32 +229,7 @@ public class BaseUnitTest {
 		if (!info.isAutocreateSliders()) {
 			return app.getErrorHandler();
 		}
-		return new ErrorHandler() {
-			@Override
-			public void showError(String msg) {
-				fail(msg);
-			}
-
-			@Override
-			public void showCommandError(String command, String message) {
-				fail(message);
-			}
-
-			@Override
-			public String getCurrentCommand() {
-				return null;
-			}
-
-			@Override
-			public boolean onUndefinedVariables(String string, AsyncOperation<String[]> callback) {
-				return true;
-			}
-
-			@Override
-			public void resetError() {
-				// nothing to do
-			}
-		};
+		return TestErrorHandler.WITH_SLIDERS;
 	}
 
 	/**
@@ -278,7 +266,8 @@ public class BaseUnitTest {
 	 * @return construction element matcher
 	 */
 	public static TypeSafeMatcher<ExpressionValue> hasValue(String val) {
-		return hasProperty("value", geo -> geo.toValueString(StringTemplate.defaultTemplate), val);
+		return hasProperty("value", geo -> geo.toValueString(
+				StringTemplate.defaultTemplate.deriveWithoutCoefficientSimplification()), val);
 	}
 
 	/**

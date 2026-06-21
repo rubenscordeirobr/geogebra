@@ -1,5 +1,22 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian;
 
+import static org.geogebra.common.BaseUnitTest.hasValue;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertArrayEquals;
@@ -10,7 +27,6 @@ import static org.mockito.Mockito.verify;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,10 +47,16 @@ import org.geogebra.common.kernel.matrix.Coords;
 import org.geogebra.common.plugin.EuclidianStyleConstants;
 import org.geogebra.test.EventAccumulator;
 import org.geogebra.test.annotation.Issue;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 public class MoveToolTest extends BaseEuclidianControllerTest {
+
+	@Before
+	public void setUp() {
+		setUpController();
+	}
 
 	@Test
 	public void moveWithMouseShouldChangeSegment1() {
@@ -87,8 +109,8 @@ public class MoveToolTest extends BaseEuclidianControllerTest {
 	public void casListShouldNotBeMoveable() {
 		MockedCasGiac mockGiac = setupGiac();
 		mockGiac.memorize("Intersect(x² + y² = 2, (x - 2)² + y² = 2)", "{(1,1),(1,-1)}");
-		GeoCasCell f = new GeoCasCell(getConstruction());
-		getConstruction().addToConstructionList(f, false);
+		GeoCasCell f = new GeoCasCell(getKernel().getConstruction());
+		getKernel().getConstruction().addToConstructionList(f, false);
 		f.setInput("l5:=Intersect(x^2+y^2=2,(x-2)^2+y^2=2)");
 		f.computeOutput();
 		GeoList list = (GeoList) f.getTwinGeo();
@@ -102,8 +124,8 @@ public class MoveToolTest extends BaseEuclidianControllerTest {
 	public void casFreeListShouldNotBeMoveable() {
 		MockedCasGiac mockGiac = setupGiac();
 		mockGiac.memorize("Evaluate({(1, -1), (1, 1)})", "{(1,-1),(1,1)}");
-		GeoCasCell f = new GeoCasCell(getConstruction());
-		getConstruction().addToConstructionList(f, false);
+		GeoCasCell f = new GeoCasCell(getKernel().getConstruction());
+		getKernel().getConstruction().addToConstructionList(f, false);
 		f.setInput("l5:={(1, -1), (1, 1)}");
 		f.computeOutput();
 		GeoList list = (GeoList) f.getTwinGeo();
@@ -645,31 +667,16 @@ public class MoveToolTest extends BaseEuclidianControllerTest {
 				null, null, getApp().getActiveEuclidianView());
 	}
 
-	private static class DragResult {
-		public final int x;
-		public final int y;
-		public final String events;
-
+	private record DragResult(int x, int y, String events) {
 		private DragResult(int x, int y, String... events) {
-			this.x = x;
-			this.y = y;
-			this.events = String.join(",", Arrays.stream(events)
-					.filter(s -> s.startsWith("UPDATE")).collect(Collectors.toSet()));
+			this(x, y, String.join(",",
+					Arrays.stream(events).filter(event -> event.startsWith("UPDATE"))
+							.collect(Collectors.toSet())));
 		}
 
 		@Override
 		public String toString() {
 			return x + "," + y + ":" + events;
-		}
-
-		@Override
-		public boolean equals(Object other) {
-			return other instanceof DragResult && toString().equals(other.toString());
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(x, y, events);
 		}
 	}
 }

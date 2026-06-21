@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui;
 
 import java.util.ArrayList;
@@ -38,7 +54,10 @@ import org.geogebra.web.full.javax.swing.GPopupMenuW;
 import org.geogebra.web.html5.css.GuiResourcesSimple;
 import org.geogebra.web.html5.gui.menu.AriaMenuBar;
 import org.geogebra.web.html5.gui.menu.AriaMenuItem;
+import org.geogebra.web.html5.gui.view.IconSpec;
 import org.geogebra.web.html5.main.AppW;
+import org.geogebra.web.html5.main.general.GeneralIcon;
+import org.geogebra.web.html5.main.general.GeneralIconResource;
 import org.geogebra.web.html5.util.CopyPasteW;
 import org.geogebra.web.resources.SVGResource;
 import org.gwtproject.dom.client.Element;
@@ -65,6 +84,7 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 	protected Localization loc;
 	private LabelController labelController;
 	private final ContextMenuItemFactory factory;
+	private final GeneralIconResource generalIconResource;
 
 	/**
 	 * Creates new context menu
@@ -76,8 +96,8 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 	ContextMenuGeoElementW(AppW app, ContextMenuItemFactory factory) {
 		super(app);
 		this.factory = factory;
-		this.app = app;
 		this.loc = app.getLocalization();
+		this.generalIconResource = app.getGeneralIconResource();
 		wrappedPopup = factory.newPopupMenu(app);
 	}
 
@@ -277,22 +297,17 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 				wrappedPopup.addSeparator();
 			}
 
-			SVGResource img = MaterialDesignResources.INSTANCE.gear();
-
 			// open properties dialog
-			addHtmlAction(() -> openPropertiesDialogCmd(), img,
-					loc.getMenu("Settings"));
+			addHtmlAction(this::openPropertiesDialogCmd, generalIconResource
+							.getImageResource(GeneralIcon.SETTINGS), loc.getMenu("Settings"));
 		}
 	}
 
 	private void addDeleteItem() {
 		if (app.letDelete() && !getGeo().isProtected(EventType.REMOVE)
 				&& !app.isUnbundledOrWhiteboard()) {
-
-			SVGResource img = MaterialDesignResources.INSTANCE.delete_black();
-
-			addHtmlAction(() -> deleteCmd(false),
-					img, loc.getMenu("Delete"));
+			addHtmlAction(() -> deleteCmd(false), generalIconResource
+					.getImageResource(GeneralIcon.DELETE), loc.getMenu("Delete"));
 		}
 	}
 
@@ -422,7 +437,7 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 
 		SVGResource img = MaterialDesignResources.INSTANCE.rename_black();
 
-		addHtmlAction(() -> renameCmd(),
+		addHtmlAction(this::renameCmd,
 				img, loc.getMenu("Rename"));
 
 		if (getGeos().size() == 1 && getGeo() instanceof TextValue
@@ -431,7 +446,7 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 
 			SVGResource img2 = MaterialDesignResources.INSTANCE.edit_black();
 
-			addHtmlAction(() -> editCmd(),
+			addHtmlAction(this::editCmd,
 					img2, loc.getMenu("Edit"));
 		}
 	}
@@ -479,10 +494,9 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 	}
 
 	private void addFixObjectMenuItem(boolean locked, Runnable command) {
-		SVGResource img = MaterialDesignResources.INSTANCE.lock_black();
 		final GCheckmarkMenuItem cmItem = factory.newCheckmarkMenuItem(
-				img, loc.getMenu("FixObject"),
-				locked, command::run);
+				generalIconResource.getImageResource(GeneralIcon.LOCK),
+				loc.getMenu("FixObject"), locked, command::run);
 		wrappedPopup.addItem(cmItem);
 	}
 
@@ -513,15 +527,13 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 	}
 
 	private void addCutCopy() {
-		MaterialDesignResources resources = MaterialDesignResources.INSTANCE;
-
 		Command cutCommand = () -> {
 			app.setWaitCursor();
 			cutCmd();
 			app.setDefaultCursor();
 		};
 
-		addHtmlAction(cutCommand, resources.cut_black(),
+		addHtmlAction(cutCommand, generalIconResource.getImageResource(GeneralIcon.CUT),
 				loc.getMenu("Cut"));
 
 		Command copyCommand = () -> {
@@ -530,7 +542,8 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 			app.setDefaultCursor();
 		};
 
-		addHtmlAction(copyCommand, resources.copy_black(), loc.getMenu("Copy"));
+		addHtmlAction(copyCommand, generalIconResource.getImageResource(GeneralIcon.COPY),
+				loc.getMenu("Copy"));
 	}
 
 	private void addDuplicate() {
@@ -550,16 +563,14 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 	 * add paste menu item
 	 */
 	protected void addPasteItem() {
-		ResourcePrototype img = MaterialDesignResources.INSTANCE.paste_black();
-
 		Command pasteCommand = () -> {
 			app.setWaitCursor();
 			pasteCmd();
 			app.setDefaultCursor();
 		};
 
-		final AriaMenuItem menuPaste = addHtmlAction(pasteCommand, img,
-				loc.getMenu("Paste"));
+		final AriaMenuItem menuPaste = addHtmlAction(pasteCommand, generalIconResource
+						.getImageResource(GeneralIcon.PASTE), loc.getMenu("Paste"));
 
 		CopyPasteW.checkClipboard(menuPaste::setEnabled);
 	}
@@ -591,7 +602,7 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 			if (inputElement.isValidInputForm()) {
 				Command action;
 				if (inputElement.isInputForm()) {
-					action = () -> implicitConicEquationCmd();
+					action = this::implicitConicEquationCmd;
 					addAction(action, loc.getMenu("ExpandedForm"));
 				} else {
 					action = () -> inputFormCmd(geo);
@@ -603,7 +614,7 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 			Command action = () -> inputFormCmd(geo);
 			addAction(action, loc.getMenu("InputForm"));
 		} else if (geo instanceof GeoPlaneND && geo.getDefinition() != null) {
-			Command action = () -> implicitConicEquationCmd();
+			Command action = this::implicitConicEquationCmd;
 			addAction(action, loc.getMenu("ExpandedForm"));
 		}
 	}
@@ -624,8 +635,6 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 		// if you can't select the specific equation
 		boolean specificPossible = conic.isSpecificFormPossible();
 		boolean explicitPossible = conic.isExplicitFormPossible();
-		boolean vertexformPossible = conic.isVertexFormPossible();
-		boolean conicformPossible = conic.isConicFormPossible();
 		boolean userPossible = conic.getDefinition() != null;
 		if (!(specificPossible || explicitPossible || userPossible)) {
 			return;
@@ -637,7 +646,7 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 
 		if (form != QuadraticEquationRepresentable.Form.IMPLICIT) {
 			sb.append(ConicEqnModel.getImplicitEquation(conic, loc, true));
-			action = () -> implicitConicEquationCmd();
+			action = this::implicitConicEquationCmd;
 			addAction(action, sb.toString());
 		}
 
@@ -649,7 +658,7 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 				sb.append(loc.getMenu("Equation"));
 				sb.append(' ');
 				sb.append(conicEqn);
-				action = () -> equationConicEqnCmd();
+				action = this::equationConicEqnCmd;
 				addAction(action, sb.toString());
 			}
 		}
@@ -659,25 +668,25 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 			sb.append(loc.getMenu("Equation"));
 			sb.append(' ');
 			sb.append(loc.getMenu("ExplicitConicEquation"));
-			action = () -> equationExplicitConicEquationCmd();
+			action = this::equationExplicitConicEquationCmd;
 			addAction(action, sb.toString());
 		}
 
-		if (vertexformPossible && form != QuadraticEquationRepresentable.Form.VERTEX) {
+		if (conic.isVertexFormPossible() && form != QuadraticEquationRepresentable.Form.VERTEX) {
 			sb.setLength(0);
 			sb.append(loc.getMenu("Equation"));
 			sb.append(' ');
 			sb.append(loc.getMenu("ParabolaVertexForm"));
-			action = () -> equationVertexEquationCmd();
+			action = this::equationVertexEquationCmd;
 			addAction(action, sb.toString());
 		}
 
-		if (conicformPossible && form != QuadraticEquationRepresentable.Form.CONICFORM) {
+		if (conic.isConicFormPossible() && form != QuadraticEquationRepresentable.Form.CONICFORM) {
 			sb.setLength(0);
 			sb.append(loc.getMenu("Equation"));
 			sb.append(' ');
 			sb.append(loc.getMenu("ParabolaConicForm"));
-			action = () -> equationConicformEquationCmd();
+			action = this::equationConicformEquationCmd;
 			addAction(action, sb.toString());
 		}
 	}
@@ -704,7 +713,7 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 			sb.append(loc.getMenu("Equation"));
 			sb.append(' ');
 			sb.append(loc.getMenu("ImplicitLineEquation"));
-			action = () -> equationImplicitEquationCmd();
+			action = this::equationImplicitEquationCmd;
 			addAction(action, sb.toString());
 		}
 
@@ -713,12 +722,12 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 			sb.append(loc.getMenu("Equation"));
 			sb.append(' ');
 			sb.append(loc.getMenu("ExplicitLineEquation"));
-			action = () -> equationExplicitEquationCmd();
+			action = this::equationExplicitEquationCmd;
 			addAction(action, sb.toString());
 		}
 
 		if (form != LinearEquationRepresentable.Form.PARAMETRIC) {
-			action = () -> parametricFormCmd();
+			action = this::parametricFormCmd;
 			addAction(action, loc.getMenu("ParametricForm"));
 		}
 
@@ -727,7 +736,7 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 			sb.append(loc.getMenu("Equation"));
 			sb.append(' ');
 			sb.append(loc.getMenu("GeneralLineEquation"));
-			action = () -> equationGeneralLineEquationCmd();
+			action = this::equationGeneralLineEquationCmd;
 			addAction(action, sb.toString());
 		}
 	}
@@ -785,7 +794,7 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 	 *            text of menu item
 	 */
 	private void addAction(Command action, String text) {
-		AriaMenuItem mi = factory.newAriaMenuItem(null, text, action);
+		AriaMenuItem mi = factory.newAriaMenuItem((ResourcePrototype) null, text, action);
 		wrappedPopup.addItem(mi);
 	}
 
@@ -797,6 +806,19 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 	 * @return new menu item
 	 */
 	private AriaMenuItem addHtmlAction(Command action, ResourcePrototype icon, String html) {
+		AriaMenuItem mi = factory.newAriaMenuItem(icon, html, action);
+		wrappedPopup.addItem(mi);
+		return mi;
+	}
+
+	/**
+	 * @param action
+	 *            action to perform on click
+	 * @param html
+	 *            html string of menu item
+	 * @return new menu item
+	 */
+	private AriaMenuItem addHtmlAction(Command action, IconSpec icon, String html) {
 		AriaMenuItem mi = factory.newAriaMenuItem(icon, html, action);
 		wrappedPopup.addItem(mi);
 		return mi;
@@ -854,12 +876,11 @@ public class ContextMenuGeoElementW extends ContextMenuGeoElement
 	}
 
 	private AriaMenuBar getAngleSubMenu() {
-		String[] angleIntervals = new String[GeoAngle.getIntervalMinListLength()
-				- 1];
-		for (int i = 0; i < GeoAngle.getIntervalMinListLength() - 1; i++) {
-			angleIntervals[i] = app.getLocalization().getPlain(
-					"AngleBetweenAB.short", GeoAngle.getIntervalMinList(i),
-					GeoAngle.getIntervalMaxList(i));
+		String[] angleIntervals = new String[GeoAngle.AngleStyle.values().length - 1];
+		for (int i = 0; i < angleIntervals.length; i++) {
+			GeoAngle.AngleStyle style = GeoAngle.AngleStyle.values()[i];
+			angleIntervals[i] = app.getLocalization()
+					.getPlain("AngleBetweenAB.short", style.getMin(), style.getMax());
 		}
 
 		AriaMenuBar mnu = new AriaMenuBar();

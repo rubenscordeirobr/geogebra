@@ -1,8 +1,25 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.openGL;
 
 import java.util.ArrayList;
 
 import org.geogebra.common.awt.GColor;
+import org.geogebra.common.awt.annotations.HasNativeSubclass;
 import org.geogebra.common.geogebra3D.euclidian3D.EuclidianView3D;
 import org.geogebra.common.geogebra3D.euclidian3D.draw.DrawPoint3D;
 import org.geogebra.common.geogebra3D.euclidian3D.draw.Drawable3D;
@@ -17,6 +34,7 @@ import org.geogebra.common.kernel.matrix.Coords3;
  * @author mathieu
  *
  */
+@HasNativeSubclass
 abstract public class Manager {
 
 	/**
@@ -45,7 +63,7 @@ abstract public class Manager {
 
 	// geogebra stuff
 	private EuclidianView3D view3D;
-	private Coords normalToScaleTmp = new Coords(3);
+	private final Coords normalToScaleTmp = new Coords(3);
 
 	/**
 	 * current scaler (identity/3D view)
@@ -61,6 +79,7 @@ abstract public class Manager {
 	private int curvesIndicesSize;
 	private int fanDirectIndicesSize;
 	private int fanIndirectIndicesSize;
+	private int latitudes = 8;
 
 	/**
 	 * create a manager for geometries
@@ -89,7 +108,7 @@ abstract public class Manager {
 		initGeometriesList();
 
 		// creating geometries
-
+		latitudes = newView3D.getLatitudes();
 		brush = newPlotterBrush();
 		surface = newPlotterSurface();
 
@@ -112,6 +131,13 @@ abstract public class Manager {
 	 */
 	public Manager(EuclidianView3D view3D) {
 		this.view3D = view3D;
+	}
+
+	/**
+	 * @return number of latitude-wise splits for curves
+	 */
+	public int getCurveLatitudeSplits() {
+		return latitudes;
 	}
 
 	/**
@@ -1036,23 +1062,23 @@ abstract public class Manager {
 			if (curvesIndices == null) {
 				curvesIndices = GLFactory.getPrototype().newBufferIndices();
 			}
-			curvesIndices.allocate(3 * 2 * size * PlotterBrush.LATITUDES);
+			curvesIndices.allocate(3 * 2 * size * latitudes);
 
 			for (int k = 0; k < size; k++) {
-				for (int i = 0; i < PlotterBrush.LATITUDES; i++) {
-					int iNext = (i + 1) % PlotterBrush.LATITUDES;
+				for (int i = 0; i < latitudes; i++) {
+					int iNext = (i + 1) % latitudes;
 					// first triangle
-					curvesIndices.put((short) (i + k * PlotterBrush.LATITUDES));
+					curvesIndices.put((short) (i + k * latitudes));
 					curvesIndices.put(
-							(short) (i + (k + 1) * PlotterBrush.LATITUDES));
+							(short) (i + (k + 1) * latitudes));
 					curvesIndices.put(
-							(short) (iNext + (k + 1) * PlotterBrush.LATITUDES));
+							(short) (iNext + (k + 1) * latitudes));
 					// second triangle
-					curvesIndices.put((short) (i + k * PlotterBrush.LATITUDES));
+					curvesIndices.put((short) (i + k * latitudes));
 					curvesIndices.put(
-							(short) (iNext + (k + 1) * PlotterBrush.LATITUDES));
+							(short) (iNext + (k + 1) * latitudes));
 					curvesIndices
-							.put((short) (iNext + k * PlotterBrush.LATITUDES));
+							.put((short) (iNext + k * latitudes));
 				}
 			}
 			curvesIndices.rewind();

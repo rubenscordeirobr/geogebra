@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.dialog.handler;
 
 import org.geogebra.common.gui.InputHandler;
@@ -76,26 +92,22 @@ public class RedefineInputHandler implements InputHandler {
 			final String input = inputValue;
 			app.getKernel().getAlgebraProcessor().changeGeoElement(geo,
 					inputValue, true, true, handler,
-					new AsyncOperation<GeoElementND>() {
+					newGeo -> {
+						app.getKernel().clearJustCreatedGeosInViews();
 
-						@Override
-						public void callback(GeoElementND newGeo) {
-							app.getKernel().clearJustCreatedGeosInViews();
+						if (newGeo != null) {
+							app.doAfterRedefine(newGeo);
 
-							if (newGeo != null) {
-								app.doAfterRedefine(newGeo);
+							// update after redefine
+							// http://code.google.com/p/geogebra/issues/detail?id=147
+							setGeoElement(newGeo);
+							oldString = input;
+							// -----------------------------------------------------------
+						}
 
-								// update after redefine
-								// http://code.google.com/p/geogebra/issues/detail?id=147
-								setGeoElement(newGeo);
-								oldString = input;
-								// -----------------------------------------------------------
-							}
-
-							// needed for Apply button
-							if (callback != null) {
-								callback.callback(newGeo != null);
-							}
+						// needed for Apply button
+						if (callback != null) {
+							callback.callback(newGeo != null);
 						}
 					});
 

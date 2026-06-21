@@ -1,10 +1,26 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.geogebra3D.euclidian3D;
 
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 
 import org.geogebra.common.euclidian.EuclidianConstants;
 import org.geogebra.common.geogebra3D.euclidian3D.EuclidianStyleBarStatic3D;
@@ -197,7 +213,7 @@ public class EuclidianStyleBar3D extends EuclidianStyleBarD {
 
 		// ========================================
 		// view yz direction
-		ImageIcon[] directionIcons = new ImageIcon[4];
+		Icon[] directionIcons = new Icon[4];
 		directionIcons[0] = app
 				.getScaledIcon(GuiResources3D.STYLINGBAR_GRAPHICS3D_VIEW_XY);
 		directionIcons[1] = app
@@ -211,7 +227,7 @@ public class EuclidianStyleBar3D extends EuclidianStyleBarD {
 
 		// ========================================
 		// projection view button
-		ImageIcon[] projectionIcons = new ImageIcon[4];
+		Icon[] projectionIcons = new Icon[4];
 		projectionIcons[0] = app
 				.getScaledIcon(GuiResources3D.PROJECTION_ORTHOGRAPHIC);
 		projectionIcons[1] = app
@@ -228,7 +244,7 @@ public class EuclidianStyleBar3D extends EuclidianStyleBarD {
 	private class ProjectionPopup extends PopupMenuButtonD {
 		private static final long serialVersionUID = 1L;
 
-		public ProjectionPopup(AppD app, ImageIcon[] projectionIcons) {
+		public ProjectionPopup(AppD app, Icon[] projectionIcons) {
 			super(app, projectionIcons, 1, projectionIcons.length,
 					new Dimension(app.getScaledIconSize(),
 							app.getScaledIconSize()),

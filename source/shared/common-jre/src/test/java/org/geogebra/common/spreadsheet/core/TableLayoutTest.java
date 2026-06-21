@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+ 
 package org.geogebra.common.spreadsheet.core;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -10,10 +26,10 @@ import org.geogebra.common.util.shape.Size;
 import org.junit.Test;
 
 public class TableLayoutTest {
-	private final int rowHeight = 20;
-	private final int columnWidth = 40;
+	private static final int ROW_HEIGHT = 20;
+	private static final int COLUMN_WIDTH = 40;
 
-	TableLayout layout = new TableLayout(5, 5, rowHeight, columnWidth);
+	TableLayout layout = new TableLayout(5, 5, ROW_HEIGHT, COLUMN_WIDTH);
 
 	@Test
 	public void testFindColumn() {
@@ -81,7 +97,7 @@ public class TableLayoutTest {
 
 		// in the center of the corner, viewport scrolled vertically by columnHeaderHeight / 2
 		// + height of first row
-		viewportOrigin = new Point(0, 0.5 * columnHeaderHeight + rowHeight);
+		viewportOrigin = new Point(0, 0.5 * columnHeaderHeight + ROW_HEIGHT);
 		assertThat(layout.getResizeAction(mouseX, columnHeaderHeight / 2,
 						new Rectangle(viewportOrigin, viewportSize)).cursor,
 				equalTo(MouseCursor.DEFAULT));
@@ -95,13 +111,13 @@ public class TableLayoutTest {
 		// at the bottom edge of first visible row, viewport scrolled vertically by
 		// columnHeaderHeight
 		viewportOrigin = new Point(0, columnHeaderHeight);
-		assertThat(layout.getResizeAction(mouseX, columnHeaderHeight + rowHeight,
+		assertThat(layout.getResizeAction(mouseX, columnHeaderHeight + ROW_HEIGHT,
 						new Rectangle(viewportOrigin, viewportSize)).cursor,
 				equalTo(MouseCursor.RESIZE_Y));
 
 		// in the center of the corner, viewport scrolled horizontally by rowHeaderWidth / 2
 		// + width of first column
-		viewportOrigin = new Point(rowHeaderWidth / 2 + columnWidth, 0);
+		viewportOrigin = new Point(rowHeaderWidth / 2 + COLUMN_WIDTH, 0);
 		assertThat(layout.getResizeAction(mouseX, columnHeaderHeight / 2,
 						new Rectangle(viewportOrigin, viewportSize)).cursor,
 				equalTo(MouseCursor.DEFAULT));

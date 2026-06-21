@@ -1,7 +1,25 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian.plot.interval;
 
 import org.geogebra.common.euclidian.plot.TupleNeighbours;
 import org.geogebra.common.kernel.Kernel;
+import org.geogebra.common.kernel.interval.IntervalSet;
+import org.geogebra.common.kernel.interval.IntervalSetOps;
 import org.geogebra.common.util.DoubleUtil;
 
 /**
@@ -88,6 +106,10 @@ public class JoinLines {
 			return -1;
 		}
 
+		if (neighbours.isLeftWhole()) {
+			return bounds.toScreenCoordYd(Double.POSITIVE_INFINITY);
+		}
+
 		double diff = Math.abs(neighbours.currentYLow() - neighbours.leftYLow());
 		return bounds.toScreenCoordYd(diff);
 	}
@@ -95,6 +117,10 @@ public class JoinLines {
 	private double getRightScreenDifference(TupleNeighbours neighbours) {
 		if (!neighbours.hasRight()) {
 			return -1;
+		}
+
+		if (neighbours.isRightWhole()) {
+			return bounds.toScreenCoordYd(Double.NEGATIVE_INFINITY);
 		}
 
 		double diff = Math.abs(neighbours.currentYLow() - neighbours.rightYLow());
@@ -169,13 +195,13 @@ public class JoinLines {
 	 */
 	public void inverted(TupleNeighbours neighbours) {
 		if (neighbours.currentYHigh() < INFINITY_DISPLAYED) {
-			if (!neighbours.isLeftInfinite()) {
+			if (!isInfiniteBoundary(neighbours.leftTopology())) {
 				toTop(neighbours);
 			}
 		}
 
 		if (neighbours.currentYLow() > -INFINITY_DISPLAYED) {
-			if (neighbours.isRightInfinite()) {
+			if (isInfiniteBoundary(neighbours.rightTopology())) {
 				double y1 = neighbours.hasLeft() ? neighbours.leftYLow() : neighbours.currentYLow();
 				gp.segment(bounds, neighbours.currentXLow(), y1,
 						neighbours.currentXLow(), bounds.getYmin());
@@ -183,5 +209,10 @@ public class JoinLines {
 				toBottom(neighbours);
 			}
 		}
+	}
+
+	private boolean isInfiniteBoundary(IntervalSet ySet) {
+		return !ySet.isEmpty()
+				&& IntervalSetOps.hasInfinity(ySet);
 	}
 }

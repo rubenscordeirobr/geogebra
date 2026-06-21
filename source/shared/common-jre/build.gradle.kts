@@ -5,7 +5,6 @@ plugins {
     alias(libs.plugins.geogebra.pmd)
     alias(libs.plugins.geogebra.checkstyle)
     alias(libs.plugins.geogebra.spotbugs)
-    alias(libs.plugins.geogebra.sourcesets)
 }
 
 group = "org.geogebra"
@@ -48,6 +47,7 @@ tasks.compileJava {
 
 tasks.test {
     ignoreFailures = System.getenv("CI") != null
+    jvmArgs = listOf("-Xmx1g")
 }
 
 val jacocoSources by configurations.creating {
@@ -56,17 +56,15 @@ val jacocoSources by configurations.creating {
         attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.MAIN_SOURCES))
     }
     isCanBeConsumed = false
-    isVisible = false
 }
 
 val jacocoClasses by configurations.creating {
     extendsFrom(configurations.implementation.get())
     isCanBeConsumed = false
-    isVisible = false
 }
 
 val sourceDirs = jacocoSources.files.filter {
-    it.isDirectory && it.absolutePath.endsWith("src/main/java")
+    it.isDirectory && it.absolutePath.replace("\\", "/").endsWith("src/main/java")
 }
 
 val classes = jacocoClasses.files.filter {
@@ -81,7 +79,7 @@ val classes = jacocoClasses.files.filter {
 tasks.jacocoTestReport {
     reports {
         xml.required = true
-        html.required = false
+        html.required = System.getenv("CI") == null
     }
     additionalSourceDirs(*sourceDirs.toTypedArray())
     additionalClassDirs(classes)

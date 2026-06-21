@@ -1,5 +1,22 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.kernelND;
 
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.PathParameter;
 import org.geogebra.common.kernel.geos.GeoPoint;
@@ -290,17 +307,11 @@ public class GeoConicPartParameters {
 	 * @param sb
 	 *            builder
 	 */
-	public void getLimitedPathXML(StringBuilder sb) {
-
-		// allowOutlyingIntersections
-		sb.append("\t<outlyingIntersections val=\"");
-		sb.append(allowOutlyingIntersections);
-		sb.append("\"/>\n");
-
-		// keepTypeOnGeometricTransform
-		sb.append("\t<keepTypeOnTransform val=\"");
-		sb.append(keepTypeOnGeometricTransform);
-		sb.append("\"/>\n");
+	public void getLimitedPathXML(XMLStringBuilder sb) {
+		sb.startTag("outlyingIntersections")
+				.attr("val", allowOutlyingIntersections).endTag();
+		sb.startTag("keepTypeOnTransform")
+				.attr("val", keepTypeOnGeometricTransform).endTag();
 	}
 
 	/**
@@ -323,8 +334,6 @@ public class GeoConicPartParameters {
 		}
 
 		// for arc, check if is inside the arc : cross product with limit
-		Coords midPoint = conic.getMidpoint2D();
-		double r = conic.getHalfAxis(1);
 		double ev0x = conic.getEigenvec(0).getX();
 		double ev0y = conic.getEigenvec(0).getY();
 		double ev1x = conic.getEigenvec(1).getX();
@@ -337,7 +346,8 @@ public class GeoConicPartParameters {
 				+ ev1x * Math.sin(paramEnd);
 		double secondVecY = ev0y * Math.cos(paramEnd)
 				+ ev1y * Math.sin(paramEnd);
-
+		Coords midPoint = conic.getMidpoint2D();
+		double r = conic.getHalfAxis(1);
 		double vx = (x0 - midPoint.getX()) / r - firstVecX;
 		double vy = (y0 - midPoint.getY()) / r - firstVecY;
 		double lx = secondVecX - firstVecX;

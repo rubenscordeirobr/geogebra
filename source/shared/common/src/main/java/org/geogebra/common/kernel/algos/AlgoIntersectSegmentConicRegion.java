@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.algos;
 
 import org.geogebra.common.euclidian.EuclidianConstants;
@@ -203,8 +219,6 @@ public class AlgoIntersectSegmentConicRegion extends AlgoIntersect {
 		}
 
 		case 3: {
-			int[] order = { 0, 1, 2, 3 };
-
 			// select the intersecting points
 			GeoPoint[] pnt = new GeoPoint[4];
 			pnt[0] = getSegment().getStartPoint();
@@ -223,17 +237,14 @@ public class AlgoIntersectSegmentConicRegion extends AlgoIntersect {
 			}
 			if (closureIntersect[1].isDefined()) {
 				pnt[count] = closureIntersect[1];
-				count++;
 			}
 			pnt[3] = getSegment().getEndPoint();
 
 			// sorting intersection points
 			double t1 = getSegment().getPossibleParameter(pnt[1].getCoords());
 			double t2 = getSegment().getPossibleParameter(pnt[2].getCoords());
+			int[] order = { 0, 1, 2, 3 };
 			if (t1 > t2) {
-				double temp = t1;
-				t1 = t2;
-				t2 = temp;
 				int intTemp = order[1];
 				order[1] = order[2];
 				order[2] = intTemp;
@@ -271,7 +282,6 @@ public class AlgoIntersectSegmentConicRegion extends AlgoIntersect {
 			break;
 		}
 		case 4: {
-			int[] order = { 0, 1, 2, 3, 4 };
 			// select the intersecting points
 			GeoPoint[] pnt = new GeoPoint[5];
 			int count = 1;
@@ -290,7 +300,6 @@ public class AlgoIntersectSegmentConicRegion extends AlgoIntersect {
 			}
 			if (closureIntersect[1].isDefined()) {
 				pnt[count] = closureIntersect[1];
-				count++;
 			}
 			pnt[4] = getSegment().getEndPoint();
 
@@ -301,6 +310,7 @@ public class AlgoIntersectSegmentConicRegion extends AlgoIntersect {
 			double t2 = getSegment().getPossibleParameter(pnt[2].getCoords());
 			double t3 = getSegment().getPossibleParameter(pnt[3].getCoords());
 
+			int[] order = { 0, 1, 2, 3, 4 };
 			int intTemp;
 			if (t1 > t2) {
 				temp = t1;
@@ -312,16 +322,12 @@ public class AlgoIntersectSegmentConicRegion extends AlgoIntersect {
 			}
 			if (t1 > t3) {
 				temp = t1;
-				t1 = t3;
 				t3 = temp;
 				intTemp = order[1];
 				order[1] = order[3];
 				order[3] = intTemp;
 			}
 			if (t2 > t3) {
-				temp = t2;
-				t2 = t3;
-				t3 = temp;
 				intTemp = order[2];
 				order[2] = order[3];
 				order[3] = intTemp;
@@ -360,8 +366,7 @@ public class AlgoIntersectSegmentConicRegion extends AlgoIntersect {
 		}
 		case 5: {
 
-			double t1, t2, t3, t4, temp;
-			int[] order = { 0, 1, 2, 3, 4 };
+			double t1, t2, t3, t4;
 
 			// get intersect point on segment
 			GeoPoint[] pnt = { getSegment().getStartPoint(), intersectPoints[0],
@@ -375,8 +380,9 @@ public class AlgoIntersectSegmentConicRegion extends AlgoIntersect {
 			t3 = getSegment().getPossibleParameter(pnt[3].getCoords());
 			t4 = getSegment().getPossibleParameter(pnt[4].getCoords());
 			int intTemp;
+			int[] order = { 0, 1, 2, 3, 4 };
 			if (t1 > t2) {
-				temp = t1;
+				double temp = t1;
 				t1 = t2;
 				t2 = temp;
 				intTemp = order[1];
@@ -384,7 +390,7 @@ public class AlgoIntersectSegmentConicRegion extends AlgoIntersect {
 				order[2] = intTemp;
 			}
 			if (t1 > t3) {
-				temp = t1;
+				double temp = t1;
 				t1 = t3;
 				t3 = temp;
 				intTemp = order[1];
@@ -392,15 +398,13 @@ public class AlgoIntersectSegmentConicRegion extends AlgoIntersect {
 				order[3] = intTemp;
 			}
 			if (t1 > t4) {
-				temp = t1;
-				t1 = t4;
-				t4 = temp;
+				t4 = t1;
 				intTemp = order[1];
 				order[1] = order[4];
 				order[4] = intTemp;
 			}
 			if (t2 > t3) {
-				temp = t2;
+				double temp = t2;
 				t2 = t3;
 				t3 = temp;
 				intTemp = order[2];
@@ -408,17 +412,12 @@ public class AlgoIntersectSegmentConicRegion extends AlgoIntersect {
 				order[3] = intTemp;
 			}
 			if (t2 > t4) {
-				temp = t2;
-				t2 = t4;
-				t4 = temp;
+				t4 = t2;
 				intTemp = order[2];
 				order[2] = order[4];
 				order[4] = intTemp;
 			}
 			if (t3 > t4) {
-				temp = t3;
-				t3 = t4;
-				t4 = temp;
 				intTemp = order[3];
 				order[3] = order[4];
 				order[4] = intTemp;
@@ -725,19 +724,16 @@ public class AlgoIntersectSegmentConicRegion extends AlgoIntersect {
 	 * @return output handler
 	 */
 	protected OutputHandler<GeoSegment> createOutputSegments() {
-		return new OutputHandler<>(new ElementFactory<GeoSegment>() {
-			@Override
-			public GeoSegment newElement() {
-				GeoSegment a = new GeoSegment(cons);
-				GeoPoint aS = new GeoPoint(cons);
-				aS.setCoords(0, 0, 1);
-				GeoPoint aE = new GeoPoint(cons);
-				aE.setCoords(0, 0, 1);
-				a.setPoints(aS, aE);
-				a.setParentAlgorithm(AlgoIntersectSegmentConicRegion.this);
-				setSegmentVisualProperties(a);
-				return a;
-			}
+		return new OutputHandler<>(() -> {
+			GeoSegment a = new GeoSegment(cons);
+			GeoPoint aS = new GeoPoint(cons);
+			aS.setCoords(0, 0, 1);
+			GeoPoint aE = new GeoPoint(cons);
+			aE.setCoords(0, 0, 1);
+			a.setPoints(aS, aE);
+			a.setParentAlgorithm(this);
+			setSegmentVisualProperties(a);
+			return a;
 		});
 	}
 

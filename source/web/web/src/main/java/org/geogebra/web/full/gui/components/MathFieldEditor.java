@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.components;
 
 import java.util.ArrayList;
@@ -9,6 +25,10 @@ import org.geogebra.common.euclidian.TextRendererSettings;
 import org.geogebra.common.euclidian.event.PointerEventType;
 import org.geogebra.common.main.App;
 import org.geogebra.common.main.ScreenReader;
+import org.geogebra.editor.share.catalog.TemplateCatalog;
+import org.geogebra.editor.share.editor.UnhandledArrowListener;
+import org.geogebra.editor.share.event.MathFieldListener;
+import org.geogebra.editor.web.MathFieldW;
 import org.geogebra.web.full.gui.applet.GeoGebraFrameFull;
 import org.geogebra.web.full.gui.util.SyntaxAdapterImplWithPaste;
 import org.geogebra.web.full.gui.view.algebra.RetexKeyboardListener;
@@ -18,6 +38,7 @@ import org.geogebra.web.html5.gui.accessibility.AccessibleInputBox;
 import org.geogebra.web.html5.gui.util.ClickStartHandler;
 import org.geogebra.web.html5.gui.util.Dom;
 import org.geogebra.web.html5.gui.util.MathKeyboardListener;
+import org.geogebra.web.html5.main.GlobalKeyDispatcherW;
 import org.geogebra.web.html5.util.EventUtil;
 import org.gwtproject.canvas.client.Canvas;
 import org.gwtproject.dom.client.Style;
@@ -26,11 +47,6 @@ import org.gwtproject.event.dom.client.BlurHandler;
 import org.gwtproject.user.client.ui.HasWidgets;
 import org.gwtproject.user.client.ui.IsWidget;
 import org.gwtproject.user.client.ui.Widget;
-
-import com.himamis.retex.editor.share.editor.UnhandledArrowListener;
-import com.himamis.retex.editor.share.event.MathFieldListener;
-import com.himamis.retex.editor.share.meta.MetaModel;
-import com.himamis.retex.editor.web.MathFieldW;
 
 /**
  * MathField capable editor widget for the web.
@@ -69,16 +85,16 @@ public class MathFieldEditor implements IsWidget, HasKeyboardPopup, BlurHandler 
 	 */
 	public MathFieldEditor(App app, MathFieldListener listener) {
 		this(app);
-		createMathField(listener, getDefaultModel());
+		createMathField(listener, getDefaultCatalog());
 		mathField.getInputTextArea().getElement().setAttribute("data-test", "mathFieldTextArea");
 		main.getElement().setAttribute("data-test", "mathFieldEditor");
 	}
 
-	protected static MetaModel getDefaultModel() {
-		MetaModel model = new MetaModel();
-		model.enableSubstitutions();
-		model.setForceBracketAfterFunction(true);
-		return model;
+	protected static TemplateCatalog getDefaultCatalog() {
+		TemplateCatalog catalog = new TemplateCatalog();
+		catalog.enableSubstitutions();
+		catalog.setForceBracketAfterFunction(true);
+		return catalog;
 	}
 
 	/**
@@ -89,12 +105,14 @@ public class MathFieldEditor implements IsWidget, HasKeyboardPopup, BlurHandler 
 		this.frame = this.app.getAppletFrame();
 	}
 
-	protected void createMathField(MathFieldListener listener, MetaModel model) {
+	protected void createMathField(MathFieldListener listener, TemplateCatalog catalog) {
 		main = new KeyboardFlowPanel();
 		Canvas canvas = Canvas.createIfSupported();
 
 		mathField = new MathFieldW(new SyntaxAdapterImplWithPaste(app.getKernel()), main,
-				canvas, listener, model, app.getEditorFeatures());
+				canvas, listener, catalog, app.getEditorFeatures());
+		mathField.removeCursor();
+		main.setFocusDelegate(this::editorClicked);
 		mathField.setExpressionReader(ScreenReader.getExpressionReader(app));
 		mathField.setOnBlur(this);
 		updatePixelRatio();
@@ -130,7 +148,11 @@ public class MathFieldEditor implements IsWidget, HasKeyboardPopup, BlurHandler 
 						editorClicked();
 					}
 				});
-		mathField.setOnFocus(evt -> main.getParent().addStyleName("focusState"));
+		mathField.setOnFocus(evt -> {
+			if (main.getParent() != null) {
+				main.getParent().addStyleName("focusState");
+			}
+		});
 	}
 
 	/**
@@ -436,6 +458,7 @@ public class MathFieldEditor implements IsWidget, HasKeyboardPopup, BlurHandler 
 	 */
 	public void selectEntryAt(int x, int y) {
 		mathField.getInternal().selectEntryAt(x, y);
+		scrollCursorVisibleHorizontally();
 	}
 
 	/**
@@ -459,5 +482,9 @@ public class MathFieldEditor implements IsWidget, HasKeyboardPopup, BlurHandler 
 
 	public void setInputBoxFunctionVars(List<String> inputBoxFunctionVars) {
 		this.inputBoxFunctionVars = inputBoxFunctionVars;
+	}
+
+	protected GlobalKeyDispatcherW getGlobalKeyDispatcher() {
+		return app.getGlobalKeyDispatcher();
 	}
 }

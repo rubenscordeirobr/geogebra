@@ -1,3 +1,4 @@
+// vendored
 /*
  * Copyright (C) 2010 The Android Open Source Project
  *
@@ -98,7 +99,7 @@ class JSON {
 		return null;
 	}
 
-	public static JSONException typeMismatch(Object indexOrName, Object actual,
+	static JSONException typeMismatch(Object indexOrName, Object actual,
 			String requiredType) throws JSONException {
 		if (actual == null) {
 			throw new JSONException("Value at " + indexOrName + " is null.");
@@ -108,7 +109,7 @@ class JSON {
 				+ " cannot be converted to " + requiredType);
 	}
 
-	public static JSONException typeMismatch(Object actual, String requiredType)
+	static JSONException typeMismatch(Object actual, String requiredType)
 			throws JSONException {
 		if (actual == null) {
 			throw new JSONException("Value is null.");

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.main;
 
 import java.util.ArrayList;
@@ -930,8 +946,12 @@ public class SelectionManager {
 			return false;
 		}
 
-		return algebraViewShowing()
+		return (algebraViewShowing() && isVisibleInAlgebraView(geo))
 				|| (geo.isEuclidianVisible() && isVisibleInView(geo));
+	}
+
+	private boolean isVisibleInAlgebraView(GeoElement geo) {
+		return !geo.isAuxiliaryObject() || kernel.getApplication().showAuxiliaryObjects();
 	}
 
 	private boolean algebraViewShowing() {
@@ -1395,5 +1415,12 @@ public class SelectionManager {
 		} else {
 			return keyboardSelection && geo.isSelected();
 		}
+	}
+
+	/**
+	 * @return whether selection comes from pointer rather than keyboard
+	 */
+	public boolean hasPointerFocus() {
+		return !keyboardSelection;
 	}
 }

@@ -1,14 +1,30 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.euclidian.inline;
 
 import java.util.Locale;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GAffineTransform;
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.awt.GGraphics2D;
 import org.geogebra.common.euclidian.EuclidianView;
 import org.geogebra.common.euclidian.draw.DrawInlineText;
 import org.geogebra.common.euclidian.inline.InlineTextController;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.kernel.geos.GProperty;
 import org.geogebra.common.kernel.geos.GeoInline;
 import org.geogebra.common.kernel.geos.HasVerticalAlignment;
@@ -20,8 +36,8 @@ import org.geogebra.common.move.ggtapi.models.json.JSONObject;
 import org.geogebra.common.plugin.ActionType;
 import org.geogebra.common.util.StringUtil;
 import org.geogebra.common.util.debug.Log;
+import org.geogebra.web.awt.GGraphics2DWI;
 import org.geogebra.web.html5.euclidian.FontLoader;
-import org.geogebra.web.html5.euclidian.GGraphics2DWI;
 import org.geogebra.web.html5.gui.util.Dom;
 import org.geogebra.web.html5.main.AppW;
 import org.geogebra.web.html5.util.CopyPasteW;
@@ -305,6 +321,21 @@ public class InlineTextControllerW implements InlineTextController {
 		if ("font".equals(key)) {
 			FontLoader.loadFont(String.valueOf(val), getWebFontsUrl(), this::onFontLoaded);
 		}
+	}
+
+	@Override
+	public void formatFont(String val) {
+		format("font", val);
+		if (val != null && val.contains("By")) {
+			format("bold", false);
+			format("italic", false);
+			format("underline", false);
+		}
+	}
+
+	@Override
+	public boolean hasIndeterminableFont() {
+		return editor.getFormat("font", "").isEmpty();
 	}
 
 	@Override

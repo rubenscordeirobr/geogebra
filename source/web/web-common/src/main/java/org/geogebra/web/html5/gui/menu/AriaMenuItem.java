@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.html5.gui.menu;
 
 import java.util.ArrayList;
@@ -58,11 +74,7 @@ public class AriaMenuItem extends SimplePanel implements HasResource {
 			ScheduledCommand cmd) {
 		this();
 		Set<Range> attribute = text.getAttribute(AttributedString.Attribute.Subscript);
-		if (attribute == null) {
-			setContent(text.getRawValue(), icon);
-		} else {
-			setHTMLContent(addSubscript(text.getRawValue(), attribute), icon);
-		}
+		setHTMLContent(addSubscript(text.getRawValue(), attribute), icon);
 		this.cmd = cmd;
 	}
 
@@ -106,6 +118,17 @@ public class AriaMenuItem extends SimplePanel implements HasResource {
 	 * @param submenu submenu to open when clicked
 	 */
 	public AriaMenuItem(String text, ResourcePrototype icon, AriaMenuBar submenu) {
+		this();
+		setContent(text, icon);
+		this.submenu = submenu;
+	}
+
+	/**
+	 * @param text content
+	 * @param icon {@link IconSpec}
+	 * @param submenu submenu to open when clicked
+	 */
+	public AriaMenuItem(String text, IconSpec icon, AriaMenuBar submenu) {
 		this();
 		setContent(text, icon);
 		this.submenu = submenu;

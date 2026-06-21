@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian.draw;
 
 import java.util.ArrayList;
@@ -73,7 +89,8 @@ public class ChartFilling {
 			g2.fill(fillShape);
 		} else if (chartStyle.getBarFillType(index) == FillType.IMAGE
 				&& !StringUtil.empty(chartStyle.getBarImage(index))) {
-			setTextureFromBarOrGeo(g2, geo, chartStyle.getBarImage(index), hatchingHandler);
+			setTextureFromBarOrGeo(g2, geo, chartStyle.getBarImage(index), hatchingHandler,
+					chartStyle.getBarAlpha(index));
 			g2.fill(fillShape);
 		} else if (geo.isHatchingEnabled()
 				|| (geo.getFillType() == FillType.IMAGE && geo.getFillImage() != null)) {
@@ -107,10 +124,10 @@ public class ChartFilling {
 	}
 
 	private void setTextureFromBarOrGeo(GGraphics2D g2, GeoElement geo,
-			String fn, HatchingHandler hatchingHandler) {
+			String fn, HatchingHandler hatchingHandler, double alpha) {
 		MyImage externalImageAdapter =
 				application.getExternalImageAdapter(fn, 0, 0);
 		hatchingHandler.setTexture(g2,
-				externalImageAdapter, geo, geo.getBackgroundColor(), geo.getAlphaValue());
+				externalImageAdapter, geo, geo.getBackgroundColor(), alpha);
 	}
 }

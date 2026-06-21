@@ -1,14 +1,35 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.interval.operators;
 
 import static org.geogebra.common.kernel.interval.IntervalConstants.undefined;
 import static org.geogebra.common.kernel.interval.IntervalConstants.whole;
+import static org.geogebra.common.kernel.interval.IntervalSetOps.connected;
+import static org.geogebra.common.kernel.interval.IntervalSetOps.inverted;
+import static org.geogebra.common.kernel.interval.IntervalSetOps.leftRayFromInverted;
+import static org.geogebra.common.kernel.interval.IntervalSetOps.legacyInverted;
+import static org.geogebra.common.kernel.interval.IntervalSetOps.rightRayFromInverted;
 import static org.geogebra.common.kernel.interval.IntervalTest.interval;
-import static org.geogebra.common.kernel.interval.IntervalTest.invertedInterval;
 import static org.geogebra.common.kernel.interval.operators.IntervalDivide.next;
 import static org.geogebra.common.kernel.interval.operators.IntervalDivide.prev;
 import static org.junit.Assert.assertEquals;
 
 import org.geogebra.common.kernel.interval.Interval;
+import org.geogebra.common.kernel.interval.IntervalSet;
 import org.junit.Test;
 
 public class IntervalAddTest {
@@ -85,23 +106,23 @@ public class IntervalAddTest {
 	}
 
 	@Test
-	public void testAddToInverted() {
-		Interval actual = invertedInterval(-3.45, 78.97)
-				.add(interval(12.34, 56.78));
-		assertEquals(interval(Double.NEGATIVE_INFINITY, 8.89),
-				actual.extractLow());
-		assertEquals(interval(135.75, Double.POSITIVE_INFINITY),
-				actual.extractHigh());
+	public void testAddToInvertedSet() {
+		IntervalSet set = inverted(legacyInverted(-3.45, 78.97)
+				.add(interval(12.34, 56.78)));
+		assertEquals(connected(Double.NEGATIVE_INFINITY, 8.89),
+				leftRayFromInverted(set));
+		assertEquals(connected(135.75, Double.POSITIVE_INFINITY),
+				rightRayFromInverted(set));
 	}
 
 	@Test
-	public void testAddInvertedTo() {
-		Interval actual = interval(12.34, 56.78)
-				.add(invertedInterval(-3.45, 78.97));
-		assertEquals(interval(Double.NEGATIVE_INFINITY, 8.89),
-				actual.extractLow());
-		assertEquals(interval(135.75, Double.POSITIVE_INFINITY),
-				actual.extractHigh());
+	public void testAddInvertedSetTo() {
+		IntervalSet set = inverted(interval(12.34, 56.78)
+				.add(legacyInverted(-3.45, 78.97)));
+		assertEquals(connected(Double.NEGATIVE_INFINITY, 8.89),
+				leftRayFromInverted(set));
+		assertEquals(connected(135.75, Double.POSITIVE_INFINITY),
+				rightRayFromInverted(set));
 	}
 
 }

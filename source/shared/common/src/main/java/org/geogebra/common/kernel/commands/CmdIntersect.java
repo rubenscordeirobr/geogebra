@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.commands;
 
 import org.geogebra.common.geogebra3D.kernel3D.implicit3D.GeoImplicitSurface;
@@ -93,10 +109,9 @@ public class CmdIntersect extends CommandProcessor {
 					&& (ok[1] = arg[1].isRealValuedFunction())
 					&& (ok[2] = arg[2] instanceof GeoNumberValue)
 					&& (ok[3] = arg[3] instanceof GeoNumberValue)) {
-				GeoElement[] ret = intersectFunctions(c.getLabels(),
+				return intersectFunctions(c.getLabels(),
 						(GeoFunctionable) arg[0], (GeoFunctionable) arg[1],
 						(GeoNumberValue) arg[2], (GeoNumberValue) arg[3]);
-				return ret;
 				// intersection of curves with starting point for iteration
 			} else if ((ok[0] = arg[0] instanceof GeoCurveCartesianND)
 					&& (ok[1] = arg[1] instanceof GeoCurveCartesianND)
@@ -127,65 +142,56 @@ public class CmdIntersect extends CommandProcessor {
 	public GeoElement[] intersect2(GeoElement[] arg, Command c) {
 		boolean[] ok = new boolean[2];
 		if ((ok[0] = arg[0].isGeoLine()) && (ok[1] = arg[1].isGeoLine())) {
-			GeoElement[] ret = {
+			return new GeoElement[]{
 					(GeoElement) getAlgoDispatcher().intersectLines(
 							c.getLabel(), (GeoLine) arg[0], (GeoLine) arg[1]) };
-			return ret;
 		}
 		// Line - Parametric Curve
 		else if ((ok[0] = arg[0] instanceof GeoLine)
 				&& (ok[1] = arg[1] instanceof GeoCurveCartesianND)) {
-			GeoElement[] ret = getAlgoDispatcher().intersectLineCurve(
+			return getAlgoDispatcher().intersectLineCurve(
 					c.getLabels(), (GeoLine) arg[0],
 					(GeoCurveCartesian) arg[1]);
-			return ret;
 		} else if ((ok[0] = arg[0] instanceof GeoCurveCartesianND)
 				&& (ok[1] = arg[1] instanceof GeoLine)) {
-			GeoElement[] ret = getAlgoDispatcher().intersectLineCurve(
+			return getAlgoDispatcher().intersectLineCurve(
 					c.getLabels(), (GeoLine) arg[1],
 					(GeoCurveCartesian) arg[0]);
-			return ret;
 		}
 		// curve - curve
 		else if ((ok[0] = arg[0] instanceof GeoCurveCartesian)
 				&& (ok[1] = arg[1] instanceof GeoCurveCartesian)) {
-			GeoElement[] ret = getAlgoDispatcher().intersectCurveCurve(
+			return getAlgoDispatcher().intersectCurveCurve(
 					c.getLabels(), (GeoCurveCartesian) arg[1],
 					(GeoCurveCartesian) arg[0]);
-			return ret;
 		}
 		// Line - PolyLine
 		else if ((ok[0] = arg[0].isGeoLine())
 				&& (ok[1] = arg[1] instanceof GeoPolyLine)) {
-			GeoElement[] ret = getAlgoDispatcher().intersectLinePolyLine(
+			return getAlgoDispatcher().intersectLinePolyLine(
 					c.getLabels(), (GeoLine) arg[0], (GeoPolyLine) arg[1]);
-			return ret;
 		} else if ((ok[0] = arg[0] instanceof GeoPolyLine)
 				&& (ok[1] = arg[1].isGeoLine())) {
-			GeoElement[] ret = getAlgoDispatcher().intersectLinePolyLine(
+			return getAlgoDispatcher().intersectLinePolyLine(
 					c.getLabels(), (GeoLine) arg[1], (GeoPolyLine) arg[0]);
-			return ret;
 		}
 
 		// PolyLine - PolyLine
 		else if ((ok[0] = arg[0] instanceof GeoPolyLine)
 				&& (ok[1] = arg[1] instanceof GeoPolyLine)) {
-			GeoElement[] ret = getAlgoDispatcher().intersectPolyLines(
+			return getAlgoDispatcher().intersectPolyLines(
 					c.getLabels(), (GeoPolyLine) arg[1], (GeoPolyLine) arg[0]);
-			return ret;
 		}
 
 		// Line - Polygon(as boundary)
 		else if ((ok[0] = arg[0].isGeoLine())
 				&& (ok[1] = arg[1].isGeoPolygon())) {
-			GeoElement[] ret = getAlgoDispatcher().intersectLinePolygon(
+			return getAlgoDispatcher().intersectLinePolygon(
 					c.getLabels(), (GeoLine) arg[0], (GeoPolygon) arg[1]);
-			return ret;
 		} else if ((ok[0] = arg[0].isGeoPolygon())
 				&& (ok[1] = arg[1].isGeoLine())) {
-			GeoElement[] ret = getAlgoDispatcher().intersectLinePolygon(
+			return getAlgoDispatcher().intersectLinePolygon(
 					c.getLabels(), (GeoLine) arg[1], (GeoPolygon) arg[0]);
-			return ret;
 		}
 
 		// Line - Polygon(as region)
@@ -194,23 +200,20 @@ public class CmdIntersect extends CommandProcessor {
 		// PolyLine - Polygon(as boundary)
 		else if ((ok[0] = arg[0].isGeoPolyLine())
 				&& (ok[1] = arg[1].isGeoPolygon())) {
-			GeoElement[] ret = getAlgoDispatcher().intersectPolyLinePolygon(
+			return getAlgoDispatcher().intersectPolyLinePolygon(
 					c.getLabels(), (GeoPolyLine) arg[0], (GeoPolygon) arg[1]);
-			return ret;
 		} else if ((ok[0] = arg[0].isGeoPolygon())
 				&& (ok[1] = arg[1].isGeoPolyLine())) {
-			GeoElement[] ret = getAlgoDispatcher().intersectPolyLinePolygon(
+			return getAlgoDispatcher().intersectPolyLinePolygon(
 					c.getLabels(), (GeoPolyLine) arg[1], (GeoPolygon) arg[0]);
-			return ret;
 		}
 
 		// Polygon(as boundary) - Polygon(as boundary)
 		else if ((ok[0] = arg[0].isGeoPolygon())
 				&& (ok[1] = arg[1].isGeoPolygon())) {
-			GeoElement[] ret = getAlgoDispatcher().intersectPolygons(
+			return getAlgoDispatcher().intersectPolygons(
 					c.getLabels(), (GeoPolygon) arg[0], (GeoPolygon) arg[1],
 					false);
-			return ret;
 		}
 
 		// polygon(as region) - Polygon(as region)
@@ -381,50 +384,50 @@ public class CmdIntersect extends CommandProcessor {
 
 	private GeoElement[] intersect3(GeoElement[] arg, Command c) {
 		boolean[] ok = new boolean[3];
-		if ((ok[0] = arg[0].isGeoLine()) && (ok[1] = arg[1].isGeoConic())
+		// Line - Line
+		if ((ok[0] = arg[0].isGeoLine()) && (ok[1] = arg[1].isGeoLine())
 				&& (ok[2] = arg[2] instanceof GeoNumberValue)) {
-			GeoElement[] ret = {
+			return new GeoElement[]{
+					(GeoElement) getAlgoDispatcher().intersectLines(
+							c.getLabel(), (GeoLine) arg[0], (GeoLine) arg[1]) };
+		} else if ((ok[0] = arg[0].isGeoLine()) && (ok[1] = arg[1].isGeoConic())
+				&& (ok[2] = arg[2] instanceof GeoNumberValue)) {
+			return new GeoElement[]{
 					intersectLineConicSingle(c.getLabel(), (GeoLine) arg[0],
 							(GeoConic) arg[1], (GeoNumberValue) arg[2]) };
-			return ret;
 		} else if ((ok[0] = arg[0].isGeoConic())
 				&& (ok[1] = arg[1].isGeoLine())
 				&& (ok[2] = arg[2] instanceof GeoNumberValue)) {
-			GeoElement[] ret = {
+			return new GeoElement[]{
 					intersectLineConicSingle(c.getLabel(), (GeoLine) arg[1],
 							(GeoConic) arg[0], (GeoNumberValue) arg[2]) };
-			return ret;
 		}
 		// Line - Conic with startPoint
 		else if ((ok[0] = arg[0].isGeoLine())
 				&& (ok[1] = arg[1].isGeoConic())
 				&& (ok[2] = arg[2].isGeoPoint())) {
-			GeoElement[] ret = { intersectLineConicSingle(c.getLabel(),
+			return new GeoElement[]{ intersectLineConicSingle(c.getLabel(),
 					(GeoLine) arg[0], (GeoConic) arg[1], (GeoPoint) arg[2]) };
-			return ret;
 		} else if ((ok[0] = arg[0].isGeoConic())
 				&& (ok[1] = arg[1].isGeoLine())
 				&& (ok[2] = arg[2].isGeoPoint())) {
-			GeoElement[] ret = { intersectLineConicSingle(c.getLabel(),
+			return new GeoElement[]{ intersectLineConicSingle(c.getLabel(),
 					(GeoLine) arg[1], (GeoConic) arg[0], (GeoPoint) arg[2]) };
-			return ret;
 		}
 		// Conic - Conic with startPoint
 		else if ((ok[0] = arg[0].isGeoConic())
 				&& (ok[1] = arg[1].isGeoConic())
 				&& (ok[2] = arg[2].isGeoPoint())) {
-			GeoElement[] ret = { intersectConicsSingle(c.getLabel(),
+			return new GeoElement[]{ intersectConicsSingle(c.getLabel(),
 					(GeoConic) arg[0], (GeoConic) arg[1], (GeoPoint) arg[2]) };
-			return ret;
 		}
 		// Conic - Conic
 		else if ((ok[0] = arg[0].isGeoConic())
 				&& (ok[1] = arg[1].isGeoConic())
 				&& (ok[2] = arg[2] instanceof GeoNumberValue)) {
-			GeoElement[] ret = {
+			return new GeoElement[]{
 					intersectConicsSingle(c.getLabel(), (GeoConic) arg[0],
 							(GeoConic) arg[1], (GeoNumberValue) arg[2]) };
-			return ret;
 		}
 		// Polynomial - Line with index of point
 		// check before GeoFunctionable as GeoLine is now GeoFunctionable
@@ -464,11 +467,10 @@ public class CmdIntersect extends CommandProcessor {
 		else if ((ok[0] = arg[0].isRealValuedFunction())
 				&& (ok[1] = arg[1].isRealValuedFunction())
 				&& (ok[2] = arg[2] instanceof GeoNumberValue)) {
-			GeoElement[] ret = { intersectPolynomialsSingle(c, arg,
+			return new GeoElement[]{ intersectPolynomialsSingle(c, arg,
 					(GeoFunctionable) arg[0],
 					(GeoFunctionable) arg[1],
 					(GeoNumberValue) arg[2]) };
-			return ret;
 		}
 		// Polynomial - Conic with index of point
 		else if ((ok[0] = arg[0].isGeoFunction())
@@ -544,61 +546,54 @@ public class CmdIntersect extends CommandProcessor {
 		} else if ((ok[0] = arg[0].isRealValuedFunction())
 				&& (ok[1] = arg[1].isGeoLine())
 				&& (ok[2] = arg[2].isGeoPoint())) {
-			GeoElement[] ret = { getAlgoDispatcher().intersectFunctionLine(
+			return new GeoElement[]{ getAlgoDispatcher().intersectFunctionLine(
 					c.getLabel(), (GeoFunctionable) arg[0],
 					(GeoLine) arg[1], (GeoPoint) arg[2]) };
-			return ret;
 		}
 		// Function - Function with startPoint
 		else if ((ok[0] = isFunction(arg[0]))
 				&& (ok[1] = isFunction(arg[1]))
 				&& (ok[2] = arg[2].isGeoPoint())) {
-			GeoElement[] ret = { getAlgoDispatcher().intersectFunctions(
+			return new GeoElement[]{ getAlgoDispatcher().intersectFunctions(
 					c.getLabel(), (GeoFunctionable) arg[0],
 					(GeoFunctionable) arg[1],
 					(GeoPoint) arg[2]) };
-			return ret;
 		}
 		// Line - Function with startPoint
 		else if ((ok[0] = arg[0].isGeoLine())
 				&& (ok[1] = arg[1].isRealValuedFunction())
 				&& (ok[2] = arg[2].isGeoPoint())) {
-			GeoElement[] ret = { getAlgoDispatcher().intersectFunctionLine(
+			return new GeoElement[]{ getAlgoDispatcher().intersectFunctionLine(
 					c.getLabel(), (GeoFunctionable) arg[1],
 					(GeoLine) arg[0], (GeoPoint) arg[2]) };
-			return ret;
 		}
 		// polyLine - NonPolynomialFunction with startPoint
 		else if ((ok[0] = arg[0].isGeoPolyLine())
 				&& (ok[1] = arg[1].isRealValuedFunction())
 				&& (ok[2] = arg[2].isGeoPoint())) {
-			GeoElement[] ret = getAlgoDispatcher().intersectNPFunctionPolyLine(
+			return getAlgoDispatcher().intersectNPFunctionPolyLine(
 					c.getLabels(), (GeoFunctionable) arg[1],
 					(GeoPolyLine) arg[0], (GeoPoint) arg[2]);
-			return ret;
 		} else if ((ok[0] = arg[0].isRealValuedFunction())
 				&& (ok[1] = arg[1].isGeoPolyLine())
 				&& (ok[2] = arg[2].isGeoPoint())) {
-			GeoElement[] ret = getAlgoDispatcher().intersectNPFunctionPolyLine(
+			return getAlgoDispatcher().intersectNPFunctionPolyLine(
 					c.getLabels(), (GeoFunctionable) arg[0],
 					(GeoPolyLine) arg[1], (GeoPoint) arg[2]);
-			return ret;
 		}
 		// polygon - NonPolynomialFunction with startPoint
 		else if ((ok[0] = arg[0].isGeoPolygon())
 				&& (ok[1] = arg[1].isRealValuedFunction())
 				&& (ok[2] = arg[2].isGeoPoint())) {
-			GeoElement[] ret = getAlgoDispatcher().intersectNPFunctionPolygon(
+			return getAlgoDispatcher().intersectNPFunctionPolygon(
 					c.getLabels(), (GeoFunctionable) arg[1],
 					(GeoPolygon) arg[0], (GeoPoint) arg[2]);
-			return ret;
 		} else if ((ok[0] = arg[0].isRealValuedFunction())
 				&& (ok[1] = arg[1].isGeoPolygon())
 				&& (ok[2] = arg[2].isGeoPoint())) {
-			GeoElement[] ret = getAlgoDispatcher().intersectNPFunctionPolygon(
+			return getAlgoDispatcher().intersectNPFunctionPolygon(
 					c.getLabels(), (GeoFunctionable) arg[0],
 					(GeoPolygon) arg[1], (GeoPoint) arg[2]);
-			return ret;
 		}
 
 		// Syntax Error
@@ -619,12 +614,11 @@ public class CmdIntersect extends CommandProcessor {
 	 * @param idx
 	 *            index of chosen point
 	 */
-	final private GeoPoint intersectImplicitpolyLineSingle(String label,
+	private GeoPoint intersectImplicitpolyLineSingle(String label,
 			GeoImplicit p, GeoLine l, GeoNumberValue idx) {
 		AlgoIntersect algo = getAlgoDispatcher().getIntersectionAlgorithm(p, l);
 		AlgoIntersectSingle salgo = new AlgoIntersectSingle(label, algo, idx);
-		GeoPoint point = salgo.getPoint();
-		return point;
+		return salgo.getPoint();
 	}
 
 	/**
@@ -633,13 +627,12 @@ public class CmdIntersect extends CommandProcessor {
 	 * @param idx
 	 *            index of chosen point
 	 */
-	final private GeoPoint intersectImplicitpolyConicSingle(String label,
+	private GeoPoint intersectImplicitpolyConicSingle(String label,
 			GeoImplicit p1, GeoConic c1, GeoNumberValue idx) {
 		AlgoIntersectImplicitPolynomials algo = getAlgoDispatcher()
 				.getIntersectionAlgorithm(p1, c1);
 		AlgoIntersectSingle salgo = new AlgoIntersectSingle(label, algo, idx);
-		GeoPoint point = salgo.getPoint();
-		return point;
+		return salgo.getPoint();
 	}
 
 	private boolean isFunction(GeoElement geo) {
@@ -652,7 +645,7 @@ public class CmdIntersect extends CommandProcessor {
 	 * @param idx
 	 *            index of chosen point
 	 */
-	final private GeoPoint intersectImplicitpolyPolynomialSingle(String label,
+	private GeoPoint intersectImplicitpolyPolynomialSingle(String label,
 			GeoImplicit p, GeoFunctionable f, GeoNumberValue idx) {
 		if (!f.getConstruction().isFileLoading()
 				&& !f.isPolynomialFunction(false)) {
@@ -660,22 +653,20 @@ public class CmdIntersect extends CommandProcessor {
 		}
 		AlgoIntersect algo = getAlgoDispatcher().getIntersectionAlgorithm(p, f);
 		AlgoIntersectSingle salgo = new AlgoIntersectSingle(label, algo, idx);
-		GeoPoint point = salgo.getPoint();
-		return point;
+		return salgo.getPoint();
 	}
 
-	final private GeoPoint intersectPolynomialConicSingle(String label,
+	private GeoPoint intersectPolynomialConicSingle(String label,
 			GeoFunction f, GeoConic c, GeoNumberValue idx) {
 		AlgoIntersect algo = getAlgoDispatcher().getIntersectionAlgorithm(f, c);
 		AlgoIntersectSingle salgo = new AlgoIntersectSingle(label, algo, idx);
-		GeoPoint point = salgo.getPoint();
-		return point;
+		return salgo.getPoint();
 	}
 
 	/**
 	 * get only one intersection point of two conics
 	 */
-	final private GeoPoint intersectConicsSingle(String label, GeoConic a,
+	private GeoPoint intersectConicsSingle(String label, GeoConic a,
 			GeoConic b, GeoPoint refPoint) {
 		AlgoIntersectConics algo = getAlgoDispatcher()
 				.getIntersectionAlgorithm(a, b); // index - 1
@@ -683,28 +674,26 @@ public class CmdIntersect extends CommandProcessor {
 		// at 0
 		AlgoIntersectSingle salgo = new AlgoIntersectSingle(label, algo,
 				refPoint);
-		GeoPoint point = salgo.getPoint();
-		return point;
+		return salgo.getPoint();
 	}
 
 	/**
 	 * get only one intersection point of two conics
 	 */
-	final private GeoPoint intersectConicsSingle(String label, GeoConic a,
+	private GeoPoint intersectConicsSingle(String label, GeoConic a,
 			GeoConic b, GeoNumberValue index) {
 		AlgoIntersectConics algo = getAlgoDispatcher()
 				.getIntersectionAlgorithm(a, b); // index - 1
 		// to start
 		// at 0
 		AlgoIntersectSingle salgo = new AlgoIntersectSingle(label, algo, index);
-		GeoPoint point = salgo.getPoint();
-		return point;
+		return salgo.getPoint();
 	}
 
 	/**
 	 * get only one intersection point of line/Conic near to a given point
 	 */
-	final private GeoPoint intersectLineConicSingle(String label, GeoLine a,
+	private GeoPoint intersectLineConicSingle(String label, GeoLine a,
 			GeoConic b, GeoPoint refPoint) {
 		AlgoIntersectLineConic algo = getAlgoDispatcher()
 				.getIntersectionAlgorithm(a, b); // index -
@@ -713,14 +702,13 @@ public class CmdIntersect extends CommandProcessor {
 		// at 0
 		AlgoIntersectSingle salgo = new AlgoIntersectSingle(label, algo,
 				refPoint);
-		GeoPoint point = salgo.getPoint();
-		return point;
+		return salgo.getPoint();
 	}
 
 	/**
 	 * get only one intersection point of a line and a conic
 	 */
-	final private GeoPoint intersectLineConicSingle(String label, GeoLine g,
+	private GeoPoint intersectLineConicSingle(String label, GeoLine g,
 			GeoConic c, GeoNumberValue index) {
 		AlgoIntersectLineConic algo = getAlgoDispatcher()
 				.getIntersectionAlgorithm(g, c); // index -
@@ -728,14 +716,13 @@ public class CmdIntersect extends CommandProcessor {
 		// start
 		// at 0
 		AlgoIntersectSingle salgo = new AlgoIntersectSingle(label, algo, index);
-		GeoPoint point = salgo.getPoint();
-		return point;
+		return salgo.getPoint();
 	}
 
 	/**
 	 * get only one intersection point of a line and a function
 	 */
-	final private GeoPoint intersectPolynomialLineSingle(String label,
+	private GeoPoint intersectPolynomialLineSingle(String label,
 			GeoFunctionable f, GeoLine l, GeoNumberValue index) {
 		if (!f.getConstruction().isFileLoading()
 				&& !f.isPolynomialFunction(false)) {
@@ -745,8 +732,7 @@ public class CmdIntersect extends CommandProcessor {
 		AlgoIntersectPolynomialLine algo = getAlgoDispatcher()
 				.getIntersectionAlgorithm(f, l);
 		AlgoIntersectSingle salgo = new AlgoIntersectSingle(label, algo, index);
-		GeoPoint point = salgo.getPoint();
-		return point;
+		return salgo.getPoint();
 	}
 
 	/**
@@ -773,19 +759,17 @@ public class CmdIntersect extends CommandProcessor {
 		// at 0
 		AlgoIntersectSingle salgo = new AlgoIntersectSingle(c.getLabel(), algo,
 				index);
-		GeoPoint point = salgo.getPoint();
-		return point;
+		return salgo.getPoint();
 	}
 
 	/**
 	 * Intersects f and g in interval [left,right] numerically
 	 */
-	final private GeoPoint[] intersectFunctions(String[] labels,
+	private GeoPoint[] intersectFunctions(String[] labels,
 			GeoFunctionable f, GeoFunctionable g, GeoNumberValue left,
 			GeoNumberValue right) {
 		AlgoIntersectFunctions algo = new AlgoIntersectFunctions(cons, labels,
 				f, g, left, right);
-		GeoPoint[] S = algo.getIntersectionPoints();
-		return S;
+		return algo.getIntersectionPoints();
 	}
 }

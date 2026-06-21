@@ -1,18 +1,21 @@
-package org.geogebra.common.kernel.statistics;
-
-/* 
- GeoGebra - Dynamic Mathematics for Everyone
- http://www.geogebra.org
-
- This file is part of GeoGebra.
-
- This program is free software; you can redistribute it and/or modify it 
- under the terms of the GNU General Public License as published by 
- the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
-import java.util.Iterator;
+package org.geogebra.common.kernel.statistics;
+
 import java.util.TreeSet;
 
 import org.geogebra.common.kernel.Construction;
@@ -174,7 +177,6 @@ public final class AlgoFitLogistic extends AlgoElement implements FitAlgo {
 			geofunction.setDefined(true);
 		} else {
 			geofunction.setUndefined();
-			return;
 		} // if error in regression
 	}
 
@@ -253,44 +255,27 @@ public final class AlgoFitLogistic extends AlgoElement implements FitAlgo {
 		b = k; // next routine uses c,a,b...
 		a = a(x1, y1, x2, y2, k);
 		c = c(x1, y1, x2, y2, k);
-		// debug("\nfindParameters()finished with:\n"+a+" b= "+b+" c= "+c);
-		// debug("Sum sq. errors: "+beta2(xd,yd,a,b,c)+"\n-------------");
 		if (Double.isNaN(a) || Double.isNaN(b) || Double.isNaN(c)) {
 			error = true;
 			Log.debug("findParameters(): a,b or c undefined");
-			return;
-		} // 20.11:if one is undefined, everything is undefined
+		}
 	}
 
 	private void logisticReg() {
-
-		double lambda; // LM-damping coefficient
-		double multfaktor = LMFACTORMULT; // later?: divfaktor=LMFACTORDIV;
-		double residual, old_residual = beta2(xd, yd, a, b, c);
-		// double diff = -1.0d; //negative to start it off
-
-		double da = EPSILONREG, db = EPSILONREG, dc = EPSILONREG; // Something
-																	// larger
-																	// than eps,
-																	// to get
-																	// started...
-		double b1, b2, b3; // At*beta
-		double m11, m12, m13, m21, m22, m23, m31, m32, m33, // At*A
-				n; // singular check
-		double x, y;
-		double dfa, dfb, dfc, beta, newa, newb, newc;
 		iterations = 0;
+		double old_residual = beta2(xd, yd, a, b, c);
+		double x, y;
 		// ****checked up to here
 		// LM: optimal startlambda
-		b1 = b2 = b3 = 0.0d;
-		m11 = m22 = m33 = 0.0d;
+		double b1 = 0, b2 = 0, b3 = 0;
+		double m11 = 0, m22 = 0, m33 = 0;
 		for (int i = 0; i < size; i++) {
 			x = xd[i];
 			y = yd[i];
-			beta = beta(x, y, a, b, c);
-			dfa = df_a(x, a, b, c);
-			dfb = df_b(x, a, b, c);
-			dfc = df_c(x, a, b);
+			double beta = beta(x, y, a, b, c);
+			double dfa = df_a(x, a, b, c);
+			double dfb = df_b(x, a, b, c);
+			double dfc = df_c(x, a, b);
 			// b=At*beta
 			b1 += beta * dfa;
 			b2 += beta * dfb;
@@ -302,8 +287,9 @@ public final class AlgoFitLogistic extends AlgoElement implements FitAlgo {
 		} // for all datapoints
 
 		double startfaktor = Math.max(Math.max(m11, m22), m33);
-		lambda = startfaktor * 0.001; // heuristic... (Set to zero if no LM)
-
+		double lambda = startfaktor * 0.001; // heuristic... (Set to zero if no LM)
+		double da = EPSILONREG, db = EPSILONREG, dc = EPSILONREG;
+		double multfaktor = LMFACTORMULT; // later?: divfaktor=LMFACTORDIV;
 		while (Math.abs(da) + Math.abs(db) + Math.abs(dc) > EPSILONREG) {
 			// or while(Math.abs(diff)>EPSILON) ?
 			iterations++;
@@ -315,14 +301,15 @@ public final class AlgoFitLogistic extends AlgoElement implements FitAlgo {
 				break;
 			}
 			b1 = b2 = b3 = 0.0d;
-			m11 = m12 = m13 = m21 = m22 = m23 = m31 = m32 = m33 = 0.0d;
+			double m12 = 0, m13 = 0, m23 = 0;
+			m11 = m22 = m33 = 0.0d;
 			for (int i = 0; i < size; i++) {
 				x = xd[i];
 				y = yd[i];
-				beta = beta(x, y, a, b, c);
-				dfa = df_a(x, a, b, c);
-				dfb = df_b(x, a, b, c);
-				dfc = df_c(x, a, b);
+				double beta = beta(x, y, a, b, c);
+				double dfa = df_a(x, a, b, c);
+				double dfb = df_b(x, a, b, c);
+				double dfc = df_c(x, a, b);
 				// b=At*beta
 				b1 += beta * dfa;
 				b2 += beta * dfb;
@@ -337,11 +324,11 @@ public final class AlgoFitLogistic extends AlgoElement implements FitAlgo {
 			} // for all datapoints
 
 			// Symmetry:
-			m21 = m12;
-			m31 = m13;
-			m32 = m23;
+			double m21 = m12;
+			double m31 = m13;
+			double m32 = m23;
 
-			n = RegressionMath.det33(m11, m12, m13, m21, m22, m23, m31, m32,
+			double n = RegressionMath.det33(m11, m12, m13, m21, m22, m23, m31, m32,
 					m33);
 
 			if (Math.abs(n) < EPSSING) { // Not singular?
@@ -355,10 +342,10 @@ public final class AlgoFitLogistic extends AlgoElement implements FitAlgo {
 						m33) / n;
 				dc = RegressionMath.det33(m11, m12, b1, m21, m22, b2, m31, m32,
 						b3) / n;
-				newa = a + da;
-				newb = b + db;
-				newc = c + dc; // remember this and update later if ok
-				residual = beta2(xd, yd, newa, newb, newc);
+				double newa = a + da;
+				double newb = b + db;
+				double newc = c + dc; // remember this and update later if ok
+				double residual = beta2(xd, yd, newa, newb, newc);
 				// diff=residual-old_residual;
 				// //debug("Residual difference: "+diff+" lambda: "+lambda);
 
@@ -374,20 +361,13 @@ public final class AlgoFitLogistic extends AlgoElement implements FitAlgo {
 					lambda = lambda * multfaktor; // not going well :-(
 					multfaktor *= 2; // LM drives hard...
 				} // if going the right way
-
-			} // if(error)-else
-				// debug(""+da+"\t"+db+"\t"+dc+"\n"+a+"\t"+b+"\t"+c);
-		} // while(|da|+|db|+|dc|>epsilonreg)
-
-		// 20.11: not wanted:
-		// errorMsg("AlgoFitLogistic: Sum Errors Squared= "+beta2(xd,yd,a,b,c));
-		// //Info
+			}
+		}
 
 		if (Double.isNaN(a) || Double.isNaN(b) || Double.isNaN(c)) {
 			error = true;
 			Log.debug("findParameters(): a,b or c undefined");
-			return;
-		} // 20.11:if one is undefined, everything is undefined
+		}
 
 	}
 
@@ -480,27 +460,23 @@ public final class AlgoFitLogistic extends AlgoElement implements FitAlgo {
 
 		// problem bothering the gui: GeoList
 		// newlist=k.Sort("tmp_{FitLogistic}",geolist);
-		double[] xy = new double[2];
-		GeoPoint geoelement;
 		// This is code duplication of AlgoSort, but for the time being:
 		TreeSet<GeoPoint> sortedSet;
 		sortedSet = new TreeSet<>(GeoPoint.getComparatorX());
 		for (int i = 0; i < size; i++) {
-			if (geolist.get(i) instanceof GeoPoint) {
-				geoelement = (GeoPoint) geolist.get(i);
+			if (geolist.get(i) instanceof GeoPoint geoelement) {
 				sortedSet.add(geoelement);
 			} else {
 				error = true;
 			} // if point
 		} // for all points
-		Iterator<GeoPoint> iter = sortedSet.iterator();
 		int i = 0;
 		allplus = true;
 		allneg = true; // Need sign info in findParameters()
 		double[] xlist = new double[size];
 		double[] ylist = new double[size];
-		while (iter.hasNext()) {
-			geoelement = iter.next();
+		double[] xy = new double[2];
+		for (GeoPoint geoelement : sortedSet) {
 			geoelement.getInhomCoords(xy);
 			xlist[i] = xy[0];
 			ylist[i] = xy[1];

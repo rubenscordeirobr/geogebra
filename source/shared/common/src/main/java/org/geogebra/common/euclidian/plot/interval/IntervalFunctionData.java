@@ -1,4 +1,24 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian.plot.interval;
+
+import static org.geogebra.common.kernel.interval.IntervalSetOps.connected;
+import static org.geogebra.common.kernel.interval.IntervalSetOps.connectedInterval;
+import static org.geogebra.common.kernel.interval.IntervalSetOps.fromLegacy;
 
 import org.geogebra.common.kernel.geos.GeoFunction;
 import org.geogebra.common.kernel.interval.Interval;
@@ -55,7 +75,7 @@ public class IntervalFunctionData {
 	 * @param y {@link Interval}
 	 */
 	public void append(Interval x, Interval y) {
-		tuples.add(new IntervalTuple(x, y));
+		tuples.add(new IntervalTuple(connected(x), fromLegacy(y)));
 	}
 
 	/**
@@ -64,7 +84,7 @@ public class IntervalFunctionData {
 	 * @param y {@link Interval}
 	 */
 	public void prepend(Interval x, Interval y) {
-		tuples.prepend(new IntervalTuple(x, y));
+		tuples.prepend(new IntervalTuple(connected(x), fromLegacy(y)));
 	}
 
 	/**
@@ -82,7 +102,7 @@ public class IntervalFunctionData {
 	 */
 	public void extendLeft(Interval x, Interval y) {
 		prepend(x, y);
-		double low = tuples.last().x().getLow();
+		double low = connectedInterval(tuples.last().xSet()).getLow();
 		if (low >= bounds.getXmax()) {
 			tuples.removeLast();
 		}
@@ -97,7 +117,7 @@ public class IntervalFunctionData {
 	public void extendRight(Interval x, Interval y) {
 		append(x, y);
 		IntervalTuple first = tuples.first();
-		if (first.x().getHigh() <= bounds.getXmin()) {
+		if (connectedInterval(first.xSet()).getHigh() <= bounds.getXmin()) {
 			tuples.removeFirst();
 		}
 	}

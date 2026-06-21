@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D;
 
 import org.geogebra.common.factories.UtilFactory;
@@ -41,14 +57,14 @@ public class Target {
 
 	static abstract private class CoordsAndGeo<T extends CoordsAndGeo<T>>
 			implements AnimatableValue<T> {
-		public Coords coords;
-		public long geo1;
-		public long geo2;
+		final Coords coords;
+		long geo1;
+		long geo2;
 
 		/**
 		 * constructor
 		 */
-		public CoordsAndGeo() {
+		CoordsAndGeo() {
 			coords = new Coords(4);
 		}
 
@@ -79,7 +95,7 @@ public class Target {
 
 	static private class PositionAndGeo extends CoordsAndGeo<PositionAndGeo> {
 
-		public PositionAndGeo() {
+		PositionAndGeo() {
 			super();
 		}
 
@@ -92,7 +108,7 @@ public class Target {
 
 	static private class NormalAndGeo extends CoordsAndGeo<NormalAndGeo> {
 
-		public NormalAndGeo() {
+		NormalAndGeo() {
 			super();
 		}
 
@@ -106,10 +122,10 @@ public class Target {
 	static private class AnimatableDouble
 			implements AnimatableValue<AnimatableDouble> {
 
-		public double value;
-		public boolean isDefined;
+		double value;
+		boolean isDefined;
 
-		public AnimatableDouble() {
+		AnimatableDouble() {
 			isDefined = false;
 		}
 
@@ -140,7 +156,7 @@ public class Target {
 		 * @param v
 		 *            value
 		 */
-		public void setValue(double v) {
+		void setValue(double v) {
 			value = v;
 			isDefined = Double.isFinite(value);
 		}
@@ -175,7 +191,7 @@ public class Target {
 		 * @param totalDuration
 		 *            total duration for one animation loop
 		 */
-		public Anim(double totalDuration) {
+		Anim(double totalDuration) {
 			this.totalDuration = totalDuration;
 			init();
 			isAnimated = false;
@@ -198,7 +214,7 @@ public class Target {
 		 * @param goal
 		 *            goal value
 		 */
-		public void prepareAnimation(T goal) {
+		void prepareAnimation(T goal) {
 			boolean needsNewAnim = !goal.equalsForAnimation(next);
 			if (isAnimated || needsNewAnim) {
 				previous.setAnimatableValue(current);
@@ -221,7 +237,7 @@ public class Target {
 				} else {
 					isAnimated = false;
 				}
-			} else if (!isAnimated) {
+			} else {
 				previous.setUndefined();
 				next.setAnimatableValue(goal);
 			}
@@ -238,7 +254,7 @@ public class Target {
 		/**
 		 * set previous value as undefined
 		 */
-		public void setUndefined() {
+		void setUndefined() {
 			previous.setUndefined();
 			current.setUndefined();
 		}
@@ -246,7 +262,7 @@ public class Target {
 		/**
 		 * update current value
 		 */
-		public void updateCurrent() {
+		void updateCurrent() {
 			if (!isAnimated) {
 				current.setAnimatableValue(next);
 			} else if (previous.isDefined()) {
@@ -270,7 +286,7 @@ public class Target {
 		 * 
 		 * @return current value
 		 */
-		final public T getCurrent() {
+		final T getCurrent() {
 			return current;
 		}
 	}
@@ -281,7 +297,7 @@ public class Target {
 		private double angle;
 		private Coords tmpCoords;
 
-		public AnimCircleRotation(double totalDuration) {
+		AnimCircleRotation(double totalDuration) {
 			super(totalDuration);
 		}
 
@@ -321,7 +337,7 @@ public class Target {
 
 		private Coords tmpCoords;
 
-		public AnimPosition(double totalDuration) {
+		AnimPosition(double totalDuration) {
 			super(totalDuration);
 		}
 
@@ -350,7 +366,7 @@ public class Target {
 
 	static private class AnimDouble extends Anim<AnimatableDouble> {
 
-		public AnimDouble(double totalDuration) {
+		AnimDouble(double totalDuration) {
 			super(totalDuration);
 		}
 

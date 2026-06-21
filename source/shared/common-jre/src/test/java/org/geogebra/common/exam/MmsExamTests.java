@@ -1,6 +1,23 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.exam;
 
 import static org.geogebra.common.GeoGebraConstants.CAS_APPCODE;
+import static org.geogebra.common.contextmenu.AlgebraContextMenuItem.AddLabel;
 import static org.geogebra.common.contextmenu.AlgebraContextMenuItem.CreateTableValues;
 import static org.geogebra.common.contextmenu.AlgebraContextMenuItem.Delete;
 import static org.geogebra.common.contextmenu.AlgebraContextMenuItem.DuplicateInput;
@@ -16,29 +33,39 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.geogebra.common.SuiteSubApp;
 import org.geogebra.common.contextmenu.AlgebraContextMenuItem;
+import org.geogebra.common.contextmenu.ContextMenuFactory;
 import org.geogebra.common.exam.restrictions.MmsExamRestrictions;
 import org.geogebra.common.exam.restrictions.mms.MmsAlgebraOutputFilter;
 import org.geogebra.common.exam.restrictions.visibility.VisibilityRestriction;
 import org.geogebra.common.gui.view.algebra.AlgebraItem;
 import org.geogebra.common.gui.view.algebra.AlgebraOutputFormat;
+import org.geogebra.common.gui.view.algebra.AlgebraOutputFormatFilter;
+import org.geogebra.common.gui.view.algebra.AlgebraViewItem;
 import org.geogebra.common.gui.view.algebra.ProtectiveGeoElementValueConverter;
 import org.geogebra.common.gui.view.algebra.SuggestionIntersectExtremum;
 import org.geogebra.common.gui.view.table.InvalidValuesException;
 import org.geogebra.common.gui.view.table.TableValuesView;
 import org.geogebra.common.gui.view.table.dialog.StatisticGroup;
+import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.commands.Commands;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.geos.GeoList;
 import org.geogebra.common.kernel.geos.GeoNumeric;
+import org.geogebra.common.kernel.geos.LabelManager;
+import org.geogebra.common.kernel.kernelND.GeoElementND;
+import org.geogebra.common.main.settings.AlgebraSettings;
+import org.geogebra.common.scientific.LabelController;
 import org.geogebra.common.util.MockedCasValues;
 import org.geogebra.common.util.MockedCasValuesExtension;
+import org.geogebra.test.annotation.Issue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,6 +76,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 @SuppressWarnings("checkstyle:RegexpSinglelineCheck") // Tabs in CsvSources/MockedCasValues
 @ExtendWith(MockedCasValuesExtension.class)
 public class MmsExamTests extends BaseExamTestSetup {
+
 	private static final Set<VisibilityRestriction> visibilityRestrictions =
 			MmsExamRestrictions.createVisibilityRestrictions();
 
@@ -146,6 +174,7 @@ public class MmsExamTests extends BaseExamTestSetup {
 			"Evaluate(x²) 			-> x^2",
 			"Evaluate(y = x²) 		-> y=(x^2)",
 			"Evaluate(y = x³) 		-> y=(x^3)",
+			"Integral(x, x) 		-> y=x",
 	})
 	public void testUnrestrictedVisibility(String expression) {
 		evaluateGeoElement("g(x) = x"); // For integrals
@@ -157,9 +186,10 @@ public class MmsExamTests extends BaseExamTestSetup {
 	@MockedCasValues({"Evaluate({1, 2, 3}) -> {1,2,3}"})
 	public void testRestrictedStatisticsContextMenuItems() {
 		assertEquals(
-				List.of(CreateTableValues, RemoveLabel, DuplicateInput, Delete, Settings),
-				contextMenuFactory.makeAlgebraContextMenu(evaluateGeoElement("{1, 2, 3}"),
-						getAlgebraProcessor(), CAS_APPCODE, getAlgebraSettings()));
+				List.of(CreateTableValues, AddLabel, DuplicateInput, Delete, Settings),
+				ContextMenuFactory.makeAlgebraContextMenu(evaluateGeoElement("{1, 2, 3}"),
+						getAlgebraProcessor(), CAS_APPCODE, getAlgebraSettings(),
+						restrictionsController.getContextMenuItemFilters()));
 	}
 
 	@ParameterizedTest
@@ -172,12 +202,89 @@ public class MmsExamTests extends BaseExamTestSetup {
 		assertNull(evaluate(expression));
 	}
 
+	// APPS-6446
+	// - Enter “1°” into the Algebra Input and press enter
+	// Expected
+	// - Input row shows 1°
+	// - No output row
+	@ParameterizedTest
+	@ValueSource(strings = {
+			"1°",
+			"30°15'20''",
+			"30°15'",
+			"30°20''",
+			"15'",
+			"20''",
+			"15'20''"
+	})
+	public void testNoOutputRowForAngles(String expression) {
+		GeoElement element = evaluateGeoElement(expression);
+		AlgebraViewItem algebraViewItem = new AlgebraViewItem(element);
+		AlgebraViewItem.OutputRowState outputRow = algebraViewItem.getOutputRow();
+		assertFalse(outputRow.isVisible());
+	}
+
+	// APPS-6446
+	// - Enter “1°” into the Algebra Input and press enter
+	// - Press ANS button on the keyboard
+	// Expected
+	// - “1°” is inserted into the inputbar
+	@Test
+	public void testAngleStaysInInputForm() {
+		GeoElement element = evaluateGeoElement("1°");
+		// simulate ANS button press
+		String value = getApp().getGeoElementValueConverter().toOutputValueString(element,
+				StringTemplate.algebraTemplate);
+		assertEquals("1°", value);
+	}
+
+	// APPS-6446
+	// - Enter “1° + 0 rad” into the Algebra Input and press enter
+	// Expected
+	// - “1° + 0 rad” is shown in the input row
+	// - No output row (rad/grad not allowed by RadianGradianFilter in inputExpressionFilters)
+	@Test
+	public void testRadInputNotAllowed() {
+		assertNull(evaluate("1° + 0 rad"));
+	}
+
+	// APPS-6446
+	// - Enter “pi / °” into the Algebra Input and press enter
+	// Expected
+	// - “pi / °” is shown in the input row
+	// - No output row
+	@Test
+	public void testPiOverDegreeStaysInInputForm() {
+		GeoElement element = evaluateGeoElement("pi / °");
+		AlgebraViewItem algebraViewItem = new AlgebraViewItem(element);
+		AlgebraViewItem.OutputRowState outputRow = algebraViewItem.getOutputRow();
+		assertFalse(outputRow.isVisible());
+	}
+
+	// APPS-6446
+	// - Enter “asind(0.8)” into the Algebra Input
+	// Expected
+	// - “asind(0.8)” is shown in the input row
+	// - Output row shows result in degree, no toggle button to switch to rad
+	@Test
+	public void testAsindShowsOutputInDegrees() {
+		GeoElement element = evaluateGeoElement("asind(0.8)");
+		MmsAlgebraOutputFilter filter = new MmsAlgebraOutputFilter();
+		assertTrue(filter.isAllowed(element));
+		// verify output row is visible
+		AlgebraViewItem algebraViewItem = new AlgebraViewItem(element);
+		AlgebraViewItem.OutputRowState outputRow = algebraViewItem.getOutputRow();
+		assertTrue(outputRow.isVisible());
+		assertTrue(outputRow.getLaTeX().contains("°"));
+		// verify no toggle button in output row
+		assertNull(outputRow.getNextOutputFormat());
+	}
+
 	@Test
 	@MockedCasValues({"Evaluate(sqrt(-5)) -> ί*√5"})
 	public void testRestrictedComplexNumberOutput() {
-		assertNull(evaluate("sqrt(-5)"));
-		assertEquals("Please check your input", errorAccumulator.getErrorsSinceReset());
-		errorAccumulator.resetError();
+		assertEquals("?",
+				evaluate("sqrt(-5)")[0].toValueString(StringTemplate.testTemplate));
 	}
 
 	@Test
@@ -185,9 +292,10 @@ public class MmsExamTests extends BaseExamTestSetup {
 	public void testRestrictedSpecialPointsContextMenuItem() {
 		assertEquals(
 				List.of(CreateTableValues, RemoveLabel, DuplicateInput, Delete, Settings),
-				contextMenuFactory.makeAlgebraContextMenu(
+				ContextMenuFactory.makeAlgebraContextMenu(
 						evaluateGeoElement("f(x)=xx"),
-						getAlgebraProcessor(), CAS_APPCODE, getAlgebraSettings()));
+						getAlgebraProcessor(), CAS_APPCODE, getAlgebraSettings(),
+						restrictionsController.getContextMenuItemFilters()));
 	}
 
 	@Test
@@ -207,12 +315,12 @@ public class MmsExamTests extends BaseExamTestSetup {
 		String definition = "BarChart({10, 11, 12}, {5, 8, 12})";
 		GeoElement barchart = evaluateGeoElement(definition);
 		ProtectiveGeoElementValueConverter converter =
-				new ProtectiveGeoElementValueConverter(new MmsAlgebraOutputFilter(null));
+				new ProtectiveGeoElementValueConverter(new MmsAlgebraOutputFilter());
 		assertEquals(definition,
 				converter.toValueString(barchart, StringTemplate.defaultTemplate));
 		assertEquals(definition,
 				converter.toOutputValueString(barchart, StringTemplate.defaultTemplate));
-		assertEquals("a = " + definition,
+		assertEquals(definition,
 				converter.toLabelAndDescription(barchart, StringTemplate.defaultTemplate));
 	}
 
@@ -223,7 +331,7 @@ public class MmsExamTests extends BaseExamTestSetup {
 	})
 	public void testRestrictedFunctionOutput() {
 		evaluateGeoElement("f(x) = 2x");
-		assertFalse(new MmsAlgebraOutputFilter(null)
+		assertFalse(new MmsAlgebraOutputFilter()
 				.isAllowed(evaluateGeoElement("g(x) = f(x + 6)")));
 	}
 
@@ -245,7 +353,7 @@ public class MmsExamTests extends BaseExamTestSetup {
 			"Expand((2x - 1)² + 2x + 3) -> 4*x^2-2*x+4",
 	})
 	public void testUnrestrictedFunctionOutputs(String expression) {
-		assertTrue(new MmsAlgebraOutputFilter(null).isAllowed(evaluateGeoElement(expression)));
+		assertTrue(new MmsAlgebraOutputFilter().isAllowed(evaluateGeoElement(expression)));
 	}
 
 	@ParameterizedTest
@@ -331,6 +439,7 @@ public class MmsExamTests extends BaseExamTestSetup {
 			"Round(5, 13) 																						-> 5.0",
 			"Sum(2a, a, -2, 5) 																					-> 24",
 			"Round(24, 13) 																						-> 24.0",
+			"Product(2gsumvara, gsumvara, 1, 5)                                                                 -> 2.0"
 	})
 	public void testRestrictedCommandArguments(String command) {
 		assertNull(evaluate(command));
@@ -482,6 +591,7 @@ public class MmsExamTests extends BaseExamTestSetup {
 			"BinomialDist(1, 0.5, false); 							Illegal argument: false",
 			"Invert(sin(x)); 										Illegal argument",
 			"Length((1, 2)); 										Illegal argument",
+			"Length((a, b));										Illegal argument",
 			"Product(a^2, a, 0, 5); 								Illegal number of arguments",
 			"SampleSD({1, 2, 3, 4, 5}, {0.2, 0.3, 0.1, 0.1, 0.3}); 	Illegal number of arguments",
 			"stdev({1, 2, 3, 4, 5}, {0.2, 0.3, 0.1, 0.1, 0.3}); 	Illegal number of arguments",
@@ -498,6 +608,7 @@ public class MmsExamTests extends BaseExamTestSetup {
 			"Numeric(BinomialDist(1, 0.5, false)) 						-> ?",
 			"Invert(sin(x)) 											-> -asin(x)+2*arbint(0)*pi+pi",
 			"Length((1, 2)) 											-> √5",
+			"Length((a, b)) 											-> √(ggbtmpvara^2+ggbtmpvarb^2)",
 			"Round(sqrt(5), 2) 											-> 2.24",
 			"Product(a², a, 0, 5) 										-> 0",
 			"Round(0, 2) 												-> 0.0",
@@ -513,6 +624,7 @@ public class MmsExamTests extends BaseExamTestSetup {
 			"Normal(2, 0.5, 1, true) 									-> (erf(-√2)+1)/2",
 			"Round((erf(-sqrt(2)) + 1) / 2, 2) 							-> 0.02",
 			"Normal(2, 0.5, x, true) 									-> (erf(x*√2-2*√2)+1)/2",
+			"Product(gsumvara², gsumvara, 0, 5)                         -> 2"
 	})
 	public void testRestrictedArguments(String expression, String expectedError) {
 		assertNull(evaluate(expression));
@@ -536,9 +648,22 @@ public class MmsExamTests extends BaseExamTestSetup {
 	}
 
 	@Test
+	@Issue("APPS-7193")
+	@MockedCasValues({
+			"Evaluate((a, b)) 	-> (ggbtmpvara,ggbtmpvarb)",
+			"Length((a, b)) 	-> √(ggbtmpvara^2+ggbtmpvarb^2)",
+	})
+	public void testRestrictedLengthVectorArgument() {
+		GeoElement geoElement = evaluateGeoElement("(a, b)");
+		new LabelController().showLabel(geoElement);
+		assertNull(evaluate("Length(u)"));
+		assertThat(errorAccumulator.getErrorsSinceReset(), containsString("Illegal argument"));
+	}
+
+	@Test
 	public void testRestrictedSumSyntax() {
 		String sumSyntax = getApp().getLocalization().getCommandSyntax(Commands.Sum.getCommand());
-		assertFalse(sumSyntax.toLowerCase().contains("end value"));
+		assertFalse(sumSyntax.toLowerCase(Locale.ROOT).contains("end value"));
 	}
 
 	@ParameterizedTest
@@ -663,6 +788,41 @@ public class MmsExamTests extends BaseExamTestSetup {
 	}
 
 	@Test
+	@MockedCasValues({
+			"Evaluate(1°) -> pi/180",
+			"Round(π / 180, 13) -> 0.02",
+			"Evaluate(π / °) -> 180",
+			"Round(180, 13) -> 180",
+			"Evaluate(π / π / 180) -> 1/180",
+			"Numeric(Evaluate(π / π / 180)) -> 0.005",
+			"Round(1 / 180, 13) -> 0.005",
+			"Numeric(Evaluate(π / 180 + π / 180)) -> 0.03",
+			"Evaluate(π / 180 + π / 180) -> 0.03",
+			"Round(0.03, 13) -> 0.03",
+			"Evaluate(sin(3°) + π / 180) -> sin(3°) + π / 180",
+			"Numeric(Evaluate(sin(3°) + π / 180)) -> 0.03",
+			"Numeric(Evaluate(sin(π / 180))) -> 0.005",
+			"Round(sin(3°) + π / 180, 13) -> 0.03",
+			"Round(0.005, 13) -> 0.005",
+			"Round(°, 13) -> 0.005",
+			"Round(sin(π / 180), 13) -> 0.005",
+			"Evaluate(sin(π / 180)) -> sin(pi / 180)",
+			"Round(0.0349065850399 rad, 13) -> 0.0349065850399",
+			"Round(0.0697892487629, 13) -> 0.0697892487629",
+			"Round(0.0174524064373, 13) -> 0.0174524064373"
+	})
+	public void angleComputationsRadians() {
+		getKernel().setAngleUnit(Kernel.ANGLE_RADIANT);
+		evaluate("a=1 deg");
+		MmsAlgebraOutputFilter filter = new MmsAlgebraOutputFilter();
+		assertFalse(filter.isAllowed(evaluate("pi/deg")[0]));
+		assertTrue(filter.isAllowed(evaluate("pi/a")[0]));
+		assertTrue(filter.isAllowed(evaluate("a+a")[0]));
+		assertTrue(filter.isAllowed(evaluate("sin(3deg)+a")[0]));
+		assertTrue(filter.isAllowed(evaluate("sin(a)")[0]));
+	}
+
+	@Test
 	public void testOneVariableStatistics() throws InvalidValuesException {
 		TableValuesView tableValuesView = setupTableValues();
 		assertEquals(List.of(
@@ -749,8 +909,9 @@ public class MmsExamTests extends BaseExamTestSetup {
 	@MockedCasValues({"Evaluate(x² - 2) -> x^2-2"})
 	public void testNoSpecialPointsOptionInAlgebraContextMenu() {
 		GeoElement geoElement = evaluateGeoElement("x^2 - 2");
-		List<AlgebraContextMenuItem> contextMenuItems = contextMenuFactory.makeAlgebraContextMenu(
-				geoElement, getAlgebraProcessor(), CAS_APPCODE, getAlgebraSettings());
+		List<AlgebraContextMenuItem> contextMenuItems = ContextMenuFactory.makeAlgebraContextMenu(
+				geoElement, getAlgebraProcessor(), CAS_APPCODE, getAlgebraSettings(),
+				restrictionsController.getContextMenuItemFilters());
 		assertFalse(contextMenuItems.contains(AlgebraContextMenuItem.SpecialPoints));
 	}
 
@@ -770,6 +931,75 @@ public class MmsExamTests extends BaseExamTestSetup {
 	@Test
 	public void testSpreadsheetDisabled() {
 		assertFalse(getApp().isSpreadsheetEnabled());
+	}
+
+	@Test
+	@MockedCasValues({
+			"Integral(x)					-> 1/2*x^2+arbconst(1+33)",
+			"Evaluate(1 / 2 x² + c_{1} + x) -> 1/2*x^2+ggbtmpvarc_{1}+x"
+	})
+	public void testPreviewDoesNotShowHiddenLabel() {
+		evaluateGeoElement("f(x) = Integral(x)");
+		GeoElement element = evaluateGeoElement("f + x");
+		assertFalse(AlgebraItem
+				.getPreviewLatexForGeoElement(element)
+				.startsWith(LabelManager.HIDDEN_PREFIX));
+	}
+
+	@ParameterizedTest
+	@MockedCasValues({
+			"Round(2.8284271247462, 13) -> 2.8284271247462",
+			"Round(53.130102354156°, 13) -> 53.130102354156°"
+	})
+	@CsvSource({
+			"sqrt(8),2.8284271247461903",
+			"asind(0.8),53.13010235415599*°"
+	})
+	@Issue({"APPS-7212", "APPS-7189"})
+	public void testNoSurdSimplification(String in, String out) {
+		GeoElement evaluate = evaluate(in)[0].toGeoElement();
+		assertEquals(out, evaluate.toValueString(StringTemplate.testTemplate));
+		assertEquals(0, AlgebraOutputFormat
+				.getPossibleFormats(evaluate, false, Set.of()).size());
+	}
+
+	@Test
+	public void functions() {
+		evaluate("f(x)=2x");
+		evaluate("g(x,y)=x+2y");
+		assertEquals("2 / 3",
+				evaluate("f(1/3)")[0].toValueString(StringTemplate.testTemplate));
+		assertEquals("7",
+				evaluate("g(1,3)")[0].toValueString(StringTemplate.testTemplate));
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {
+			"50%",
+			"7%",
+			"100%",
+	})
+	@MockedCasValues({ // only used when the tests fail (output not properly restricted)
+			"Evaluate(50%) 		-> 1/2",
+			"Round(1 / 2, 13) 	-> 0.5",
+			"Evaluate(7%) 		-> 7/100",
+			"Round(7 / 100, 13) -> 0.07",
+			"Evaluate(100%) 	-> 1",
+			"Round(1, 13) 		-> 1.0",
+	})
+	public void testRestrictedOutputForSimplePercentages(String expression) {
+		GeoElement geoElement = evaluateGeoElement(expression);
+		assertFalse(AlgebraItem.shouldShowBothRows(geoElement, getAlgebraSettings()));
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {
+			"50% + 0.8",
+			"20% + 1 / 2",
+	})
+	public void testUnrestrictedOutputForPercentageExpressions(String expression) {
+		GeoElement geoElement = evaluateGeoElement(expression);
+		assertTrue(AlgebraItem.shouldShowBothRows(geoElement, getAlgebraSettings()));
 	}
 
 	private TableValuesView setupTableValues() throws InvalidValuesException {

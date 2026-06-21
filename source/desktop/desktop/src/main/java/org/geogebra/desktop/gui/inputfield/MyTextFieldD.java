@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.inputfield;
 
 import java.awt.Color;
@@ -14,7 +30,6 @@ import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
 
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
@@ -36,6 +51,7 @@ import org.geogebra.desktop.gui.GuiManagerD;
 import org.geogebra.desktop.gui.util.GeoGebraIconD;
 import org.geogebra.desktop.gui.virtualkeyboard.VirtualKeyboardD;
 import org.geogebra.desktop.main.AppD;
+import org.geogebra.desktop.main.ScaledIcon;
 
 /**
  * Extends JTextField to add (1) dynamic coloring of bracket symbols and quote
@@ -55,8 +71,7 @@ public class MyTextFieldD extends JTextField
 	// symbol table popup fields
 	private SymbolTablePopupD tablePopup;
 
-	private final ImageIcon icon = GeoGebraIconD
-			.createSymbolTableIcon(this.getFont());
+	private final ScaledIcon icon;
 	private boolean showSymbolTableIcon = false;
 
 	// colored character rendering fields
@@ -83,9 +98,7 @@ public class MyTextFieldD extends JTextField
 	 * Construct an instance of MyTextField without a fixed column width
 	 */
 	public MyTextFieldD(AppD app) {
-		super();
-		this.app = app;
-		initField();
+		this(app, 0);
 	}
 
 	/**
@@ -96,6 +109,8 @@ public class MyTextFieldD extends JTextField
 	public MyTextFieldD(AppD app, int columns) {
 		super(columns);
 		this.app = app;
+		this.icon = GeoGebraIconD.createSymbolTableIcon(this.getFont(),
+				app.getImageManager().getPixelRatio());
 		initField();
 	}
 
@@ -168,7 +183,7 @@ public class MyTextFieldD extends JTextField
 		super.setBorder(BorderFactory.createCompoundBorder(defaultBorder, borderBtn));
 	}
 
-	protected void setBorderButton(int index, ImageIcon icon,
+	protected void setBorderButton(int index, ScaledIcon icon,
 			ActionListener al) {
 		borderBtn.setBorderButton(index, icon, al);
 		setDefaultBorder();

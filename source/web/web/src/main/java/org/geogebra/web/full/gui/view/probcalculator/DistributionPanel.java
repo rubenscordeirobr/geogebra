@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.view.probcalculator;
 
 import org.geogebra.common.exam.ExamListener;
@@ -9,7 +25,7 @@ import org.geogebra.common.kernel.geos.GeoNumberValue;
 import org.geogebra.common.kernel.geos.GeoNumeric;
 import org.geogebra.common.main.Localization;
 import org.geogebra.common.main.error.ErrorHelper;
-import org.geogebra.common.ownership.GlobalScope;
+import org.geogebra.common.properties.PropertyView;
 import org.geogebra.common.properties.impl.distribution.DistributionTypeProperty;
 import org.geogebra.web.full.css.GuiResources;
 import org.geogebra.web.full.gui.components.ComponentDropDown;
@@ -24,20 +40,20 @@ import org.gwtproject.user.client.ui.Label;
 import org.gwtproject.user.client.ui.Widget;
 
 public class DistributionPanel extends FlowPanel implements InsertHandler, ExamListener {
-	private ProbabilityCalculatorViewW view;
-	private Localization loc;
+	protected final ProbabilityCalculatorViewW view;
+	protected final Localization loc;
 	private ComponentDropDown distributionDropDown;
 	private ToggleButton cumulativeWidget;
 	private Label[] lblParameterArray;
 	private MathTextFieldW[] fldParameterArray;
 	protected ProbabilityModeGroup modeGroup;
 	protected ResultPanelW resultPanel;
-	private DistributionTypeProperty distTypeProperty;
+	private PropertyView.Dropdown distDropdownProperty;
 
 	/**
 	 * Creates a distribution panel.
-	 * @param view - prob calc view
-	 * @param loc - localization
+	 * @param view prob calc view
+	 * @param loc localization
 	 */
 	public DistributionPanel(ProbabilityCalculatorViewW view, Localization loc) {
 		this.view = view;
@@ -48,7 +64,7 @@ public class DistributionPanel extends FlowPanel implements InsertHandler, ExamL
 	}
 
 	/**
-	 * build distribution panel
+	 * Build distribution panel
 	 */
 	public void buildGUI() {
 		initCumulativeWidget();
@@ -109,7 +125,7 @@ public class DistributionPanel extends FlowPanel implements InsertHandler, ExamL
 
 		FlowPanel parameterPanel = new FlowPanel();
 		parameterPanel.addStyleName("parameterPanel");
-		for (int i = 0; i < view.maxParameterCount; i++) {
+		for (int i = 0; i < ProbabilityCalculatorView.maxParameterCount; i++) {
 			FlowPanel holderPanel = new FlowPanel();
 			holderPanel.addStyleName("holder");
 			holderPanel.add(lblParameterArray[i]);
@@ -121,10 +137,10 @@ public class DistributionPanel extends FlowPanel implements InsertHandler, ExamL
 	}
 
 	private void initParamFields() {
-		lblParameterArray = new Label[ view.maxParameterCount];
-		fldParameterArray = new MathTextFieldW[ view.maxParameterCount];
+		lblParameterArray = new Label[ProbabilityCalculatorView.maxParameterCount];
+		fldParameterArray = new MathTextFieldW[ProbabilityCalculatorView.maxParameterCount];
 
-		for (int i = 0; i < view.maxParameterCount; i++) {
+		for (int i = 0; i < ProbabilityCalculatorView.maxParameterCount; i++) {
 			lblParameterArray[i] = BaseWidgetFactory.INSTANCE.newSecondaryText("");
 			fldParameterArray[i] = new MathTextFieldW(view.getApp());
 			resultPanel.addInsertHandler(fldParameterArray[i]);
@@ -135,7 +151,7 @@ public class DistributionPanel extends FlowPanel implements InsertHandler, ExamL
 	 * update parameter fields
 	 */
 	public void updateParameters() {
-		for (int i = 0; i < view.maxParameterCount; ++i) {
+		for (int i = 0; i < ProbabilityCalculatorView.maxParameterCount; ++i) {
 
 			boolean hasParam = i < ProbabilityManager.getParamCount(view.getSelectedDist());
 
@@ -181,15 +197,19 @@ public class DistributionPanel extends FlowPanel implements InsertHandler, ExamL
 	 * @param parent - parent panel
 	 */
 	public void buildDistrComboBox(FlowPanel parent) {
-		distTypeProperty = new DistributionTypeProperty(loc, view);
-		GlobalScope.propertiesRegistry.register(distTypeProperty, getApp());
+		DistributionTypeProperty distTypeProperty = new DistributionTypeProperty(loc, view);
+		distDropdownProperty = (PropertyView.Dropdown) PropertyView.of(distTypeProperty);
+		getApp().appScope.propertiesRegistry.register(distTypeProperty);
 		String comboLbl = getApp().getConfig().hasDistributionView() ? "Distribution" : null;
-		distributionDropDown = new ComponentDropDown(getApp(), comboLbl, distTypeProperty);
-		if (getApp().getConfig().hasDistributionView()) {
-			distributionDropDown.setFullWidth(true);
+
+		if (distDropdownProperty != null) {
+			distributionDropDown = new ComponentDropDown(getApp(), comboLbl, distDropdownProperty);
+			if (getApp().getConfig().hasDistributionView()) {
+				distributionDropDown.setFullWidth(true);
+			}
+			distributionDropDown.addStyleName("comboDistribution");
+			parent.add(distributionDropDown);
 		}
-		distributionDropDown.addStyleName("comboDistribution");
-		parent.add(distributionDropDown);
 	}
 
 	private AppW getApp() {
@@ -202,8 +222,11 @@ public class DistributionPanel extends FlowPanel implements InsertHandler, ExamL
 	public void updateGUI() {
 		updateCumulative();
 		updateParameters();
-		distributionDropDown.resetFromModel();
+		if (distributionDropDown != null) {
+			distributionDropDown.resetFromModel();
+		}
 		modeGroup.setMode(view.getProbMode());
+		resultPanel.updateAccessibleName(view.getProbMode());
 	}
 
 	protected void updateCumulative() {
@@ -214,7 +237,9 @@ public class DistributionPanel extends FlowPanel implements InsertHandler, ExamL
 	 * update translation
 	 */
 	public void setLabels() {
-		distributionDropDown.setLabels();
+		if (distributionDropDown != null) {
+			distributionDropDown.setLabels();
+		}
 		if (cumulativeWidget != null) {
 			cumulativeWidget.setTitle(loc.getMenu("Cumulative"));
 		}
@@ -236,68 +261,64 @@ public class DistributionPanel extends FlowPanel implements InsertHandler, ExamL
 			return;
 		}
 		String inputText = source.getText().trim();
-		boolean update = true;
+		if (inputText.isEmpty()) {
+			return;
+		}
+		Kernel kernel = view.getApp().getKernel();
+		// allow input such as sqrt(2)
+		GeoNumberValue nv = kernel.getAlgebraProcessor().evaluateToNumeric(
+				inputText, intervalCheck ? source : ErrorHelper.silent());
+		GeoNumberValue numericValue = nv != null
+				? nv : new GeoNumeric(kernel.getConstruction(), Double.NaN);
+		double value = numericValue.getDouble();
 
-		if (!"".equals(inputText)) {
-			Kernel kernel = view.getApp().getKernel();
-			// allow input such as sqrt(2)
-			GeoNumberValue nv = kernel.getAlgebraProcessor().evaluateToNumeric(
-					inputText, intervalCheck ? source : ErrorHelper.silent());
-			GeoNumberValue numericValue = nv != null
-					? nv : new GeoNumeric(kernel.getConstruction(), Double.NaN);
-			double value = numericValue.getDouble();
-
-			if (Double.isNaN(value)) {
-				source.asWidget().getParent().addStyleName("errorStyle");
-				return;
-			} else {
-				resetError(source);
-			}
-			if (getResultPanel().isFieldLow(source)) {
-				checkBounds(numericValue, intervalCheck, false);
-			} else if (getResultPanel().isFieldHigh(source)) {
-				checkBounds(numericValue, intervalCheck, true);
-			} else if (getResultPanel().isFieldResult(source)) {
-				update = false;
-				if (value < 0 || value > 1) {
-					if (!intervalCheck) {
-						updateLowHigh();
-						return;
-					}
-					updateGUI();
-				} else {
-					if (view.getProbMode() == ProbabilityCalculatorView.PROB_LEFT) {
-						view.setHigh(view.inverseProbability(value));
-					}
-					if (view.getProbMode() == ProbabilityCalculatorView.PROB_RIGHT) {
-						view.setLow(view.inverseProbability(1 - value));
-					}
+		if (Double.isNaN(value)) {
+			source.asWidget().getParent().addStyleName("errorStyle");
+			return;
+		} else {
+			resetError(source);
+		}
+		if (getResultPanel().isFieldLow(source)) {
+			checkBounds(numericValue, intervalCheck, false);
+		} else if (getResultPanel().isFieldHigh(source)) {
+			checkBounds(numericValue, intervalCheck, true);
+		} else if (getResultPanel().isFieldResult(source)) {
+			if (value < 0 || value > 1) {
+				if (!intervalCheck) {
 					updateLowHigh();
-					view.setXAxisPoints();
+					return;
 				}
+				updateGUI();
 			} else {
-				// handle parameter entry
-				for (int i = 0; i < view.getParameters().length; ++i) {
-					if (source == fldParameterArray[i]) {
-						if (view.isValidParameterChange(value, i)) {
-							view.getParameters()[i] = numericValue;
-							if (intervalCheck) {
-								view.updateAll(true);
-							} else {
-								view.updateOutput(false);
-								view.updateLowHighResult();
-							}
+				view.handleResultChange(value);
+				updateLowHigh();
+				view.setXAxisPoints();
+				if (intervalCheck) {
+					view.updateIntervalProbability();
+					view.updateLowHighResult();
+				}
+			}
+		} else {
+			// handle parameter entry
+			for (int i = 0; i < view.getParameters().length; ++i) {
+				if (source == fldParameterArray[i]) {
+					if (view.isValidParameterChange(value, i)) {
+						view.getParameters()[i] = numericValue;
+						if (intervalCheck) {
+							view.updateAll(true);
+						} else {
+							view.updateOffscreenRange();
+							view.updateOutput(false);
+							view.updateLowHighResult();
 						}
-
 					}
+
 				}
 			}
-			if (intervalCheck) {
-				view.updateIntervalProbability();
-				if (update) {
-					updateGUI();
-				}
-			}
+		}
+		if (intervalCheck) {
+			view.updateIntervalProbability();
+			updateGUI();
 		}
 	}
 
@@ -341,8 +362,10 @@ public class DistributionPanel extends FlowPanel implements InsertHandler, ExamL
 	@Override
 	public void examStateChanged(ExamState newState) {
 		if (newState == ExamState.ACTIVE || newState == ExamState.IDLE) {
-			distributionDropDown.setProperty(distTypeProperty);
-			distributionDropDown.resetFromModel();
+			if (distributionDropDown != null) {
+				distributionDropDown.setProperty(distDropdownProperty);
+				distributionDropDown.resetFromModel();
+			}
 		}
 	}
 }

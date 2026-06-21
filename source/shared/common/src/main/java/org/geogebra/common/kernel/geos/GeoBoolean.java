@@ -1,13 +1,17 @@
-/* 
- GeoGebra - Dynamic Mathematics for Everyone
- http://www.geogebra.org
-
- This file is part of GeoGebra.
-
- This program is free software; you can redistribute it and/or modify it 
- under the terms of the GNU General Public License as published by 
- the Free Software Foundation.
- 
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.geos;
@@ -21,6 +25,7 @@ import org.geogebra.common.euclidian.EuclidianConstants;
 import org.geogebra.common.euclidian.EuclidianView;
 import org.geogebra.common.euclidian.EuclidianViewInterfaceCommon;
 import org.geogebra.common.euclidian.EuclidianViewInterfaceSlim;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.CircularDefinitionException;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.StringTemplate;
@@ -31,6 +36,7 @@ import org.geogebra.common.kernel.arithmetic.ValidExpression;
 import org.geogebra.common.kernel.arithmetic.ValueType;
 import org.geogebra.common.kernel.kernelND.GeoElementND;
 import org.geogebra.common.kernel.kernelND.GeoPointND;
+import org.geogebra.common.main.GeoGebraColorConstants;
 import org.geogebra.common.main.Localization;
 import org.geogebra.common.plugin.GeoClass;
 import org.geogebra.common.util.DoubleUtil;
@@ -260,23 +266,23 @@ public class GeoBoolean extends GeoElement implements BooleanValue,
 	 * returns all class-specific xml tags for saveXML
 	 */
 	@Override
-	protected void getXMLtags(StringBuilder sb) {
-		sb.append("\t<value val=\"");
-		sb.append(value);
-		sb.append("\"/>\n");
+	protected void getXMLTags(XMLStringBuilder sb) {
+		sb.startTag("value");
+		sb.attr("val", value);
+		sb.endTag();
 
 		getStyleXML(sb);
 	}
 
 	@Override
-	protected void getStyleXML(StringBuilder sb) {
-		XMLBuilder.getXMLvisualTags(this, sb, isIndependent());
-		getXMLfixedTag(sb);
+	protected void getStyleXML(XMLStringBuilder sb) {
+		XMLBuilder.getXMLVisualTags(this, sb, isIndependent());
+		getXMLFixedTag(sb);
 		getAuxiliaryXML(sb);
 		getBreakpointXML(sb);
 		// checkbox fixed
 		if (checkboxFixed) {
-			sb.append("\t<checkbox fixed=\"true\"/>\n");
+			sb.startTag("checkbox").attr("fixed", true).endTag();
 		}
 		getScriptTags(sb);
 		getCaptionXML(sb);
@@ -500,7 +506,7 @@ public class GeoBoolean extends GeoElement implements BooleanValue,
 
 	@Override
 	public void addAuralType(ScreenReaderBuilder sb) {
-		sb.appendMenuDefault("Checkbox", "Checkbox");
+		sb.appendMenuDefault("CheckBox", "Check box");
 		sb.appendSpace();
 	}
 
@@ -612,5 +618,10 @@ public class GeoBoolean extends GeoElement implements BooleanValue,
 	@Override
 	public void setNeedsUpdatedBoundingBox(boolean needsUpdate) {
 		this.needsUpdateBoundingBox = needsUpdate;
+	}
+
+	@Override
+	public boolean usesDisabledStyle(EuclidianViewInterfaceSlim ev) {
+		return !isSelectionAllowed(ev) && objColor == GeoGebraColorConstants.NEUTRAL_900;
 	}
 }

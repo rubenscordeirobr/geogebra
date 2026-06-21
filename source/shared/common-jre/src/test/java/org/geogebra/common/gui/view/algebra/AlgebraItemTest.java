@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.view.algebra;
 
 import static org.hamcrest.CoreMatchers.endsWith;
@@ -22,15 +38,12 @@ import org.geogebra.common.kernel.geos.GeoFunction;
 import org.geogebra.common.kernel.geos.GeoNumeric;
 import org.geogebra.common.kernel.geos.GeoPoint;
 import org.geogebra.common.kernel.geos.GeoVector;
-import org.geogebra.common.main.PreviewFeature;
 import org.geogebra.common.main.settings.AlgebraStyle;
 import org.geogebra.common.main.settings.CoordinatesFormat;
 import org.geogebra.common.scientific.LabelController;
 import org.geogebra.common.util.IndexHTMLBuilder;
 import org.geogebra.test.EventAccumulator;
 import org.geogebra.test.annotation.Issue;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class AlgebraItemTest extends BaseUnitTest {
@@ -39,16 +52,6 @@ public class AlgebraItemTest extends BaseUnitTest {
     private static final String line = "Line((0,0), (1,1))";
     private static final String fitLine = "FitLine((0,0), (1,1))";
     private static final String circle = "Circle((0,0), (1,1))";
-
-    @BeforeClass
-    public static void enablePreviewFeatures() {
-        PreviewFeature.setPreviewFeaturesEnabled(true);
-    }
-
-    @AfterClass
-    public static void disablePreviewFeatures() {
-        PreviewFeature.setPreviewFeaturesEnabled(false);
-    }
 
     @Override
     public AppCommon createAppCommon() {
@@ -106,7 +109,8 @@ public class AlgebraItemTest extends BaseUnitTest {
         addAvInput("a = ?");
         GeoVector vector = addAvInput("v = (a, 1)");
         String latexString =
-                AlgebraItem.getLatexString(vector, LATEX_MAX_EDIT_LENGTH, false);
+                AlgebraItem.getContentString(vector, LATEX_MAX_EDIT_LENGTH, false,
+						StringTemplate.latexTemplate);
         assertThat(latexString, equalTo("v\\, = \\,?"));
     }
 
@@ -116,9 +120,11 @@ public class AlgebraItemTest extends BaseUnitTest {
         GeoElement conic = addAvInput("x^2/sqrt(2)=1");
         GeoElement quadric = addAvInput("x^2/sqrt(2)=z");
         String latexStringConic =
-                AlgebraItem.getLatexString(conic, LATEX_MAX_EDIT_LENGTH, false);
+                AlgebraItem.getContentString(conic, LATEX_MAX_EDIT_LENGTH, false,
+						StringTemplate.latexTemplate);
         String latexStringQuadric =
-                AlgebraItem.getLatexString(quadric, LATEX_MAX_EDIT_LENGTH, false);
+                AlgebraItem.getContentString(quadric, LATEX_MAX_EDIT_LENGTH, false,
+						StringTemplate.latexTemplate);
         assertThat(latexStringConic,
                 equalTo("eq1\\mathpunct{:}\\,\\frac{x^{2}}{\\sqrt{2}}\\, = \\,1"));
         assertThat(latexStringQuadric,

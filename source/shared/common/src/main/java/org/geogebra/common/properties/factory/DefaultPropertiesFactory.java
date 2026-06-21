@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.properties.factory;
 
 import static org.geogebra.common.properties.factory.PropertiesRegistration.registerProperties;
@@ -13,7 +29,6 @@ import org.geogebra.common.geogebra3D.euclidian3D.EuclidianView3D;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.main.App;
 import org.geogebra.common.main.Localization;
-import org.geogebra.common.main.PreviewFeature;
 import org.geogebra.common.main.settings.EuclidianSettings;
 import org.geogebra.common.main.settings.EuclidianSettings3D;
 import org.geogebra.common.main.settings.Settings;
@@ -25,12 +40,12 @@ import org.geogebra.common.properties.impl.algebra.AlgebraDescriptionProperty;
 import org.geogebra.common.properties.impl.algebra.ShowAuxiliaryProperty;
 import org.geogebra.common.properties.impl.collections.ActionablePropertyCollection;
 import org.geogebra.common.properties.impl.general.AngleUnitProperty;
+import org.geogebra.common.properties.impl.general.AppFontSizeProperty;
 import org.geogebra.common.properties.impl.general.CoordinatesProperty;
-import org.geogebra.common.properties.impl.general.FontSizeProperty;
-import org.geogebra.common.properties.impl.general.LanguageProperty;
 import org.geogebra.common.properties.impl.general.RestoreSettingsAction;
 import org.geogebra.common.properties.impl.general.RoundingIndexProperty;
 import org.geogebra.common.properties.impl.general.SaveSettingsAction;
+import org.geogebra.common.properties.impl.graphics.ARPropertyCollection;
 import org.geogebra.common.properties.impl.graphics.AdvancedApps2DPropertiesCollection;
 import org.geogebra.common.properties.impl.graphics.AdvancedApps3DPropertiesCollection;
 import org.geogebra.common.properties.impl.graphics.AdvancedClassic2DPropertiesCollection;
@@ -49,19 +64,15 @@ import org.geogebra.common.properties.impl.graphics.AxisTickProperty;
 import org.geogebra.common.properties.impl.graphics.AxisUnitPropertyCollection;
 import org.geogebra.common.properties.impl.graphics.AxisVisibilityProperty;
 import org.geogebra.common.properties.impl.graphics.Dimension2DPropertiesCollection;
-import org.geogebra.common.properties.impl.graphics.DistancePropertyCollection;
 import org.geogebra.common.properties.impl.graphics.GraphicsActionsPropertyCollection;
+import org.geogebra.common.properties.impl.graphics.GridBoldProperty;
+import org.geogebra.common.properties.impl.graphics.GridColorProperty;
 import org.geogebra.common.properties.impl.graphics.GridDistancePropertyCollection;
+import org.geogebra.common.properties.impl.graphics.GridLineStyleProperty;
 import org.geogebra.common.properties.impl.graphics.GridStyleIconProperty;
-import org.geogebra.common.properties.impl.graphics.GridStyleProperty;
 import org.geogebra.common.properties.impl.graphics.GridVisibilityProperty;
 import org.geogebra.common.properties.impl.graphics.LabelStylePropertyCollection;
-import org.geogebra.common.properties.impl.graphics.LabelsPropertyCollection;
-import org.geogebra.common.properties.impl.graphics.PointCapturingProperty;
 import org.geogebra.common.properties.impl.graphics.ProjectionPropertyCollection;
-import org.geogebra.common.properties.impl.graphics.RulingGridBoldProperty;
-import org.geogebra.common.properties.impl.graphics.RulingGridColorProperty;
-import org.geogebra.common.properties.impl.graphics.RulingGridLineStyleProperty;
 import org.geogebra.common.properties.impl.graphics.VerticalYAxis;
 import org.geogebra.common.util.NonNullList;
 
@@ -76,9 +87,7 @@ public class DefaultPropertiesFactory implements PropertiesFactory {
 		return Arrays.asList(
 				createGeneralProperties(app, localization, propertiesRegistry),
 				createAlgebraProperties(app, localization, propertiesRegistry),
-				PreviewFeature.isAvailable(PreviewFeature.SETTINGS_VIEW)
-						? createStructuredGraphicsProperties(app, localization, propertiesRegistry)
-						: createGraphicsProperties(app, localization, propertiesRegistry));
+				createGraphicsProperties(app, localization, propertiesRegistry));
 	}
 
 	/**
@@ -93,23 +102,15 @@ public class DefaultPropertiesFactory implements PropertiesFactory {
 		Kernel kernel = app.getKernel();
 		Settings settings = app.getSettings();
 		return new PropertiesArray("General", localization,
-				PreviewFeature.isAvailable(PreviewFeature.SETTINGS_VIEW)
-				? registerProperties(propertiesRegistry, NonNullList.of(
-						new LanguageProperty(app, localization),
+				registerProperties(propertiesRegistry, NonNullList.of(
+						app.appScope.getLanguageProperty(),
 						new RoundingIndexProperty(app, localization),
 						new CoordinatesProperty(kernel, localization),
 						new AngleUnitProperty(kernel, localization),
-						new FontSizeProperty(localization, settings.getFontSettings(),
+						new AppFontSizeProperty(localization, settings.getFontSettings(),
 								app.getFontSettingsUpdater()),
 						app.getPlatform().isMobile() ? null : createSaveRestoreSettingsProperties(
-								app, localization)))
-				: registerProperties(propertiesRegistry, List.of(
-						new LanguageProperty(app, localization),
-						new RoundingIndexProperty(app, localization),
-						new CoordinatesProperty(kernel, localization),
-						new AngleUnitProperty(kernel, localization),
-						new FontSizeProperty(localization, settings.getFontSettings(),
-								app.getFontSettingsUpdater()))));
+								app, localization))));
 	}
 
 	/**
@@ -126,30 +127,7 @@ public class DefaultPropertiesFactory implements PropertiesFactory {
 						new ShowAuxiliaryProperty(app, localization)));
 	}
 
-	/**
-	 * Creates graphics-specific properties.
-	 * @param app properties for app
-	 * @param localization localization for properties
-	 * @return an array of graphics-specific properties
-	 */
 	protected PropertiesArray createGraphicsProperties(App app, Localization localization,
-			PropertiesRegistry propertiesRegistry) {
-		EuclidianView activeView = app.getActiveEuclidianView();
-		EuclidianSettings euclidianSettings = activeView.getSettings();
-		return new PropertiesArray("DrawingPad", localization,
-				registerProperties(propertiesRegistry,
-						new GraphicsActionsPropertyCollection(app, localization, activeView),
-						new AxesVisibilityProperty(localization, euclidianSettings),
-						new GridVisibilityProperty(localization, euclidianSettings),
-						new GridStyleProperty(localization, euclidianSettings),
-						new PointCapturingProperty(localization, activeView),
-						new DistancePropertyCollection(app, localization, euclidianSettings,
-								activeView),
-						new LabelsPropertyCollection(localization, euclidianSettings))
-		);
-	}
-
-	protected PropertiesArray createStructuredGraphicsProperties(App app, Localization localization,
 			PropertiesRegistry propertiesRegistry) {
 		EuclidianView view1 = app.getEuclidianView1();
 		EuclidianSettings euclidianSettings = view1.getSettings();
@@ -160,9 +138,9 @@ public class DefaultPropertiesFactory implements PropertiesFactory {
 						new PropertyCollectionWithLead(localization, "Grid",
 								new GridVisibilityProperty(localization, euclidianSettings),
 								new GridStyleIconProperty(localization, euclidianSettings),
-								new RulingGridColorProperty(localization, euclidianSettings),
-								new RulingGridLineStyleProperty(localization, euclidianSettings),
-								new RulingGridBoldProperty(localization, euclidianSettings),
+								new GridColorProperty(localization, euclidianSettings),
+								new GridLineStyleProperty(localization, euclidianSettings),
+								new GridBoldProperty(localization, euclidianSettings),
 								new GridDistancePropertyCollection(app, localization,
 										euclidianSettings, view1)),
 						new PropertyCollectionWithLead(localization, "Axes",
@@ -182,7 +160,7 @@ public class DefaultPropertiesFactory implements PropertiesFactory {
 								euclidianSettings, view1))));
 	}
 
-	protected PropertiesArray createStructuredGraphics2Properties(App app,
+	protected PropertiesArray createGraphics2Properties(App app,
 			Localization localization, PropertiesRegistry propertiesRegistry) {
 		EuclidianView activeView = app.getEuclidianView2(1);
 		EuclidianSettings euclidianSettings = activeView.getSettings();
@@ -191,9 +169,9 @@ public class DefaultPropertiesFactory implements PropertiesFactory {
 						new PropertyCollectionWithLead(localization, "Grid",
 								new GridVisibilityProperty(localization, euclidianSettings),
 								new GridStyleIconProperty(localization, euclidianSettings),
-								new RulingGridColorProperty(localization, euclidianSettings),
-								new RulingGridLineStyleProperty(localization, euclidianSettings),
-								new RulingGridBoldProperty(localization, euclidianSettings),
+								new GridColorProperty(localization, euclidianSettings),
+								new GridLineStyleProperty(localization, euclidianSettings),
+								new GridBoldProperty(localization, euclidianSettings),
 								new GridDistancePropertyCollection(app, localization,
 										euclidianSettings, activeView)),
 						new PropertyCollectionWithLead(localization, "Axes",
@@ -214,7 +192,7 @@ public class DefaultPropertiesFactory implements PropertiesFactory {
 								euclidianSettings, activeView)));
 	}
 
-	protected PropertiesArray createStructuredGraphics3DProperties(App app,
+	protected PropertiesArray createGraphics3DProperties(App app,
 			Localization localization, PropertiesRegistry propertiesRegistry) {
 		EuclidianSettings euclidianSettings = app.getSettings().getEuclidian(-1);
 		EuclidianViewInterfaceCommon view = app.getEuclidianView3D();
@@ -240,12 +218,13 @@ public class DefaultPropertiesFactory implements PropertiesFactory {
 								? new AdvancedApps3DPropertiesCollection(app, localization,
 								euclidianSettings, (EuclidianView3D) view)
 								: new AdvancedClassic3DPropertiesCollection(app, localization,
-								euclidianSettings, (EuclidianView3D) view)));
+								euclidianSettings, (EuclidianView3D) view),
+						new ARPropertyCollection(localization, (EuclidianView3D) view)));
 	}
 
 	protected ActionablePropertyCollection<ActionableProperty> createSaveRestoreSettingsProperties(
 			App app, Localization localization) {
-		return new ActionablePropertyCollection<ActionableProperty>(localization, List.of(
+		return new ActionablePropertyCollection<>(localization, List.of(
 				new SaveSettingsAction(app, localization),
 				new RestoreSettingsAction(app, localization)));
 	}

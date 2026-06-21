@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.main;
 
 import java.awt.Font;
@@ -12,8 +28,7 @@ import org.geogebra.common.awt.GFont;
 import org.geogebra.common.jre.main.LocalizationJre;
 import org.geogebra.common.main.FontManager;
 import org.geogebra.desktop.awt.GFontD;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * Manages fonts for different languages. Use setLanguage() and setFontSize() to
@@ -137,7 +152,6 @@ public class FontManagerD extends FontManager {
 	/**
 	 * Set default font size.
 	 */
-	@Override
 	public void setFontSize(final int size) {
 		// current sans and sansserif font names
 		final String sans = plainFont == null ? "SansSerif"
@@ -189,7 +203,7 @@ public class FontManagerD extends FontManager {
 	 * @param style font style
 	 * @param size font size
 	 */
-	public GFont getFont(final boolean serif, final int style, final int size) {
+	public GFont getFont(final boolean serif, final int style, final double size) {
 		final String name = serif ? getSerifFont().getFontName()
 				: getPlainFont().getFontName();
 		return getFont(name, style, size);
@@ -198,7 +212,7 @@ public class FontManagerD extends FontManager {
 	/**
 	 * Gets a font from a HashMap to avoid multiple creations of the same font.
 	 */
-	private GFont getFont(final String name, final int style, final int size) {
+	private GFont getFont(final String name, final int style, final double size) {
 		// build font's key name for HashMap
 		key.setLength(0);
 		key.append(name);
@@ -211,7 +225,7 @@ public class FontManagerD extends FontManager {
 		Font f = fontMap.get(key.toString());
 		if (f == null) {
 			// new font: create it and keep it in the HashMap
-			f = new Font(name, style, size);
+			f = new Font(name, style, (int) size).deriveFont((float) size);
 			fontMap.put(key.toString(), f);
 		}
 
@@ -223,8 +237,8 @@ public class FontManagerD extends FontManager {
 	 */
 	@Override
 	public GFont getFontCanDisplay(final String testString,
-			final boolean serif, final int fontStyle, final int fontSize) {
-
+			final boolean serif, final int fontStyle, final double fontSizeD) {
+		final int fontSize = (int) Math.round(fontSizeD);
 		final GFont appFont = serif ? serifFont : plainFont;
 		if (appFont == null) {
 			return plainFont;

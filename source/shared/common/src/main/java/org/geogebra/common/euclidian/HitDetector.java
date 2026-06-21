@@ -1,6 +1,23 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian;
 
 import java.util.ArrayList;
+import java.util.function.Predicate;
 
 import org.geogebra.common.awt.GPoint;
 import org.geogebra.common.awt.GRectangle;
@@ -10,7 +27,6 @@ import org.geogebra.common.kernel.geos.GeoButton;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.geos.GeoElement.HitType;
 import org.geogebra.common.kernel.geos.GeoList;
-import org.geogebra.common.kernel.geos.TestGeo;
 
 import com.google.j2objc.annotations.Weak;
 
@@ -155,7 +171,7 @@ public class HitDetector {
 	 */
 	public void setIntersectionHits(GRectangle rect) {
 		hits.init();
-		addIntersectionHits(rect, TestGeo.OBJECT);
+		addIntersectionHits(rect, unused -> true);
 	}
 
 	/**
@@ -167,7 +183,7 @@ public class HitDetector {
 	 * @param filter
 	 *            filter to only check some geos
 	 */
-	public void addIntersectionHits(GRectangle rect, TestGeo filter) {
+	public void addIntersectionHits(GRectangle rect, Predicate<GeoElement> filter) {
 		if (rect == null) {
 			return;
 		}

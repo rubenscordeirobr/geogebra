@@ -1,14 +1,30 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.geogebra3D.web.euclidian3D.openGL;
 
 import org.geogebra.common.awt.GBufferedImage;
 import org.geogebra.common.euclidian.CoordSystemAnimation;
 import org.geogebra.common.geogebra3D.euclidian3D.EuclidianView3D;
-import org.geogebra.common.geogebra3D.euclidian3D.draw.DrawLabel3D;
+import org.geogebra.common.geogebra3D.euclidian3D.draw.DrawableTexture3D;
 import org.geogebra.common.geogebra3D.euclidian3D.openGL.Renderer;
 import org.geogebra.common.geogebra3D.euclidian3D.openGL.Textures;
 import org.geogebra.common.geogebra3D.euclidian3D.openGL.TexturesShaders;
 import org.geogebra.common.util.debug.Log;
-import org.geogebra.web.html5.gawt.GBufferedImageW;
+import org.geogebra.web.awt.GBufferedImageW;
 import org.geogebra.web.html5.main.AppW;
 import org.gwtproject.canvas.client.Canvas;
 import org.gwtproject.dom.client.Element;
@@ -90,7 +106,7 @@ public class RendererWithImplW extends Renderer implements
 	}
 
 	@Override
-	public GBufferedImage createBufferedImage(DrawLabel3D label) {
+	public GBufferedImage createBufferedImage(DrawableTexture3D label) {
 		// update width and height
 		label.setDimensionPowerOfTwo(
 				firstPowerOfTwoGreaterThan(label.getWidth()),
@@ -102,10 +118,10 @@ public class RendererWithImplW extends Renderer implements
 	}
 
 	@Override
-	public void createAlphaTexture(DrawLabel3D label, GBufferedImage bimg) {
+	public void createAlphaTexture(DrawableTexture3D label, GBufferedImage img) {
 		// values for picking (ignore transparent bytes)
 		label.setPickingDimension(0, 0, label.getWidth(), label.getHeight());
-		GBufferedImageW imgw = (GBufferedImageW) bimg;
+		GBufferedImageW imgw = (GBufferedImageW) img;
 		if (imgw.hasCanvas()) {
 			createAlphaTexture(label, null, imgw);
 		} else {
@@ -114,7 +130,7 @@ public class RendererWithImplW extends Renderer implements
 			if (!image.complete) {
 				image.addEventListener("load", (event) -> {
 						// image ready : create the texture
-						createAlphaTexture(label, image, (GBufferedImageW) bimg);
+						createAlphaTexture(label, image, (GBufferedImageW) img);
 
 						// repaint the view
 						getView().repaintView();
@@ -227,14 +243,14 @@ public class RendererWithImplW extends Renderer implements
 		} else {
 			options.set("alpha", 0);
 		}
-		return Js.uncheckedCast(canvas.getContext("experimental-webgl", options));
+		return Js.uncheckedCast(canvas.getContext("webgl2", options));
 	}
 
 	private static WebGLRenderingContext getBufferedContext(
 			Element element) {
 		HTMLCanvasElement canvas = Js.uncheckedCast(element);
 		JsPropertyMap<?> options = JsPropertyMap.of("preserveDrawingBuffer", true);
-		return Js.uncheckedCast(canvas.getContext("experimental-webgl", options));
+		return Js.uncheckedCast(canvas.getContext("webgl2", options));
 	}
 
 	@Override
@@ -300,7 +316,7 @@ public class RendererWithImplW extends Renderer implements
 	 * @param bimg
 	 *            buffered image
 	 */
-	protected void createAlphaTexture(DrawLabel3D label, HTMLImageElement image,
+	protected void createAlphaTexture(DrawableTexture3D label, HTMLImageElement image,
 			GBufferedImageW bimg) {
 		((RendererImplShadersW) getRendererImpl()).createAlphaTexture(label, image,
 				bimg);

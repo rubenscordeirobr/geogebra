@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.cas;
@@ -32,8 +36,7 @@ import org.geogebra.common.util.DoubleUtil;
 import org.geogebra.common.util.MyMathExact.FixedScaleDecimal;
 import org.geogebra.common.util.MyMathExact.FixedScaleDecimalMatrix;
 import org.geogebra.common.util.debug.Log;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * @author Tam
@@ -1603,7 +1606,7 @@ public class AlgoSurdText extends AlgoElement implements UsesCAS {
 
 		}
 
-		private class IntRelation implements Comparable<IntRelation> {
+		private final class IntRelation implements Comparable<IntRelation> {
 
 			private int size;
 			final double sig;
@@ -1620,7 +1623,7 @@ public class AlgoSurdText extends AlgoElement implements UsesCAS {
 			FixedScaleDecimalMatrix xB1;
 			int[] orthoIndices;
 
-			public IntRelation(int n, FixedScaleDecimalMatrix B, FixedScaleDecimalMatrix xB,
+			private IntRelation(int n, FixedScaleDecimalMatrix B, FixedScaleDecimalMatrix xB,
 					double sig) {
 
 				if (n == 0) {
@@ -1683,18 +1686,18 @@ public class AlgoSurdText extends AlgoElement implements UsesCAS {
 
 			}
 
-			public FixedScaleDecimalMatrix getBMatrix() {
+			private FixedScaleDecimalMatrix getBMatrix() {
 				return B1.copy();
 			}
 
-			public FixedScaleDecimalMatrix getBSolMatrix() {
+			private FixedScaleDecimalMatrix getBSolMatrix() {
 				if (B_sol != null) {
 					return B_sol.copy();
 				}
 				return null;
 			}
 
-			public FixedScaleDecimalMatrix getBRestMatrix() {
+			private FixedScaleDecimalMatrix getBRestMatrix() {
 				if (B_rest != null) {
 					return B_rest.copy();
 				}
@@ -1793,7 +1796,7 @@ public class AlgoSurdText extends AlgoElement implements UsesCAS {
 		FUNCTION_OF_QUADRATIC_RADICAL
 	}
 
-	private class AlgebraicFit {
+	private final class AlgebraicFit {
 
 		// input
 		private double num1;
@@ -1825,7 +1828,7 @@ public class AlgoSurdText extends AlgoElement implements UsesCAS {
 		private int[] bestRelation;
 
 		// output
-		public StringBuilder formalSolution;
+		private StringBuilder formalSolution;
 
 		/**
 		 * @param constStrings
@@ -1837,7 +1840,7 @@ public class AlgoSurdText extends AlgoElement implements UsesCAS {
 		 * @param tpl
 		 *            template for CAS and formal solution
 		 */
-		public AlgebraicFit(String[] constStrings, double[] constValues,
+		private AlgebraicFit(String[] constStrings, double[] constValues,
 				AlgebraicFittingType aft, StringTemplate tpl) {
 			this.numOfConsts = constValues == null ? 0 : constValues.length;
 			this.numOfRadicals = this.numOfConsts;
@@ -1866,7 +1869,7 @@ public class AlgoSurdText extends AlgoElement implements UsesCAS {
 			// numList = new double[(numOfConstants+1)*(deg+1)];
 		}
 
-		public void compute(double number) {
+		private void compute(double number) {
 			switch (aft) {
 			case RATIONAL_NUMBER:
 				computeRationalNumber(number);
@@ -1875,26 +1878,15 @@ public class AlgoSurdText extends AlgoElement implements UsesCAS {
 				computeConstant(number);
 				return;
 			case RATIONAL_COMBINATION:
-				// TODO
-				return;
 			case POWER_PRODUCT:
+			case FUNCTION_OF_RATIONAL_NUMBER:
+			case FUNCTION_OF_LINEAR_COMBINATION:
+			case FUNCTION_OF_POWER_PRODUCT:
+			case FUNCTION_OF_QUADRATIC_RADICAL:
 				// TODO
 				return;
 			case QUADRATIC_RADICAL:
 				computeQuadratic(number);
-				return;
-			case FUNCTION_OF_RATIONAL_NUMBER:
-				// TODO
-				return;
-			case FUNCTION_OF_LINEAR_COMBINATION:
-				// TODO
-				return;
-			case FUNCTION_OF_POWER_PRODUCT:
-				// TODO
-				return;
-			case FUNCTION_OF_QUADRATIC_RADICAL:
-				// TODO
-				return;
 			}
 		}
 
@@ -2058,7 +2050,6 @@ public class AlgoSurdText extends AlgoElement implements UsesCAS {
 			// Suppose A+Bx+Cx^2 = 0, where A,B,C are linear combinations of 1
 			// and values in constValueboolean isAZero = true;
 			boolean isAZero = true;
-			boolean isARational = true;
 			boolean isBZero = true;
 			boolean isBRational = true;
 			boolean isCZero = true;
@@ -2073,6 +2064,7 @@ public class AlgoSurdText extends AlgoElement implements UsesCAS {
 				isCZero = false;
 			}
 
+			boolean isARational = true;
 			for (int j = 0; j < numOfConsts; j++) {
 				if (bestRelation[j * 3] != 0) {
 					isAZero = false;
@@ -2207,18 +2199,6 @@ public class AlgoSurdText extends AlgoElement implements UsesCAS {
 		 */
 		private int[][] mPSLQ(int n, double[] x, double accuracyFactor,
 				int bound) {
-
-			FixedScaleDecimalMatrix r2;
-
-			int rCols = 0; // tracks the number of solutions globally
-
-			// int[] orthoIndices = new int[n];
-			// int[][] B1 = new int[n][n];
-			// int[][] M = new int[n][n];
-			// int[][] B2 = new int[n][n];
-			// double[] xB2 = new double[n];
-
-			// now n>=2.
 			int p = n; // length of current x
 
 			/*
@@ -2245,7 +2225,8 @@ public class AlgoSurdText extends AlgoElement implements UsesCAS {
 			// r2 stores all possible results. Numbers are initialized here
 			// because
 			// we need the correct field.
-			r2 = new FixedScaleDecimalMatrix(m.getBMatrix().getScale(), n, n);
+			FixedScaleDecimalMatrix r2 = new FixedScaleDecimalMatrix(
+					m.getBMatrix().getScale(), n, n);
 
 			FixedScaleDecimalMatrix result2 = m.getBSolMatrix();
 			if (result2 != null) {
@@ -2253,7 +2234,7 @@ public class AlgoSurdText extends AlgoElement implements UsesCAS {
 			} else {
 				q = 0;
 			}
-
+			int rCols = 0; // tracks the number of solutions globally
 			// store the results to r2
 			for (int j = 0; j < q; j++) {
 				for (int i = 0; i < n; i++) {
@@ -2411,7 +2392,7 @@ public class AlgoSurdText extends AlgoElement implements UsesCAS {
 		}
 
 		// constant test
-		public void computeConstant(double number) {
+		private void computeConstant(double number) {
 
 			numList = new double[numOfConsts + 2]; // {the constants} U {1} U
 													// {num}
@@ -2546,7 +2527,7 @@ public class AlgoSurdText extends AlgoElement implements UsesCAS {
 			return bestIndex1;
 		}
 
-		public void setCoeffBound(int b) {
+		private void setCoeffBound(int b) {
 			coeffBound = b;
 		}
 

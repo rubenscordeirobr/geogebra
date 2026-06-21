@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.openGL;
 
 import java.util.ArrayList;
@@ -10,8 +26,8 @@ import org.geogebra.common.geogebra3D.euclidian3D.EuclidianController3D;
 import org.geogebra.common.geogebra3D.euclidian3D.EuclidianController3D.IntersectionCurve;
 import org.geogebra.common.geogebra3D.euclidian3D.EuclidianView3D;
 import org.geogebra.common.geogebra3D.euclidian3D.Hitting;
-import org.geogebra.common.geogebra3D.euclidian3D.draw.DrawLabel3D;
 import org.geogebra.common.geogebra3D.euclidian3D.draw.Drawable3D;
+import org.geogebra.common.geogebra3D.euclidian3D.draw.DrawableTexture3D;
 import org.geogebra.common.geogebra3D.euclidian3D.xr.XRManagerInterface;
 import org.geogebra.common.io.MyXMLio;
 import org.geogebra.common.kernel.geos.AnimationExportSlider;
@@ -63,7 +79,7 @@ public abstract class Renderer {
 	/** min value for layers */
 	public static final int LAYER_MIN = LAYER_PLANE_SHIFT;
 	/** min value for layers (string for shaders) */
-	public static final String LAYER_MIN_STRING_WITH_OP = "" + LAYER_MIN;
+	public static final String LAYER_MIN_STRING_WITH_OP = String.valueOf(LAYER_MIN);
 	/** factor for coding layers (for shaders) */
 	public static final int LAYER_FACTOR_FOR_CODING = 2;
 	/** default layer */
@@ -1114,6 +1130,20 @@ public abstract class Renderer {
 	}
 
 	/**
+	 * @return offset viewport horizontally
+	 */
+	public int getViewportHorizontalOffset() {
+		return 0;
+	}
+
+	/**
+	 * @return offset viewport vertically
+	 */
+	public int getViewportVerticalOffset() {
+		return 0;
+	}
+
+	/**
 	 * 
 	 * @return visible depth
 	 */
@@ -1919,7 +1949,7 @@ public abstract class Renderer {
 	 *            bitmap
 	 * @return the alpha channel of the array ARGB description
 	 */
-	protected static byte[] argbToAlpha(DrawLabel3D label, int[] pix) {
+	protected static byte[] argbToAlpha(DrawableTexture3D label, int[] pix) {
 		return argbToAlpha(label, label.getWidth(), label.getHeight(), pix);
 	}
 
@@ -1936,7 +1966,7 @@ public abstract class Renderer {
 	 *            bitmap
 	 * @return the alpha channel of the array ARGB description
 	 */
-	protected static byte[] argbToAlpha(DrawLabel3D label, int labelWidthRes,
+	protected static byte[] argbToAlpha(DrawableTexture3D label, int labelWidthRes,
 			int labelHeightRes, int[] pix) {
 
 		// calculates 2^n dimensions
@@ -2090,18 +2120,18 @@ public abstract class Renderer {
 	 *            label
 	 * @return buffered image for drawing label
 	 */
-	abstract public GBufferedImage createBufferedImage(DrawLabel3D label);
+	abstract public GBufferedImage createBufferedImage(DrawableTexture3D label);
 
 	/**
 	 * create alpha texture for label from image
 	 * 
 	 * @param label
 	 *            label
-	 * @param bimg
+	 * @param img
 	 *            buffered image
 	 */
-	abstract public void createAlphaTexture(DrawLabel3D label,
-			GBufferedImage bimg);
+	public abstract void createAlphaTexture(DrawableTexture3D label,
+			GBufferedImage img);
 
 	/**
 	 * 

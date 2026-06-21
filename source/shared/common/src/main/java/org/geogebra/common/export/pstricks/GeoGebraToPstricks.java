@@ -1,9 +1,17 @@
 /*
-This file is part of GeoGebra.
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.export.pstricks;
@@ -12,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GAffineTransform;
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.awt.GFont;
@@ -20,7 +29,6 @@ import org.geogebra.common.awt.GShape;
 import org.geogebra.common.euclidian.DrawableND;
 import org.geogebra.common.euclidian.draw.DrawPoint;
 import org.geogebra.common.export.UnicodeTeX;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.factories.FormatFactory;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.MyPoint;
@@ -68,8 +76,7 @@ import org.geogebra.common.main.App;
 import org.geogebra.common.plugin.EuclidianStyleConstants;
 import org.geogebra.common.util.NumberFormatAdapter;
 import org.geogebra.common.util.StringUtil;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * @author Le Coq loic
@@ -160,15 +167,10 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 		code.append(codePoint);
 		// Close Environment pspicture
 		code.append("\\end{pspicture*}\n");
-		/*
-		 * String formatFont=resizeFont(app.getFontSize()); if
-		 * (null!=formatFont){ codeBeginPic.insert(0,formatFont+"\n");
-		 * code.append("}\n"); }
-		 */
-		code.insert(0, codeFilledObject + "");
-		code.insert(0, codeBeginPic + "");
-		code.insert(0, codeBeginDoc + "");
-		code.insert(0, codePreamble + "");
+		code.insert(0, codeFilledObject);
+		code.insert(0, codeBeginPic);
+		code.insert(0, codeBeginDoc);
+		code.insert(0, codePreamble);
 		if (format == GeoGebraToPstricks.FORMAT_BEAMER) {
 			code.append("\\end{frame}\n");
 		}
@@ -231,9 +233,7 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 		double height = algo.getB().getDouble();
 		double[] lf = algo.getLeftBorders();
 		double min = lf[0];
-		double q1 = lf[1];
 		double med = lf[2];
-		double q3 = lf[3];
 		double max = lf[4];
 		startBeamer(code);
 		// Min vertical bar
@@ -242,6 +242,8 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 		drawLine(max, y - height, max, y + height, geo);
 		// Med vertical bar
 		drawLine(med, y - height, med, y + height, geo);
+		double q1 = lf[1];
+		double q3 = lf[3];
 		// Min-q1 horizontal
 		drawLine(min, y, q1, y, geo);
 		// q3-max
@@ -387,10 +389,10 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 		String b = format(algo.getB().getDouble());
 		String value = f.toValueString(getStringTemplate());
 		value = killSpace(StringUtil.toLaTeXString(value, true));
-		if (a.substring(a.length() - 1).equals("" + Unicode.INFINITY)) {
+		if (a.endsWith(String.valueOf(Unicode.INFINITY))) {
 			a = format(xmin);
 		}
-		if (b.substring(b.length() - 1).equals("" + Unicode.INFINITY)) {
+		if (b.endsWith(String.valueOf(Unicode.INFINITY))) {
 			b = format(xmax);
 		}
 		startBeamer(codeFilledObject);
@@ -805,9 +807,6 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 	@Override
 	protected void drawSlider(GeoNumeric geo) {
 		boolean horizontal = geo.isSliderHorizontal();
-		double max = geo.getIntervalMax();
-		double min = geo.getIntervalMin();
-		double value = geo.getValue();
 		double width = geo.getSliderWidth();
 		double x = geo.getSliderX();
 		double y = geo.getSliderY();
@@ -825,6 +824,9 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 		String label = StringUtil.toLaTeXString(geo.getLabelDescription(),
 				true);
 		geoPoint.setLabel(label);
+		double max = geo.getIntervalMax();
+		double min = geo.getIntervalMin();
+		double value = geo.getValue();
 		double param = (value - min) / (max - min);
 		geoPoint.setPointSize(2 + (geo.getLineThickness() + 1) / 3);
 		geoPoint.setLabelVisible(geo.isLabelVisible());
@@ -897,11 +899,7 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 
 	@Override
 	protected void drawText(GeoText geo) {
-		boolean isLatex = geo.isLaTeX();
-		String st = geo.getTextString();
-		GColor geocolor = geo.getObjectColor();
-		int style = geo.getFontStyle();
-		int size = (int) (geo.getFontSizeMultiplier() * getApp().getFontSize());
+		double size = geo.getFontSize(getApp().getFontSizeDouble());
 		GeoPointND gp;
 		double x, y;
 		// compute location of text
@@ -926,9 +924,13 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 		x = euclidianView.toRealWorldCoordX(x);
 		y = euclidianView
 				.toRealWorldCoordY(y - euclidianView.getFont().getSize());
+		String st = geo.getTextStringSafe();
 		int id = st.indexOf("\n");
 		startBeamer(code);
 		// One line
+		boolean isLatex = geo.isLaTeX();
+		GColor geocolor = geo.getObjectColor();
+		int style = geo.getFontStyle();
 		if (id == -1 || isLatex) {
 			code.append("\\rput[tl](");
 			code.append(format(x));
@@ -992,7 +994,6 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 		sb2.append("*sin(t)");
 		GAffineTransform af = geo.getAffineTransform();
 		double m11 = af.getScaleX();
-		double m12 = af.getShearX();
 		code.append(startAngle);
 		code.append("}{");
 		code.append(endAngle);
@@ -1001,24 +1002,25 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 		code.append("*");
 		code.append(sb1);
 		code.append("+");
+		double m12 = af.getShearX();
 		code.append(format(m12));
 		code.append("*");
 		code.append(sb2);
 		code.append("+");
-		double m21 = af.getShearY();
-		double m22 = af.getScaleY();
 		double tx = af.getTranslateX();
-		double ty = af.getTranslateY();
 		code.append(format(tx));
 		code.append("|");
+		double m21 = af.getShearY();
 		code.append(format(m21));
 		code.append("*");
 		code.append(sb1);
 		code.append("+");
+		double m22 = af.getScaleY();
 		code.append(format(m22));
 		code.append("*");
 		code.append(sb2);
 		code.append("+");
+		double ty = af.getTranslateY();
 		code.append(format(ty));
 		code.append("}");
 		if (geo.getConicPartType() == GeoConicNDConstants.CONIC_PART_SECTOR) {
@@ -1432,92 +1434,72 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 			AlgoElement algo = gp.getParentAlgorithm();
 
 			if (algo instanceof AlgoIntersectAbstract) {
-				double x1 = euclidianView.toScreenCoordXd(gp.getInhomX());
-				double y1 = euclidianView.toScreenCoordYd(gp.getInhomY());
-				double x2 = euclidianView.toScreenCoordXd(gp.getInhomX()) + 30;
-				double y2 = euclidianView.toScreenCoordYd(gp.getInhomY()) + 30;
-				x1 = euclidianView.toRealWorldCoordX(x1);
-				x2 = euclidianView.toRealWorldCoordX(x2);
-				y1 = euclidianView.toRealWorldCoordY(y1);
-				y2 = euclidianView.toRealWorldCoordY(y2);
-				double r1 = Math.abs(x2 - x1);
-				double r2 = Math.abs(y2 - y1);
-				StringBuilder s = new StringBuilder(
-						"\\psclip{\\psellipse[linestyle=none](");
-				s.append(format(x1));
-				s.append(",");
-				s.append(format(y1));
-				s.append(")(");
-				s.append(format(r1));
-				s.append(",");
-				s.append(format(r2));
-				s.append(")}\n");
-
-				String end = "\\endpsclip\n";
-				boolean fill1 = false;
-				GeoElement[] geos = algo.getInput();
-
-				boolean draw = !geos[0].isEuclidianVisible();
-				if (draw) {
-					fill1 = geos[0].isFillable()
-							&& geos[0].getAlphaValue() > 0.0f;
-					if (fill1) {
-						codeFilledObject.append(s);
-					} else {
-						code.append(s);
-					}
-					drawGeoElement(geos[0], false, true);
-				}
-				if (geos.length > 1 && !geos[1].isEuclidianVisible()) {
-					boolean fill2 = geos[1].isFillable()
-							&& (geos[1].getAlphaValue() > 0.0f);
-					if (draw) {
-						if (fill1 == fill2) {
-							drawGeoElement(geos[1], false, true);
-							if (fill1) {
-								codeFilledObject.append(end);
-							} else {
-								code.append(end);
-							}
-						} else {
-							if (fill1) {
-								codeFilledObject.append(end);
-							} else {
-								code.append(end);
-							}
-							if (fill2) {
-								codeFilledObject.append(s);
-							} else {
-								code.append(s);
-							}
-							drawGeoElement(geos[1], false, true);
-							if (fill2) {
-								codeFilledObject.append(end);
-							} else {
-								code.append(end);
-							}
-						}
-					} else {
-						if (fill2) {
-							codeFilledObject.append(s);
-						} else {
-							code.append(s);
-						}
-						drawGeoElement(geos[1], false, true);
-						if (fill2) {
-							codeFilledObject.append(end);
-						} else {
-							code.append(end);
-						}
-					}
-				} else if (draw) {
-					if (fill1) {
-						codeFilledObject.append(end);
-					} else {
-						code.append(end);
-					}
-				}
+				drawTrimmedParts(gp, algo);
 			}
+		}
+	}
+
+	private void drawTrimmedParts(GeoPointND gp, AlgoElement algo) {
+		double x1 = euclidianView.toScreenCoordXd(gp.getInhomX());
+		double y1 = euclidianView.toScreenCoordYd(gp.getInhomY());
+		double x2 = euclidianView.toScreenCoordXd(gp.getInhomX()) + 30;
+		double y2 = euclidianView.toScreenCoordYd(gp.getInhomY()) + 30;
+		x1 = euclidianView.toRealWorldCoordX(x1);
+		x2 = euclidianView.toRealWorldCoordX(x2);
+		y1 = euclidianView.toRealWorldCoordY(y1);
+		y2 = euclidianView.toRealWorldCoordY(y2);
+		double r1 = Math.abs(x2 - x1);
+		double r2 = Math.abs(y2 - y1);
+		StringBuilder s = new StringBuilder(
+				"\\psclip{\\psellipse[linestyle=none](");
+		s.append(format(x1));
+		s.append(",");
+		s.append(format(y1));
+		s.append(")(");
+		s.append(format(r1));
+		s.append(",");
+		s.append(format(r2));
+		s.append(")}\n");
+
+		String end = "\\endpsclip\n";
+		boolean fill1 = false;
+		GeoElement[] geos = algo.getInput();
+
+		boolean draw = !geos[0].isEuclidianVisible();
+		if (draw) {
+			fill1 = geos[0].isFillable()
+					&& geos[0].getAlphaValue() > 0.0f;
+			appendToBuilder(s, fill1);
+			drawGeoElement(geos[0], false, true);
+		}
+		if (geos.length > 1 && !geos[1].isEuclidianVisible()) {
+			boolean fill2 = geos[1].isFillable()
+					&& (geos[1].getAlphaValue() > 0.0f);
+			if (draw) {
+				if (fill1 == fill2) {
+					drawGeoElement(geos[1], false, true);
+					appendToBuilder(end, fill1);
+				} else {
+					appendToBuilder(end, fill1);
+					appendToBuilder(s, fill2);
+					drawGeoElement(geos[1], false, true);
+					appendToBuilder(end, fill2);
+				}
+			} else {
+				appendToBuilder(s, fill2);
+				drawGeoElement(geos[1], false, true);
+				appendToBuilder(end, fill2);
+			}
+		} else if (draw) {
+			appendToBuilder(end, fill1);
+		}
+	}
+
+	private void appendToBuilder(CharSequence sequence, boolean fill) {
+		if (fill) {
+			codeFilledObject.append(sequence);
+		} else {
+			code.append(sequence);
 		}
 	}
 
@@ -1615,16 +1597,11 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 	@Override
 	protected void drawGeoRay(GeoRayND geo) {
 		GeoPointND pointStart = geo.getStartPoint();
-		double x1 = pointStart.getInhomX();
 		String y1 = format(pointStart.getInhomY());
-
 		Coords equation = geo
 				.getCartesianEquationVector(euclidianView.getMatrix());
-
-		double x = equation.getX();
-		double y = equation.getY();
-		double z = equation.getZ();
 		startBeamer(code);
+		double y = equation.getY();
 		if (y != 0) {
 			code.append("\\psplot");
 		} else {
@@ -1632,12 +1609,15 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 		}
 		code.append(lineOptionCode(geo, true));
 		double inf = xmin, sup = xmax;
+		double x1 = pointStart.getInhomX();
 		if (y > 0) {
 			inf = x1;
 		} else {
 			sup = x1;
 		}
+		double x = equation.getX();
 		if (y != 0) {
+			double z = equation.getZ();
 			code.append("{");
 			code.append(format(inf));
 			code.append("}{");
@@ -1883,7 +1863,6 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 	}
 
 	private void pointOptionCode(GeoPointND geo) {
-		GColor dotcolor = geo.getObjectColor();
 		int dotsize = geo.getPointSize();
 		int dotstyle = geo.getPointStyle();
 		if (dotstyle == -1) { // default
@@ -1944,6 +1923,7 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 				break;
 			}
 		}
+		GColor dotcolor = geo.getObjectColor();
 		if (!dotcolor.equals(GColor.BLACK)) {
 			if (coma) {
 				codePoint.append(",");
@@ -2161,42 +2141,6 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 		}
 	}
 
-	/*
-	 * // Resize text // Keep the ratio between font size and picture height
-	 * private String resizeFont(int fontSize){ int
-	 * latexFont=frame.getFontSize(); double
-	 * height_geogebra=euclidianView.getHeight()/30; double
-	 * height_latex=frame.getLatexHeight(); double
-	 * ratio=height_latex/height_geogebra; int
-	 * theoric_size=(int)Math.round(ratio*fontSize); String st=null;
-	 * switch(latexFont){ case 10: if (theoric_size<=5) st="\\tiny{"; else if
-	 * (theoric_size<=7) st="\\scriptsize{"; else if (theoric_size<=8)
-	 * st="\\footnotesize{"; else if (theoric_size<=9) st="\\small{"; else if
-	 * (theoric_size<=10) ; else if (theoric_size<=12) st="\\large{"; else if
-	 * (theoric_size<=14) st="\\Large{"; else if (theoric_size<=17)
-	 * st="\\LARGE{"; else if (theoric_size<=20) st="\\huge{"; else
-	 * st="\\Huge{"; break; case 11: if (theoric_size<=6) st="\\tiny{"; else if
-	 * (theoric_size<=8) st="\\scriptsize{"; else if (theoric_size<=9)
-	 * st="\\footnotesize{"; else if (theoric_size<=10) st="\\small{"; else if
-	 * (theoric_size<=11) ; else if (theoric_size<=12) st="\\large{"; else if
-	 * (theoric_size<=14) st="\\Large{"; else if (theoric_size<=17)
-	 * st="\\LARGE{"; else if (theoric_size<=20) st="\\huge{"; else
-	 * st="\\Huge{"; break; case 12: if (theoric_size<=6) st="\\tiny{"; else if
-	 * (theoric_size<=8) st="\\scriptsize{"; else if (theoric_size<=10)
-	 * st="\\footnotesize{"; else if (theoric_size<=11) st="\\small{"; else if
-	 * (theoric_size<=12) ; else if (theoric_size<=14) st="\\large{"; else if
-	 * (theoric_size<=17) st="\\Large{"; else if (theoric_size<=20)
-	 * st="\\LARGE{"; else if (theoric_size<=25) st="\\huge{"; else
-	 * st="\\Huge{"; break; } return st; }
-	 */
-	/*
-	 * private void defineTransparency(){ String str=
-	 * "\\makeatletter\n\\define@key[psset]{}{transpalpha}{\\pst@checknum{#1}\\pstranspalpha}\n"
-	 * + "\\psset{transpalpha=1}\n"+ "\\def\\psfs@transp{%\n"+
-	 * "  \\addto@pscode{/Normal .setblendmode \\pstranspalpha .setshapealpha }%\n"
-	 * + "  \\psfs@solid}\n"; if (!transparency) codePreamble.append(str);
-	 * transparency=true; }
-	 */
 	private void addText(String st0, boolean isLatex, int style,
 			GColor geocolor) {
 		String st = st0;
@@ -2269,12 +2213,7 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 			colorCode(geocolor, code);
 			code.append("{");
 		}
-		/*
-		 * if (size!=app.getFontSize()) { String formatFont=resizeFont(size); if
-		 * (null!=formatFont) code.append(formatFont); }
-		 */
 		code.append(st);
-		// if (size!=app.getFontSize()) code.append("}");
 		if (!geocolor.equals(GColor.BLACK)) {
 			code.append("}");
 		}
@@ -2463,12 +2402,12 @@ public class GeoGebraToPstricks extends GeoGebraExport {
 		case INEQUALITY_1VAR_X:
 		case INEQUALITY_1VAR_Y:
 		case INEQUALITY_LINEAR:
-			double[] coords = new double[2];
-			double zeroY = ds[5] * ds[3];
-			double zeroX = ds[4] * (-ds[0]);
 			GPathIterator path = s.getPathIterator(null);
 			code.append("\\pspolygon");
 			code.append(lineOptionCode((GeoElement) geo, true));
+			double[] coords = new double[2];
+			double zeroY = ds[5] * ds[3];
+			double zeroX = ds[4] * (-ds[0]);
 			double precX = Integer.MAX_VALUE;
 			double precY = Integer.MAX_VALUE;
 			while (!path.isDone()) {

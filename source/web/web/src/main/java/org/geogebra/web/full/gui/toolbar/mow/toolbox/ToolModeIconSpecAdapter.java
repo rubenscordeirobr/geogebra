@@ -1,11 +1,29 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.toolbar.mow.toolbox;
 
 import static org.geogebra.common.euclidian.EuclidianConstants.MODE_AUDIO;
 import static org.geogebra.common.euclidian.EuclidianConstants.MODE_CALCULATOR;
 import static org.geogebra.common.euclidian.EuclidianConstants.MODE_CAMERA;
+import static org.geogebra.common.euclidian.EuclidianConstants.MODE_EQUATION;
 import static org.geogebra.common.euclidian.EuclidianConstants.MODE_EXTENSION;
 import static org.geogebra.common.euclidian.EuclidianConstants.MODE_GRASPABLE_MATH;
 import static org.geogebra.common.euclidian.EuclidianConstants.MODE_IMAGE;
+import static org.geogebra.common.euclidian.EuclidianConstants.MODE_MEDIA_TEXT;
 import static org.geogebra.common.euclidian.EuclidianConstants.MODE_MIND_MAP;
 import static org.geogebra.common.euclidian.EuclidianConstants.MODE_PDF;
 import static org.geogebra.common.euclidian.EuclidianConstants.MODE_PROTRACTOR;
@@ -50,7 +68,11 @@ public class ToolModeIconSpecAdapter {
 		case MODE_PROTRACTOR:
 			return ToolboxIcon.PROTRACTOR;
 		case MODE_TRIANGLE_PROTRACTOR:
-			return ToolboxIcon.TRIANGLE;
+			return ToolboxIcon.RULER_TRIANGLE;
+		case MODE_EQUATION:
+			return ToolboxIcon.EQUATION;
+		case MODE_MEDIA_TEXT:
+			return ToolboxIcon.TEXT;
 		}
 		return null;
 	}

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.input3D;
 
 import java.util.ArrayList;
@@ -155,16 +171,16 @@ public class EuclidianControllerInput3DCompanion extends
 
 	}
 
-	private static class StickyPoint implements Comparable<StickyPoint> {
-		public GeoPointND point;
-		public double distance;
+	private static final class StickyPoint implements Comparable<StickyPoint> {
+		private final GeoPointND point;
+		private final double distance;
 
-		public StickyPoint(GeoPointND point, double distance) {
+		private StickyPoint(GeoPointND point, double distance) {
 			this.point = point;
 			this.distance = distance;
 		}
 
-		public double getDistanceAbs() {
+		private double getDistanceAbs() {
 			return Math.abs(distance);
 		}
 
@@ -210,21 +226,20 @@ public class EuclidianControllerInput3DCompanion extends
 
 	}
 
-	private static class StickyPointForDirection
-			implements
-			Comparable<StickyPointForDirection> {
-		public StickyPoint sp;
-		public double distanceOrtho;
-		public double distanceOrigin;
+	private static final class StickyPointForDirection
+			implements Comparable<StickyPointForDirection> {
+		private final StickyPoint sp;
+		private final double distanceOrtho;
+		private final double distanceOrigin;
 
-		public StickyPointForDirection(StickyPoint origin, StickyPoint sp,
+		private StickyPointForDirection(StickyPoint origin, StickyPoint sp,
 				double distanceOrigin) {
 			this.sp = sp;
 			this.distanceOrtho = sp.distance - origin.distance;
 			this.distanceOrigin = distanceOrigin;
 		}
 
-		public double getCosAbs() {
+		private double getCosAbs() {
 			return Math.abs(distanceOrtho / distanceOrigin);
 		}
 

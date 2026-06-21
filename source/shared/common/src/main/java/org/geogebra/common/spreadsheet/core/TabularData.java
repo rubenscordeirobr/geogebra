@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.spreadsheet.core;
 
 import javax.annotation.CheckForNull;
@@ -152,6 +168,13 @@ public interface TabularData<T> extends HasTabularValues<T> {
 	@Nonnull String serializeContentAt(int row, int column);
 
 	/**
+	 * @param row Row index
+	 * @param column Column index
+	 * @return Whether the cell contains a formula.
+	 */
+	boolean hasFormulaAt(int row, int column);
+
+	/**
 	 * Check for errors in spreadsheet data.
 	 * @param row Row index of cell.
 	 * @param column Column index of cell.
@@ -163,4 +186,14 @@ public interface TabularData<T> extends HasTabularValues<T> {
 	 * @return A generic error message to display for cells with errors.
 	 */
 	String getErrorString();
+
+	/**
+	 * Some data types may override default mouse down action.
+	 * @param row table row
+	 * @param column table column
+	 * @return whether specific handling happened
+	 */
+	default boolean handleMouseDown(int row, int column) {
+		return false;
+	}
 }

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.view.data;
 
 import java.awt.BorderLayout;
@@ -9,7 +25,6 @@ import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -28,6 +43,7 @@ import org.geogebra.desktop.gui.util.GeoGebraIconD;
 import org.geogebra.desktop.gui.util.LayoutUtil;
 import org.geogebra.desktop.main.AppD;
 import org.geogebra.desktop.main.LocalizationD;
+import org.geogebra.desktop.main.ScaledIcon;
 
 /**
  * Panel to select and display the DataAnalysisView regression model.
@@ -258,8 +274,8 @@ public class RegressionPanelD extends JPanel
 		}
 
 		// create an icon with the LaTeX string
-		ImageIcon icon = GeoGebraIconD.createLatexIcon(app, eqn,
-				this.getFont(), Color.RED, null);
+		ScaledIcon icon = GeoGebraIconD.createScaledLatexIcon(app, eqn,
+				this.getFont(), Color.RED);
 
 		// set the label icon with our equation string
 		lblRegEquation.setIcon(icon);

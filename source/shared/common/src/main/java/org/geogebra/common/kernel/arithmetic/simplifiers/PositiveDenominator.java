@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.arithmetic.simplifiers;
 
 import static org.geogebra.common.kernel.arithmetic.simplifiers.ExpressionValueUtils.isIntegerValue;
@@ -59,16 +75,7 @@ public class PositiveDenominator implements SimplifyNode {
 					SurdAddition tag = new SurdAddition(right.wrap().getLeftTree(), utils);
 					OrderedExpressionNode orderedNode = new OrderedExpressionNode(
 							tag.multiply(right.wrap().getRight()), utils);
-					if (orderedNode.isAllNegative()) {
-						right = utils.negateTagByTag(right);
-						if (v > 0) {
-							right = right.wrap().multiplyR(-1);
-						}
-					} else {
-						if (v < 0) {
-							right = right.wrap().multiplyR(-1);
-						}
-					}
+					right = makePositive(right, v, orderedNode);
 				}
 				return utils.newDiv(right.wrap().multiply(left), positiveDenominator);
 
@@ -109,6 +116,22 @@ public class PositiveDenominator implements SimplifyNode {
 		ExpressionNode expressionNode =
 				utils.newNode(numerator, Operation.DIVIDE, positiveDenominator);
 		return v < 0 ? expressionNode.multiplyR(-1) : expressionNode;
+	}
+
+	private ExpressionValue makePositive(ExpressionValue expr, double v,
+			OrderedExpressionNode orderedNode) {
+		ExpressionValue positive = expr;
+		if (orderedNode.isAllNegative()) {
+			positive = utils.negateTagByTag(positive);
+			if (v > 0) {
+				positive = positive.wrap().multiplyR(-1);
+			}
+		} else {
+			if (v < 0) {
+				positive = positive.wrap().multiplyR(-1);
+			}
+		}
+		return positive;
 	}
 
 	private ExpressionNode applyForMultipliedFraction(ExpressionValue multiplierNode,

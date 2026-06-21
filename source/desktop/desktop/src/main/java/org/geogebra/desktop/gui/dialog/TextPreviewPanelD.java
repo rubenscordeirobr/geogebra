@@ -1,9 +1,25 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.dialog;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Rectangle;
 
-import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
 import javax.swing.text.MutableAttributeSet;
@@ -61,7 +77,6 @@ public class TextPreviewPanelD extends TextPreviewer {
 	@Override
 	protected void updateViewportSize(GeoText previewGeo) {
 		Dimension d = new Dimension();
-		ImageIcon testIcon = new ImageIcon();
 		JTextPane dummyText = new JTextPane();
 		int padding = 5; // account for inset
 
@@ -72,13 +87,13 @@ public class TextPreviewPanelD extends TextPreviewer {
 		if (previewGeo.isLaTeX()) {
 			// LaTex geo, use dummy ImageIcon
 
-			GeoGebraIconD.drawLatexImageIcon((AppD) getApp(), testIcon,
+			Rectangle bounds = GeoGebraIconD.measureLatexImage((AppD) getApp(),
 					previewGeo.getTextString(), ((AppD) getApp()).getPlainFont(),
 					true, Color.black, null);
 
 			// get the dimensions from the icon and add some padding
-			d.height = testIcon.getIconHeight() + padding;
-			d.width = testIcon.getIconWidth() + padding;
+			d.height = (int) bounds.getHeight() + padding;
+			d.width = (int) bounds.getWidth() + padding;
 
 		} else {
 			// Plain text geo, use dummy JTextArea
@@ -101,7 +116,6 @@ public class TextPreviewPanelD extends TextPreviewer {
 		// update this panel
 		((EuclidianViewD) ev).setPreferredSize(d);
 		((EuclidianViewD) ev).revalidate();
-
 	}
 
 	@Override

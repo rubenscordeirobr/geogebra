@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.geos;
@@ -15,13 +19,13 @@ package org.geogebra.common.kernel.geos;
 import java.util.ArrayList;
 
 import org.geogebra.common.awt.GColor;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.geos.properties.FillType;
 import org.geogebra.common.kernel.kernelND.GeoElementND;
 import org.geogebra.common.kernel.kernelND.GeoPointND;
 import org.geogebra.common.plugin.GeoClass;
-import org.geogebra.common.util.StringUtil;
 
 /**
  * GeoElement for drawing turtle graphics.
@@ -406,6 +410,7 @@ public class GeoTurtle extends GeoPoint {
 		speed = 0;
 		resetProgress();
 		cmdList.clear();
+		speed = s;
 		turnAngle = 0d;
 		sinAngle = 0d;
 		cosAngle = 1d;
@@ -413,7 +418,6 @@ public class GeoTurtle extends GeoPoint {
 		position[1] = 0d;
 		// currentPoint.setCoords(0d, 0d, 1d);
 		setCoords(0d, 0d, 1d);
-		speed = s;
 		doUpdate();
 	}
 
@@ -487,17 +491,17 @@ public class GeoTurtle extends GeoPoint {
 		/**
 		 * @return the type of the command
 		 */
-		public CmdType getType();
+		CmdType getType();
 
 		/**
 		 * @return the time taken to execute the command
 		 */
-		public double getTime();
+		double getTime();
 
 		/**
 		 * perform the command on the enclosed GeoTurtle
 		 */
-		public void perform();
+		void perform();
 
 		/**
 		 * Draw the command
@@ -505,7 +509,7 @@ public class GeoTurtle extends GeoPoint {
 		 * @param ds
 		 *            the DrawState object to use for drawing
 		 */
-		public void draw(DrawState ds);
+		void draw(DrawState ds);
 
 		/**
 		 * Draw the command partially
@@ -516,7 +520,7 @@ public class GeoTurtle extends GeoPoint {
 		 *            the fraction of the command which is completed (between 0
 		 *            and 1)
 		 */
-		public void partialDraw(DrawState ds, double progress);
+		void partialDraw(DrawState ds, double progress);
 	}
 
 	/**
@@ -530,7 +534,7 @@ public class GeoTurtle extends GeoPoint {
 		 * @param down
 		 *            true to put pen down, false to lift it
 		 */
-		public void setPen(boolean down);
+		void setPen(boolean down);
 
 		/**
 		 * Move turtle to new position
@@ -538,7 +542,7 @@ public class GeoTurtle extends GeoPoint {
 		 * @param newPosition
 		 *            the new turtle position
 		 */
-		public void move(GeoPointND newPosition);
+		void move(GeoPointND newPosition);
 
 		/**
 		 * Turn turtle
@@ -546,7 +550,7 @@ public class GeoTurtle extends GeoPoint {
 		 * @param angle
 		 *            anticlockwise angle in radians
 		 */
-		public void turn(double angle);
+		void turn(double angle);
 
 		/**
 		 * Partially move turtle
@@ -556,7 +560,7 @@ public class GeoTurtle extends GeoPoint {
 		 * @param progress
 		 *            between 0 (not started) and 1 (all done)
 		 */
-		public void partialMove(GeoPointND newPosition, double progress);
+		void partialMove(GeoPointND newPosition, double progress);
 
 		/**
 		 * Partially turn turtle
@@ -566,7 +570,7 @@ public class GeoTurtle extends GeoPoint {
 		 * @param progress
 		 *            between 0 (not started) and 1 (all done)
 		 */
-		public void partialTurn(double angle, double progress);
+		void partialTurn(double angle, double progress);
 
 		/**
 		 * Set the pen color
@@ -574,7 +578,7 @@ public class GeoTurtle extends GeoPoint {
 		 * @param color
 		 *            new color
 		 */
-		public void setColor(GColor color);
+		void setColor(GColor color);
 
 		/**
 		 * Set the pen thickness
@@ -582,7 +586,7 @@ public class GeoTurtle extends GeoPoint {
 		 * @param th
 		 *            new thickness
 		 */
-		public void setThickness(int th);
+		void setThickness(int th);
 	}
 
 	/**
@@ -924,15 +928,14 @@ public class GeoTurtle extends GeoPoint {
 	}
 
 	@Override
-	protected void getStyleXML(StringBuilder sb) {
+	protected void getStyleXML(XMLStringBuilder sb) {
 		super.getStyleXML(sb);
 
 		// name of image file
 		if (getFillImage() != null) {
-			sb.append("\t<file name=\"");
-			StringUtil
-					.encodeXML(sb, this.getGraphicsAdapter().getImageFileName());
-			sb.append("\"/>\n");
+			sb.startTag("file")
+					.attr("name", this.getGraphicsAdapter().getImageFileName())
+					.endTag();
 		}
 	}
 

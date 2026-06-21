@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.toolbarpanel.spreadsheet;
 
 import java.util.List;
@@ -5,7 +21,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 import org.geogebra.common.awt.GColor;
-import org.geogebra.common.gui.MayHaveFocus;
+import org.geogebra.common.gui.FocusableComponent;
 import org.geogebra.common.main.GeoGebraColorConstants;
 import org.geogebra.common.main.Localization;
 import org.geogebra.common.main.localization.AutocompleteProvider;
@@ -19,6 +35,10 @@ import org.geogebra.common.spreadsheet.kernel.DefaultSpreadsheetCellProcessor;
 import org.geogebra.common.spreadsheet.style.CellFormat;
 import org.geogebra.common.util.shape.Point;
 import org.geogebra.common.util.shape.Rectangle;
+import org.geogebra.editor.share.editor.MathFieldInternal;
+import org.geogebra.editor.share.input.KeyboardInputAdapter;
+import org.geogebra.editor.share.syntax.SyntaxController;
+import org.geogebra.editor.share.util.JavaKeyCodes;
 import org.geogebra.web.full.gui.components.MathFieldEditor;
 import org.geogebra.web.full.gui.inputfield.AutoCompletePopup;
 import org.geogebra.web.full.gui.view.algebra.ToastController;
@@ -31,11 +51,6 @@ import org.gwtproject.core.client.Scheduler;
 import org.gwtproject.dom.style.shared.TextAlign;
 import org.gwtproject.dom.style.shared.Unit;
 
-import com.himamis.retex.editor.share.editor.MathFieldInternal;
-import com.himamis.retex.editor.share.input.KeyboardInputAdapter;
-import com.himamis.retex.editor.share.syntax.SyntaxController;
-import com.himamis.retex.editor.share.util.JavaKeyCodes;
-
 public class SpreadsheetControlsDelegateW implements SpreadsheetControlsDelegate, AutoCompleteW {
 
 	private final SpreadsheetCellEditorW editor;
@@ -47,7 +62,7 @@ public class SpreadsheetControlsDelegateW implements SpreadsheetControlsDelegate
 	private final SpreadsheetPanel parent;
 	private AutoCompletePopup autocomplete;
 
-	private static class SpreadsheetCellEditorW implements SpreadsheetCellEditor {
+	private static final class SpreadsheetCellEditorW implements SpreadsheetCellEditor {
 		private final MathFieldEditor mathField;
 		private final SpreadsheetPanel parent;
 		private final AppW app;
@@ -55,7 +70,8 @@ public class SpreadsheetControlsDelegateW implements SpreadsheetControlsDelegate
 		private DefaultSpreadsheetCellProcessor cellProcessor;
 		private Rectangle editorBounds;
 
-		public SpreadsheetCellEditorW(AppW app, SpreadsheetPanel parent, MathTextFieldW mathField) {
+		private SpreadsheetCellEditorW(AppW app, SpreadsheetPanel parent,
+				MathTextFieldW mathField) {
 			this.mathField = mathField;
 			this.mathField.getMathField().setForegroundColor(
 					GColor.getColorString(GeoGebraColorConstants.NEUTRAL_900));
@@ -68,8 +84,13 @@ public class SpreadsheetControlsDelegateW implements SpreadsheetControlsDelegate
 			this.app = app;
 		}
 
-		public SpreadsheetPanel getSpreadsheetPanel() {
+		private SpreadsheetPanel getSpreadsheetPanel() {
 			return parent;
+		}
+
+		@Override
+		public double getFittingContentWidth() {
+			return mathField.getMathField().computeWidth();
 		}
 
 		@Override
@@ -81,6 +102,7 @@ public class SpreadsheetControlsDelegateW implements SpreadsheetControlsDelegate
 					textAlignment == CellFormat.ALIGN_LEFT ? TextAlign.LEFT : TextAlign.RIGHT);
 			mathField.setVisible(true);
 			mathField.editorClicked();
+			mathField.scrollCursorVisibleHorizontally();
 			Scheduler.get().scheduleDeferred(mathField::requestFocus);
 		}
 
@@ -143,7 +165,7 @@ public class SpreadsheetControlsDelegateW implements SpreadsheetControlsDelegate
 		this.parent = parent;
 		contextMenu = new GPopupMenuW(app) {
 			@Override
-			public void returnFocus(MayHaveFocus anchor) {
+			public void returnFocus(FocusableComponent anchor) {
 				parent.requestFocus();
 			}
 		};
@@ -160,6 +182,9 @@ public class SpreadsheetControlsDelegateW implements SpreadsheetControlsDelegate
 
 	@Override
 	public void showContextMenu(@Nonnull List<ContextMenuItem> items, @Nonnull Point location) {
+		getApplication().registerPopup(contextMenu.getPopupPanel());
+		contextMenu.getPopupPanel().addCloseHandler(
+				ignore -> getApplication().unregisterPopup(contextMenu.getPopupPanel()));
 		contextMenu.clearItems();
 		parent.cancelFocus();
 		contextMenu.getApp().getAsyncManager().prefetch(null, "scripting", "stats");

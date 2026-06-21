@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.toolbar;
 
 import java.util.ArrayList;
@@ -85,10 +101,10 @@ public class ModeToggleMenuW extends ListItem
 		tbutton.addStyleName("toolbar_button");
 		NoDragImage toolbarImg = new NoDragImage(AppResources.INSTANCE.empty(),
 				32);
-		GGWToolBar.getImageResource(menu.get(0).intValue(), app, toolbarImg);
+		GGWToolBar.getImageResource(menu.get(0), app, toolbarImg);
 		toolbarImg.addStyleName("toolbar_icon");
 		tbutton.add(toolbarImg);
-		tbutton.getElement().setAttribute("mode", menu.get(0).intValue() + "");
+		tbutton.getElement().setAttribute("mode", menu.get(0) + "");
 		tbutton.getElement().setAttribute("isMobile", "false");
 		addDomHandlers(tbutton);
 		this.add(tbutton);
@@ -102,7 +118,7 @@ public class ModeToggleMenuW extends ListItem
 		add(submenu);
 
 		for (int k = 0; k < menu.size(); k++) {
-			final int addMode = menu.get(k).intValue();
+			final int addMode = menu.get(k);
 			if (addMode < 0) { // TODO
 				// // separator within menu:
 				// tm.addSeparator();
@@ -609,7 +625,7 @@ public class ModeToggleMenuW extends ListItem
 			this.buildGui();
 		}
 		for (int k = 0; k < menu2.size(); k++) {
-			final int addMode = menu2.get(k).intValue();
+			final int addMode = menu2.get(k);
 			if (addMode < 0) { // TODO
 				// // separator within menu:
 				// tm.addSeparator();

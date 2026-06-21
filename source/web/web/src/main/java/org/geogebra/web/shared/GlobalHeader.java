@@ -1,7 +1,26 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.shared;
 
+import static org.geogebra.common.gui.AccessibilityGroup.REDO_SCI_CALC;
+import static org.geogebra.common.gui.AccessibilityGroup.SETTINGS;
 import static org.geogebra.common.gui.AccessibilityGroup.SIGN_IN_ICON;
 import static org.geogebra.common.gui.AccessibilityGroup.SIGN_IN_TEXT;
+import static org.geogebra.common.gui.AccessibilityGroup.UNDO_SCI_CALC;
 
 import java.util.ArrayList;
 
@@ -20,6 +39,7 @@ import org.geogebra.common.move.ggtapi.events.LoginEvent;
 import org.geogebra.common.move.views.EventRenderable;
 import org.geogebra.common.ownership.GlobalScope;
 import org.geogebra.common.util.AsyncOperation;
+import org.geogebra.gwtutil.JavaScriptInjector;
 import org.geogebra.gwtutil.SafeExamBrowser;
 import org.geogebra.web.full.css.MaterialDesignResources;
 import org.geogebra.web.full.gui.exam.ExamUtil;
@@ -32,12 +52,14 @@ import org.geogebra.web.html5.gui.util.Dom;
 import org.geogebra.web.html5.gui.view.ImageIconSpec;
 import org.geogebra.web.html5.gui.zoompanel.FocusableWidget;
 import org.geogebra.web.html5.main.AppW;
+import org.geogebra.web.html5.util.StringConsumer;
 import org.geogebra.web.shared.view.button.ActionButton;
 import org.gwtproject.animation.client.AnimationScheduler;
 import org.gwtproject.animation.client.AnimationScheduler.AnimationCallback;
 import org.gwtproject.dom.client.Document;
 import org.gwtproject.dom.client.Element;
 import org.gwtproject.dom.style.shared.Display;
+import org.gwtproject.resources.client.TextResource;
 import org.gwtproject.user.client.DOM;
 import org.gwtproject.user.client.ui.FlowPanel;
 import org.gwtproject.user.client.ui.HTML;
@@ -47,6 +69,7 @@ import org.gwtproject.user.client.ui.RootPanel;
 import org.gwtproject.user.client.ui.Widget;
 
 import elemental2.core.Function;
+import elemental2.core.JsArray;
 import elemental2.dom.DomGlobal;
 import jsinterop.base.Js;
 
@@ -74,7 +97,7 @@ public final class GlobalHeader implements EventRenderable, ExamListener {
 	private boolean assignButtonInitialized;
 	private @CheckForNull FlowPanel examTypeHolder;
 	private String examHash;
-	private final ExamController examController = GlobalScope.examController;
+	private ExamController examController;
 
 	private final ArrayList<FocusableWidget> focusableWidgets = new ArrayList<>();
 
@@ -82,7 +105,6 @@ public final class GlobalHeader implements EventRenderable, ExamListener {
 	 * Singleton constructor
 	 */
 	private GlobalHeader() {
-		GlobalScope.examController.addListener(this);
 	}
 
 	public static String getExamHash() {
@@ -97,6 +119,10 @@ public final class GlobalHeader implements EventRenderable, ExamListener {
 	 */
 	public void addSignIn(final AppW appW) {
 		this.app = appW;
+		examController = GlobalScope.getExamController(app);
+		if (examController != null) {
+			examController.addListener(this);
+		}
 		signIn = getSignInTextButton() != null
 				? getSignInTextButton().getElement().getParentElement() : null;
 		if (signIn == null) {
@@ -182,7 +208,7 @@ public final class GlobalHeader implements EventRenderable, ExamListener {
 	 * updating header button visibility on header resize or login
 	 * @param smallScreen - whether is small screen or not
 	 */
-	public void updateHeaderButtonVisibility(boolean smallScreen) {
+	private void updateHeaderButtonVisibility(boolean smallScreen) {
 		updateButtonVisibility(smallScreen, "#shareButton");
 
 		boolean isLoggedIn = app.getLoginOperation().isLoggedIn();
@@ -295,12 +321,26 @@ public final class GlobalHeader implements EventRenderable, ExamListener {
 
 	private void initSettingButtonIfOnHeader() {
 		if (settingsButton == null) {
-			settingsButton = getActionButton("settingsButton", "Settings");
+			settingsButton = getActionButton("settingsButton", "Settings", SETTINGS);
 			if (settingsButton != null) {
-				settingsButton.setAction(() -> app.getDialogManager().showPropertiesDialog(
-						OptionType.GLOBAL, null));
+				settingsButton.setAction(() -> {
+					FocusableWidget focusableWidget = getSettingsFocusableWidget();
+					if (focusableWidget != null) {
+						app.getAccessibilityManager().setAnchor(focusableWidget);
+					}
+					app.getDialogManager().showPropertiesDialog(OptionType.GLOBAL, null);
+				});
 			}
 		}
+	}
+
+	private @CheckForNull FocusableWidget getSettingsFocusableWidget() {
+		for (FocusableWidget focusableWidget : focusableWidgets) {
+			if (focusableWidget.getAccessibilityGroup().equals(SETTINGS)) {
+				return focusableWidget;
+			}
+		}
+		return null;
 	}
 
 	private void initUndoRedoButtonsIfOnHeader() {
@@ -315,16 +355,17 @@ public final class GlobalHeader implements EventRenderable, ExamListener {
 	}
 
 	private ActionButton getUndoButton() {
-		return getActionButton("undoButton", "Undo");
+		return getActionButton("undoButton", "Undo", UNDO_SCI_CALC);
 	}
 
 	private ActionButton getRedoButton() {
-		return getActionButton("redoButton", "Redo");
+		return getActionButton("redoButton", "Redo", REDO_SCI_CALC);
 	}
 
-	private ActionButton getActionButton(String viewId, String title) {
+	private ActionButton getActionButton(String viewId, String title, AccessibilityGroup group) {
 		RootPanel view = getViewById(viewId);
 		if (view != null) {
+			registerFocusable(app, group, view);
 			return new ActionButton(app, view, title);
 		}
 		return null;
@@ -353,7 +394,7 @@ public final class GlobalHeader implements EventRenderable, ExamListener {
 		AnimationScheduler.get().requestAnimationFrame(new AnimationCallback() {
 			@Override
 			public void execute(double timestamp) {
-				if (examController.isExamActive()) {
+				if (examController != null && examController.isExamActive()) {
 					if (examController.isCheating()) {
 						app.getGuiManager()
 								.updateUnbundledToolbarStyle();
@@ -370,10 +411,15 @@ public final class GlobalHeader implements EventRenderable, ExamListener {
 			}
 		});
 		if (getButtonElement() == null) {
+			initSafeExamBrowser(hash -> {});
 			return;
 		}
 		// remove other buttons
 		getButtonElement().getStyle().setDisplay(Display.NONE);
+
+		if (examController == null) {
+			return;
+		}
 
 		// exam panel with timer and info btn
 		Image timerImg = new Image(MaterialDesignResources.INSTANCE.timer()
@@ -397,14 +443,7 @@ public final class GlobalHeader implements EventRenderable, ExamListener {
 
 		ExamType examType = examController.getExamType();
 		if (SafeExamBrowser.get() != null && SafeExamBrowser.get().security != null) {
-			if (Js.isTruthy(GeoGebraGlobal.ggbCallbacks)) {
-				SafeExamBrowser.SebSecurity security = SafeExamBrowser.get().security;
-				GeoGebraGlobal.ggbCallbacks.push(() ->  {
-					examHash = security.configKey.substring(0, 8);
-					addExamType("Safe Exam Browser (" + examHash + ")");
-				});
-				security.updateKeys(GeoGebraGlobal.runCallbacks);
-			}
+			initSafeExamBrowser(hash -> addExamType("Safe Exam Browser (" + hash + ")"));
 		} else if (examType != ExamType.GENERIC && examType != null) {
 			addExamType(examType.getDisplayName(
 					app.getLocalization(), app.getConfig()));
@@ -417,6 +456,34 @@ public final class GlobalHeader implements EventRenderable, ExamListener {
 				app.getGuiManager().showExamInfoDialog(examInfoBtn));
 		// run timer
 		onResize();
+	}
+
+	private void initSafeExamBrowser(StringConsumer onHashChange) {
+		if (SafeExamBrowser.get() == null || SafeExamBrowser.get().security == null) {
+			return;
+		}
+		if (Js.isFalsy(GeoGebraGlobal.ggbCallbacks)) {
+			GeoGebraGlobal.ggbCallbacks = JsArray.of();
+			TextResource globalScript = new TextResource() {
+				@Override
+				public String getText() {
+					return "function runCallbacks() {window.ggbCallbacks.forEach(f=>f());"
+							+ "window.ggbCallbacks.splice(0);}";
+				}
+
+				@Override
+				public String getName() {
+					return "seb-global";
+				}
+			};
+			JavaScriptInjector.inject(globalScript);
+		}
+		SafeExamBrowser.SebSecurity security = SafeExamBrowser.get().security;
+		GeoGebraGlobal.ggbCallbacks.push(() ->  {
+			examHash = security.configKey.substring(0, 8);
+			onHashChange.consume(examHash);
+		});
+		security.updateKeys(GeoGebraGlobal.runCallbacks);
 	}
 
 	private void addExamType(String examTypeName) {

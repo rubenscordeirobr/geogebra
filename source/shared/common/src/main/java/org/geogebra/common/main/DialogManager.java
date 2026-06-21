@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.main;
@@ -16,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.geogebra.common.awt.GPoint;
+import org.geogebra.common.awt.annotations.HasNativeSubclass;
 import org.geogebra.common.euclidian.EuclidianController;
 import org.geogebra.common.euclidian.EuclidianView;
 import org.geogebra.common.gui.InputHandler;
@@ -41,10 +46,11 @@ import org.geogebra.common.kernel.kernelND.GeoSegmentND;
 import org.geogebra.common.main.MyError.Errors;
 import org.geogebra.common.main.error.ErrorHandler;
 import org.geogebra.common.util.AsyncOperation;
+import org.geogebra.editor.share.util.Unicode;
 
 import com.google.j2objc.annotations.Weak;
-import com.himamis.retex.editor.share.util.Unicode;
 
+@HasNativeSubclass
 public abstract class DialogManager {
 	@Weak
 	protected App app;
@@ -335,13 +341,13 @@ public abstract class DialogManager {
 		 * @param num angle
 		 * @return rotated element
 		 */
-		public GeoElement[] createGeos(EuclidianController ec, GeoElement geo,
+		GeoElement[] createGeos(EuclidianController ec, GeoElement geo,
 				GeoNumberValue num);
 
 		/**
 		 * @return point or line to rotate around
 		 */
-		public GeoElementND getPivot();
+		GeoElementND getPivot();
 	}
 
 	/**
@@ -428,73 +434,69 @@ public abstract class DialogManager {
 
 		kernel.getAlgebraProcessor().processAlgebraCommandNoExceptionHandling(
 				inputText, false, eh, true,
-				new AsyncOperation<GeoElementND[]>() {
+				result -> {
+					cons.setSuppressLabelCreation(oldVal);
+					String defaultRotateAngle = Unicode.FORTY_FIVE_DEGREES_STRING;
 
-					@Override
-					public void callback(GeoElementND[] result) {
-						cons.setSuppressLabelCreation(oldVal);
-						String defaultRotateAngle = Unicode.FORTY_FIVE_DEGREES_STRING;
+					if (result == null) {
+						return;
+					}
 
-						if (result == null) {
-							return;
+					boolean success = result.length > 0
+							&& result[0] instanceof GeoNumberValue;
+
+					if (success) {
+						GeoNumberValue num = (GeoNumberValue) result[0];
+						// keep angle entered if it ends with
+						// 'degrees'
+						if (angleText.endsWith(Unicode.DEGREE_STRING)) {
+							defaultRotateAngle = angleText;
 						}
 
-						boolean success = result.length > 0
-								&& result[0] instanceof GeoNumberValue;
+						if (polys.length == 1) {
 
-						if (success) {
-							GeoNumberValue num = (GeoNumberValue) result[0];
-							// keep angle entered if it ends with
-							// 'degrees'
-							if (angleText.endsWith(Unicode.DEGREE_STRING)) {
-								defaultRotateAngle = angleText;
-							}
-
-							if (polys.length == 1) {
-
-								GeoElement[] geos = creator.createGeos(ec,
-										polys[0], num);
-								if (geos != null) {
-									app.storeUndoInfoAndStateForModeStarting();
-									ec.memorizeJustCreatedGeos(geos);
-									kernel.notifyRepaint();
-								}
-								if (callback != null) {
-									callback.callback(defaultRotateAngle);
-								}
-								return;
-							}
-							ArrayList<GeoElement> ret = new ArrayList<>();
-							for (int i = 0; i < selGeos.length; i++) {
-								if (selGeos[i] != creator.getPivot()) {
-									if (selGeos[i] instanceof Transformable) {
-										ret.addAll(Arrays
-												.asList(creator.createGeos(ec,
-														selGeos[i], num)));
-									} else if (selGeos[i].isGeoPolygon()) {
-										ret.addAll(Arrays
-												.asList(creator.createGeos(ec,
-														selGeos[i], num)));
-									}
-								}
-							}
-							if (!ret.isEmpty()) {
+							GeoElement[] geos = creator.createGeos(ec,
+									polys[0], num);
+							if (geos != null) {
 								app.storeUndoInfoAndStateForModeStarting();
-								ec.memorizeJustCreatedGeos(ret);
+								ec.memorizeJustCreatedGeos(geos);
 								kernel.notifyRepaint();
 							}
-
-						} else {
-							if (result.length > 0) {
-								numberExpectedError(eh, app);
+							if (callback != null) {
+								callback.callback(defaultRotateAngle);
+							}
+							return;
+						}
+						ArrayList<GeoElement> ret = new ArrayList<>();
+						for (int i = 0; i < selGeos.length; i++) {
+							if (selGeos[i] != creator.getPivot()) {
+								if (selGeos[i] instanceof Transformable) {
+									ret.addAll(Arrays
+											.asList(creator.createGeos(ec,
+													selGeos[i], num)));
+								} else if (selGeos[i].isGeoPolygon()) {
+									ret.addAll(Arrays
+											.asList(creator.createGeos(ec,
+													selGeos[i], num)));
+								}
 							}
 						}
-						if (callback != null) {
-							callback.callback(
-									success ? defaultRotateAngle : null);
+						if (!ret.isEmpty()) {
+							app.storeUndoInfoAndStateForModeStarting();
+							ec.memorizeJustCreatedGeos(ret);
+							kernel.notifyRepaint();
 						}
 
+					} else {
+						if (result.length > 0) {
+							numberExpectedError(eh, app);
+						}
 					}
+					if (callback != null) {
+						callback.callback(
+								success ? defaultRotateAngle : null);
+					}
+
 				});
 	}
 
@@ -549,36 +551,33 @@ public abstract class DialogManager {
 		final boolean oldVal = cons.isSuppressLabelsActive();
 		cons.setSuppressLabelCreation(true);
 
-		AsyncOperation<GeoElementND[]> checkNumber = new AsyncOperation<GeoElementND[]>() {
-			@Override
-			public void callback(GeoElementND[] result) {
-				cons.setSuppressLabelCreation(oldVal);
+		AsyncOperation<GeoElementND[]> checkNumber = result -> {
+			cons.setSuppressLabelCreation(oldVal);
 
-				if (result == null) {
-					return;
-				}
+			if (result == null) {
+				return;
+			}
 
-				boolean success = result[0] instanceof GeoNumberValue;
+			boolean success = result[0] instanceof GeoNumberValue;
 
-				if (!success) {
-					numberExpectedError(handler, app);
-					if (cb != null) {
-						cb.callback(false);
-					}
-					return;
-				}
-
-				GeoElement[] geos = ec.getCompanion().regularPolygon(geoPoint1,
-						geoPoint2, (GeoNumberValue) result[0], direction);
-				GeoElement[] onlypoly = { null };
-				if (geos != null) {
-					onlypoly[0] = geos[0];
-					app.storeUndoInfoAndStateForModeStarting();
-					ec.memorizeJustCreatedGeos(onlypoly);
-				}
+			if (!success) {
+				numberExpectedError(handler, app);
 				if (cb != null) {
-					cb.callback(success);
+					cb.callback(false);
 				}
+				return;
+			}
+
+			GeoElement[] geos = ec.getCompanion().regularPolygon(geoPoint1,
+					geoPoint2, (GeoNumberValue) result[0], direction);
+			GeoElement[] onlypoly = { null };
+			if (geos != null) {
+				onlypoly[0] = geos[0];
+				app.storeUndoInfoAndStateForModeStarting();
+				ec.memorizeJustCreatedGeos(onlypoly);
+			}
+			if (cb != null) {
+				cb.callback(success);
 			}
 		};
 
@@ -708,13 +707,11 @@ public abstract class DialogManager {
 			boolean rw) {
 		app.setWaitCursor();
 
-		if (textInputDialog == null) {
+		if (textInputDialog == null || text == null) {
 			textInputDialog = createTextDialog(text, startPoint, rw);
 		} else {
 			textInputDialog.reInitEditor(text, startPoint, rw);
 		}
-
-		textInputDialog.setVisible(true);
 		app.setDefaultCursor();
 	}
 
@@ -727,8 +724,6 @@ public abstract class DialogManager {
 	 */
 	public abstract TextInputDialog createTextDialog(GeoText text,
 			GeoPointND startPoint, boolean rw);
-
-	// public abstract void showOpenFromGGTDialog();
 
 	/**
 	 * @param ec
@@ -829,7 +824,7 @@ public abstract class DialogManager {
 		 * @param num radius
 		 * @return circle, cone, cylinder or sphere
 		 */
-		public GeoElement createGeo(Kernel kernel, GeoNumberValue num);
+		GeoElement createGeo(Kernel kernel, GeoNumberValue num);
 	}
 
 	public static class CreateSphereFromRadius implements CreateGeoFromRadius {
@@ -966,40 +961,36 @@ public abstract class DialogManager {
 
 		kernel.getAlgebraProcessor().processAlgebraCommandNoExceptionHandling(
 				inputString, false, handler, true,
-				new AsyncOperation<GeoElementND[]>() {
+				result -> {
+					cons.setSuppressLabelCreation(oldVal);
 
-					@Override
-					public void callback(GeoElementND[] result) {
-						cons.setSuppressLabelCreation(oldVal);
-
-						if (result == null) {
-							return;
-						}
-
-						boolean success = result[0] instanceof GeoNumberValue;
-						if (!success) {
-							numberExpectedError(handler, app);
-							if (callback != null) {
-								callback.callback(false);
-							}
-							return;
-						}
-
-						GeoElement geo = createGeoFromRadius.createGeo(kernel,
-								(GeoNumberValue) result[0]);
-
-						GeoElement[] onlypoly = { null };
-						if (geo != null) {
-							onlypoly[0] = geo;
-							app.storeUndoInfoAndStateForModeStarting();
-							ec.memorizeJustCreatedGeos(onlypoly);
-							kernel.notifyRepaint();
-						}
-						if (callback != null) {
-							callback.callback(geo != null);
-						}
-
+					if (result == null) {
+						return;
 					}
+
+					boolean success = result[0] instanceof GeoNumberValue;
+					if (!success) {
+						numberExpectedError(handler, app);
+						if (callback != null) {
+							callback.callback(false);
+						}
+						return;
+					}
+
+					GeoElement geo = createGeoFromRadius.createGeo(kernel,
+							(GeoNumberValue) result[0]);
+
+					GeoElement[] onlypoly = {null};
+					if (geo != null) {
+						onlypoly[0] = geo;
+						app.storeUndoInfoAndStateForModeStarting();
+						ec.memorizeJustCreatedGeos(onlypoly);
+						kernel.notifyRepaint();
+					}
+					if (callback != null) {
+						callback.callback(geo != null);
+					}
+
 				});
 
 	}
@@ -1041,30 +1032,26 @@ public abstract class DialogManager {
 
 		kernel.getAlgebraProcessor().processAlgebraCommandNoExceptionHandling(
 				inputText, false, handler, true,
-				new AsyncOperation<GeoElementND[]>() {
+				result -> {
+					cons.setSuppressLabelCreation(oldVal);
 
-					@Override
-					public void callback(GeoElementND[] result) {
-						cons.setSuppressLabelCreation(oldVal);
+					if (result == null) {
+						return;
+					}
 
-						if (result == null) {
-							return;
-						}
-
-						boolean success = result[0] instanceof GeoNumberValue;
-						if (!success) {
-							numberExpectedError(handler, kernel.getApplication());
-							if (callback != null) {
-								callback.callback(false);
-							}
-							return;
-						}
-
-						DialogManager.doAngleFixed(kernel, segments, points,
-								(GeoNumberValue) result[0], clockwise, ec);
+					boolean success = result[0] instanceof GeoNumberValue;
+					if (!success) {
+						numberExpectedError(handler, kernel.getApplication());
 						if (callback != null) {
-							callback.callback(true);
+							callback.callback(false);
 						}
+						return;
+					}
+
+					DialogManager.doAngleFixed(kernel, segments, points,
+							(GeoNumberValue) result[0], clockwise, ec);
+					if (callback != null) {
+						callback.callback(true);
 					}
 				});
 	}
@@ -1115,32 +1102,28 @@ public abstract class DialogManager {
 
 		kernel.getAlgebraProcessor().processAlgebraCommandNoExceptionHandling(
 				inputWithSign, false, handler, true,
-				new AsyncOperation<GeoElementND[]>() {
+				result -> {
+					cons.setSuppressLabelCreation(oldVal);
 
-					@Override
-					public void callback(GeoElementND[] result) {
-						cons.setSuppressLabelCreation(oldVal);
-
-						if (result == null) {
-							return;
-						}
-
-						boolean success = result[0] instanceof GeoNumberValue;
-						if (!success) {
-							numberExpectedError(handler, app);
-							if (callback != null) {
-								callback.callback(false);
-							}
-							return;
-						}
-
-						creator.callback((GeoNumberValue) result[0]);
-
-						if (callback != null) {
-							callback.callback(success);
-						}
-
+					if (result == null) {
+						return;
 					}
+
+					boolean success = result[0] instanceof GeoNumberValue;
+					if (!success) {
+						numberExpectedError(handler, app);
+						if (callback != null) {
+							callback.callback(false);
+						}
+						return;
+					}
+
+					creator.callback((GeoNumberValue) result[0]);
+
+					if (callback != null) {
+						callback.callback(success);
+					}
+
 				});
 	}
 

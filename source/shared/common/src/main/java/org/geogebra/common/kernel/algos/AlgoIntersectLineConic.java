@@ -1,19 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * AlgoIntersectLineConic.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 30. August 2001, 21:37
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.algos;
@@ -64,7 +62,6 @@ public class AlgoIntersectLineConic extends AlgoIntersect implements
 	private GeoPoint[] D; // D: old points
 	protected GeoPoint[] P; // output - Q permuted according to D
 	protected GeoPoint[] Q; // new points, not yet permuted
-	protected int intersectionType;
 
 	private HashMap<GeoElementND, PPolynomial[]> botanaPolynomials;
 	private HashMap<GeoElementND, PVariable[]> botanaVars;
@@ -639,7 +636,6 @@ public class AlgoIntersectLineConic extends AlgoIntersect implements
 				sol[i].setUndefined();
 			}
 		}
-		intersectionType = ret;
 		return ret;
 	}
 
@@ -659,7 +655,7 @@ public class AlgoIntersectLineConic extends AlgoIntersect implements
 	public static synchronized int intersectLineConic(GeoLine g,
 			GeoConicND c, GeoPoint[] sol, double eps) {
 		g.getNormalizedCoefficients(xyz, 2, 0.5);
-		return intersectLineConic(xyz, c.getFlatMatrix(), c.getType(),  eps, sol);
+		return intersectLineConic(xyz, c.getFlatMatrix(), c.getType(), eps, sol);
 	}
 
 	/**
@@ -790,7 +786,7 @@ public class AlgoIntersectLineConic extends AlgoIntersect implements
 	/**
 	 * Tests if at least one point lies on conic c and line g.
 	 */
-	final static private boolean testPoints(GeoLine g, GeoConic c, GeoPoint[] P,
+	private static boolean testPoints(GeoLine g, GeoConic c, GeoPoint[] P,
 			double eps) {
 		boolean foundPoint = false;
 		for (int i = 0; i < P.length; i++) {

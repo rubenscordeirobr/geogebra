@@ -1,4 +1,22 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.factories;
+
+import java.util.function.BiFunction;
 
 import org.geogebra.common.awt.GAlphaComposite;
 import org.geogebra.common.awt.GBufferedImage;
@@ -22,14 +40,21 @@ import org.geogebra.ggbjdk.factories.AwtFactoryHeadless;
  */
 public class AwtFactoryCommon extends AwtFactoryHeadless {
 
+    private static BiFunction<Integer, Integer, GBufferedImageCommon> imageFactory
+            = GBufferedImageCommon::new;
+
+    public static void setImageFactory(BiFunction<Integer, Integer, GBufferedImageCommon> factory) {
+        imageFactory = factory;
+    }
+
     @Override
     public GBufferedImage newBufferedImage(int pixelWidth, int pixelHeight, double pixelRatio) {
-		return new GBufferedImageCommon(pixelWidth, pixelHeight);
+		return imageFactory.apply(pixelWidth, pixelHeight);
     }
 
     @Override
     public GBufferedImage createBufferedImage(int width, int height, boolean transparency) {
-        return new GBufferedImageCommon(width, height);
+        return imageFactory.apply(width, height);
     }
 
     @Override
@@ -59,7 +84,7 @@ public class AwtFactoryCommon extends AwtFactoryHeadless {
     }
 
     @Override
-    public GFont newFont(String name, int style, int size) {
+    public GFont newFont(String name, int style, double size) {
         return new GFontCommon(size);
     }
     

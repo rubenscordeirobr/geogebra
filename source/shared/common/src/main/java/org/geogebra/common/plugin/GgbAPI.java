@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.plugin;
 
 import java.util.ArrayList;
@@ -22,6 +38,8 @@ import org.geogebra.common.gui.view.algebra.AlgebraView;
 import org.geogebra.common.gui.view.consprotocol.ConstructionProtocolView;
 import org.geogebra.common.gui.view.consprotocol.ConstructionProtocolView.Columns;
 import org.geogebra.common.io.MyXMLio;
+import org.geogebra.common.io.XMLStringBuilder;
+import org.geogebra.common.io.layout.DockPanelData;
 import org.geogebra.common.io.layout.Perspective;
 import org.geogebra.common.io.layout.PerspectiveDecoder;
 import org.geogebra.common.kernel.CircularDefinitionException;
@@ -66,20 +84,20 @@ import org.geogebra.common.ownership.GlobalScope;
 import org.geogebra.common.util.AsyncOperation;
 import org.geogebra.common.util.StringUtil;
 import org.geogebra.common.util.debug.Log;
+import org.geogebra.editor.share.util.Unicode;
 
-import com.himamis.retex.editor.share.util.Unicode;
 import com.himamis.retex.renderer.share.TeXFormula;
 import com.himamis.retex.renderer.share.serialize.ListSerializationAdapter;
 import com.himamis.retex.renderer.share.serialize.TeXAtomSerializer;
 
 /**
- * <h3>GgbAPI - API for PlugLets</h3>
+ * <h2>GgbAPI - API for applets</h2>
  * 
  * <pre>
  *    The Api the plugin program can use.
  * </pre>
  *
- * <h4>Interface:</h4>
+ * <h3>Interface:</h3>
  * <ul>
  * <li>GgbAPI(Application) //Application owns it
  * <li>getApplication()
@@ -150,12 +168,13 @@ public abstract class GgbAPI implements JavaScriptAPI {
 	@Override
 	public synchronized void evalXML(String xmlString) {
 		getApplication().getActiveEuclidianView().saveInlines();
-		StringBuilder stringBuilder = new StringBuilder();
+		XMLStringBuilder stringBuilder = new XMLStringBuilder();
 		MyXMLio.addXMLHeader(stringBuilder);
 		MyXMLio.addGeoGebraHeader(stringBuilder, false, null, app);
-		stringBuilder.append("<construction>\n")
-				.append(xmlString)
-				.append("</construction>\n</geogebra>\n");
+		stringBuilder.startOpeningTag("construction", 0).endTag();
+		stringBuilder.append(new XMLStringBuilder(new StringBuilder(xmlString)))
+				.closeTag("construction");
+		stringBuilder.closeTag("geogebra");
 		getApplication().setXML(stringBuilder.toString(), false);
 		getApplication().getActiveEuclidianView().updateInlines();
 	}
@@ -1155,7 +1174,7 @@ public abstract class GgbAPI implements JavaScriptAPI {
 			}
 			return "";
 		}
-		StringBuilder layoutSB = new StringBuilder();
+		XMLStringBuilder layoutSB = new XMLStringBuilder();
 		app.getGuiManager().getLayout().getCurrentPerspectiveXML(layoutSB);
 		return layoutSB.toString();
 	}
@@ -1740,9 +1759,12 @@ public abstract class GgbAPI implements JavaScriptAPI {
 			return;
 		}
 		String allToolsNoMacros = ToolBar.getAllToolsNoMacros(app.isHTML5Applet(),
-				!GlobalScope.examController.isIdle(), app);
+				GlobalScope.isExamActive(app), app);
 		Perspective ps = PerspectiveDecoder.decode(code, kernel.getParser(),
 				allToolsNoMacros, app.getLayout());
+		if (ps != null && !allViewsSupported(ps)) {
+			return;
+		}
 		if (app.getGuiManager() == null) {
 			if (ps != null) {
 				app.setTmpPerspective(ps);
@@ -1751,6 +1773,15 @@ public abstract class GgbAPI implements JavaScriptAPI {
 		}
 
 		app.setPerspective(ps);
+	}
+
+	private boolean allViewsSupported(Perspective ps) {
+		for (DockPanelData panelData : ps.getDockPanelData()) {
+			if (panelData.isVisible() && !app.supportsView(panelData.getViewId())) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@Override
@@ -1831,7 +1862,7 @@ public abstract class GgbAPI implements JavaScriptAPI {
 		if (kernel.useSignificantFigures) {
 			return kernel.getPrintFigures() + "s";
 		}
-		return kernel.getPrintDecimals() + "";
+		return String.valueOf(kernel.getPrintDecimals());
 	}
 
 	@Override
@@ -2417,78 +2448,9 @@ public abstract class GgbAPI implements JavaScriptAPI {
 
 	@Override
 	public void setGraphicsOptions(int viewId, Object options) {
-		JsObjectWrapper opts = getWrapper(options);
 		EuclidianSettings es = app.getSettings().getEuclidian(viewId);
-		opts.ifIntPropertySet("rightAngleStyle", app::setRightAngleStyle);
-		es.beginBatch();
-		opts.ifIntPropertySet("pointCapturing", es::setPointCapturing);
-		opts.ifPropertySet("grid", es::showGrid);
-		opts.ifPropertySet("gridIsBold", es::setGridIsBold);
-		opts.ifIntPropertySet("gridType", es::setGridType);
-		opts.ifPropertySet("bgColor",
-				(Consumer<String>) val3 -> es.setBackground(GColor.parseHexColor(val3)));
-		opts.ifPropertySet("gridColor",
-				(Consumer<String>) val2 -> es.setGridColor(GColor.parseHexColor(val2)));
-		opts.ifPropertySet("axesColor",
-				(Consumer<String>) val2 -> es.setAxesColor(GColor.parseHexColor(val2)));
-		opts.ifIntPropertySet("rulerType", es::setRulerType);
-		opts.ifObjectPropertySet("axes", axes -> {
-			for (char axis = 'x'; axis <= 'z'; axis++) {
-				final int axisNo = axis - 'x';
-				axes.ifObjectPropertySet(String.valueOf(axis),
-						axisOptions -> setAxisOptions(axisNo, axisOptions, es));
-			}
-		});
-
-		opts.ifObjectPropertySet("gridDistance", distances ->
-				setGridDistances(distances, es));
+		GraphicsOptions.apply(es, getWrapper(options), app);
 		es.endBatch();
-	}
-
-	private void setGridDistances(JsObjectWrapper distanceOptions,
-			EuclidianSettings es) {
-
-		if (isDistanceAutomatic(distanceOptions)) {
-			es.setAutomaticGridDistance(true, true);
-			return;
-		}
-
-		double[] distances = new double[]{
-			getDistanceOption(distanceOptions, "x", 0),
-			getDistanceOption(distanceOptions, "y", 0),
-			getDistanceOption(distanceOptions, "theta", Math.PI / 6)
-		};
-
-		if (distances[0] > 0 && distances[1] > 0) {
-			es.setGridDistances(distances);
-		}
-
-	}
-
-	private double getDistanceOption(JsObjectWrapper distanceOptions, String name,
-			double defaultValue) {
-		Object xValue = distanceOptions.getValue(name);
-		return xValue != null
-				? ((Number) xValue).doubleValue()
-				: defaultValue;
-	}
-
-	private static boolean isDistanceAutomatic(JsObjectWrapper opts) {
-		return opts.getValue("x") == null && opts.getValue("y") == null;
-	}
-
-	protected void setAxisOptions(int axisNo, JsObjectWrapper axisOptions, EuclidianSettings es) {
-		axisOptions.ifPropertySet("visible",
-				(Consumer<Boolean>) val -> es.setShowAxis(axisNo, val));
-		axisOptions.ifPropertySet("positiveAxis",
-				(Consumer<Boolean>) val -> es.setPositiveAxis(axisNo, val));
-		axisOptions.ifPropertySet("showNumbers",
-				(Consumer<Boolean>) val -> es.setShowAxisNumbers(axisNo, val));
-		axisOptions.ifIntPropertySet("tickStyle", val -> es.setAxisTickStyle(axisNo, val));
-		axisOptions.ifPropertySet("label",
-				(Consumer<String>) val -> es.setAxisLabel(axisNo, val));
-		axisOptions.ifPropertySet("unitLabel",
-				(Consumer<String>) val -> es.setAxisUnitLabel(axisNo, val));
 	}
 
 	@Override

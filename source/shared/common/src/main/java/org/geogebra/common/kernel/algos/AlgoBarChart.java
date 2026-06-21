@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.algos;
@@ -817,8 +821,6 @@ public class AlgoBarChart extends AlgoUsingUniqueAndFrequency
 	}
 
 	private void computeWithExp() {
-		GeoElement geo; // temporary var
-
 		if (!(a.isDefined() && b.isDefined() && list1.isDefined())) {
 			sum.setUndefined();
 			return;
@@ -852,7 +854,7 @@ public class AlgoBarChart extends AlgoUsingUniqueAndFrequency
 		for (int i = 0; i < N; i++) {
 			leftBorder[i] = ad + i * barWidth;
 
-			geo = list1.get(i);
+			GeoElement geo = list1.get(i);
 			if (geo.isGeoNumeric()) {
 				yval[i] = ((GeoNumeric) geo).getDouble();
 			} else {
@@ -1199,18 +1201,17 @@ public class AlgoBarChart extends AlgoUsingUniqueAndFrequency
 	public void setToolTipText(int index) {
 		int freq = (int) yval[index];
 		double percent = 100 * freq / dataSize;
-		StringBuilder sb = new StringBuilder();
-		sb.append(getLoc().getMenu("Value"));
-		sb.append(" = ");
-		sb.append(value[index]);
-		sb.append("<br>");
-		sb.append(getLoc().getMenu("Count"));
-		sb.append(" = ");
-		sb.append(kernel.format(freq, StringTemplate.defaultTemplate));
-		sb.append("<br>");
-		sb.append(kernel.format(percent, StringTemplate.defaultTemplate));
-		sb.append("%");
+		String tooltip = getLoc().getMenu("Value")
+				+ " = "
+				+ value[index]
+				+ "<br>"
+				+ getLoc().getMenu("Count")
+				+ " = "
+				+ kernel.format(freq, StringTemplate.defaultTemplate)
+				+ "<br>"
+				+ kernel.format(percent, StringTemplate.defaultTemplate)
+				+ "%";
 
-		sum.setToolTipText(sb.toString());
+		sum.setToolTipText(tooltip);
 	}
 }

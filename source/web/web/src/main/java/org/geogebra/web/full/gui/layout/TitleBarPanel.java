@@ -1,12 +1,30 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.layout;
+
+import javax.annotation.CheckForNull;
 
 import org.geogebra.common.euclidian.event.PointerEventType;
 import org.geogebra.web.full.cas.view.CASStylebarW;
 import org.geogebra.web.full.css.GuiResources;
 import org.geogebra.web.full.css.MaterialDesignResources;
 import org.geogebra.web.full.gui.layout.panels.AlgebraStyleBarW;
+import org.geogebra.web.full.gui.toolbarpanel.spreadsheet.stylebar.SpreadsheetStyleBar;
 import org.geogebra.web.full.gui.util.StyleBarW;
-import org.geogebra.web.full.gui.view.spreadsheet.SpreadsheetStyleBarW;
 import org.geogebra.web.html5.gui.util.ClickStartHandler;
 import org.geogebra.web.html5.gui.util.FastClickHandler;
 import org.geogebra.web.html5.gui.util.NoDragImage;
@@ -20,18 +38,18 @@ import org.gwtproject.user.client.ui.Widget;
 public class TitleBarPanel extends FlowPanel implements DockControlPanel {
 	private final AppW app;
 	private final DockPanelW dockPanel;
-	protected FlowPanel titleBarPanelContent;
+	private final FlowPanel titleBarPanelContent;
 	private FlowPanel dragPanel;
 	/**
 	 * Style bar component.
 	 */
-	Widget styleBar;
+	private @CheckForNull Widget styleBar;
 	/**
 	 * Panel for the styling bar if one is available.
 	 */
 	private final FlowPanel styleBarPanel;
 	/** button to collapse / expand stylebar */
-	protected StandardButton toggleStyleBarButton;
+	private StandardButton toggleStyleBarButton;
 	private final FlowPanel closeButtonPanel;
 
 	protected TitleBarPanel(AppW app, DockPanelW parent) {
@@ -72,7 +90,7 @@ public class TitleBarPanel extends FlowPanel implements DockControlPanel {
 	}
 
 	private void initToggleButton() {
-		// always show the view-icon; othrwise use showStylebar as parameter
+		// always show the view-icon; otherwise use showStylebar as parameter
 		toggleStyleBarButton = new StandardButton(getToggleImage(false), null,
 				32, 24);
 		toggleStyleBarButton.addStyleName("toggleStyleBar");
@@ -177,13 +195,13 @@ public class TitleBarPanel extends FlowPanel implements DockControlPanel {
 
 		styleBarPanel.setVisible(dockPanel.isStyleBarVisible());
 		if (dockPanel.isStyleBarVisible()) {
-			setStylebar();
+			setStyleBar();
 			if (styleBar != null) {
 				styleBar.setVisible(
 						dockPanel.showStyleBar && !app.getGuiManager().isDraggingViews());
 			}
 		}
-		if (styleBar instanceof SpreadsheetStyleBarW
+		if (styleBar instanceof SpreadsheetStyleBar
 				|| styleBar instanceof CASStylebarW
 				|| styleBar instanceof AlgebraStyleBarW) {
 			setStyleBarLongVisibility(dockPanel.isStyleBarVisible());
@@ -202,9 +220,11 @@ public class TitleBarPanel extends FlowPanel implements DockControlPanel {
 		}
 	}
 
-	private void setStylebar() {
+	private void setStyleBar() {
 		styleBar = dockPanel.loadStyleBar();
-		styleBarPanel.add(styleBar);
+		if (styleBar != null) {
+			styleBarPanel.add(styleBar);
+		}
 	}
 
 	/**
@@ -230,7 +250,7 @@ public class TitleBarPanel extends FlowPanel implements DockControlPanel {
 	public void setLayout() {
 		if (dockPanel.isStyleBarVisible()) {
 			dockPanel.buildGUIIfNecessary(false);
-			setStylebar();
+			setStyleBar();
 		}
 		if (styleBar instanceof StyleBarW) {
 			((StyleBarW) styleBar).setOpen(dockPanel.showStyleBar);

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.cas.view;
 
 import java.awt.Color;
@@ -8,7 +24,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JToolBar;
 
 import org.geogebra.common.awt.GColor;
@@ -25,6 +41,7 @@ import org.geogebra.desktop.gui.util.PopupMenuButtonD;
 import org.geogebra.desktop.gui.util.ToggleButtonD;
 import org.geogebra.desktop.main.AppD;
 import org.geogebra.desktop.main.LocalizationD;
+import org.geogebra.desktop.main.ScaledIcon;
 import org.geogebra.desktop.util.GuiResourcesD;
 
 /**
@@ -289,7 +306,7 @@ public class CASStyleBar extends JToolBar implements ActionListener {
 
 		removeAll();
 
-		ImageIcon kbdIcon = app.getScaledIcon(GuiResourcesD.CAS_KEYBOARD);
+		ScaledIcon kbdIcon = app.getScaledIcon(GuiResourcesD.CAS_KEYBOARD);
 
 		iconHeight = kbdIcon.getIconHeight();
 		iconDimension = new Dimension(iconHeight, iconHeight);
@@ -377,10 +394,11 @@ public class CASStyleBar extends JToolBar implements ActionListener {
 			}
 
 			@Override
-			public ImageIcon getButtonIcon() {
+			public Icon getButtonIcon() {
 				return GeoGebraIconD.createTextSymbolIcon("A",
 						app.getPlainFont(), textColoriconHeight,
-						GColorD.getAwtColor(getSelectedColor()), null);
+						GColorD.getAwtColor(getSelectedColor()), null,
+						app.getImageManager().getPixelRatio());
 			}
 
 		};
@@ -389,9 +407,10 @@ public class CASStyleBar extends JToolBar implements ActionListener {
 
 		// ========================================
 		// use as text button
-		ImageIcon useAsTextIcon = GeoGebraIconD.createStringIcon(
+		ScaledIcon useAsTextIcon = GeoGebraIconD.createStringIcon(
 				loc.getMenu("Text").substring(0, 1), app.getPlainFont(), true,
-				false, true, iconDimension, Color.black, null);
+				false, true, iconDimension, Color.black, null,
+				app.getImageManager().getPixelRatio());
 		btnUseAsText = new ToggleButtonD(useAsTextIcon, iconHeight) {
 
 			private static final long serialVersionUID = 1L;
@@ -408,9 +427,10 @@ public class CASStyleBar extends JToolBar implements ActionListener {
 
 		// ========================================
 		// bold text button
-		ImageIcon boldIcon = GeoGebraIconD.createStringIcon(
+		ScaledIcon boldIcon = GeoGebraIconD.createStringIcon(
 				loc.getMenu("Bold").substring(0, 1), app.getPlainFont(), true,
-				false, true, iconDimension, Color.black, null);
+				false, true, iconDimension, Color.black, null,
+				app.getImageManager().getPixelRatio());
 		btnBold = new ToggleButtonD(boldIcon, iconHeight) {
 
 			private static final long serialVersionUID = 1L;
@@ -433,9 +453,10 @@ public class CASStyleBar extends JToolBar implements ActionListener {
 
 		// ========================================
 		// italic text button
-		ImageIcon italicIcon = GeoGebraIconD.createStringIcon(
+		ScaledIcon italicIcon = GeoGebraIconD.createStringIcon(
 				loc.getMenu("Italic").substring(0, 1), app.getPlainFont(),
-				false, true, true, iconDimension, Color.black, null);
+				false, true, true, iconDimension, Color.black, null,
+				app.getImageManager().getPixelRatio());
 		btnItalic = new ToggleButtonD(italicIcon, iconHeight) {
 
 			private static final long serialVersionUID = 1L;

@@ -1,13 +1,17 @@
-/* 
- GeoGebra - Dynamic Mathematics for Everyone
- http://www.geogebra.org
-
- This file is part of GeoGebra.
-
- This program is free software; you can redistribute it and/or modify it 
- under the terms of the GNU General Public License as published by 
- the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.euclidian.draw;
@@ -34,9 +38,9 @@ import org.geogebra.common.kernel.geos.GeoAngle;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.geos.GeoInputBox;
 import org.geogebra.common.kernel.kernelND.GeoElementND;
+import org.geogebra.common.main.GeoGebraColorConstants;
 import org.geogebra.common.util.StringUtil;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * Checkbox for free GeoBoolean object.
@@ -437,7 +441,8 @@ public class DrawInputBox extends CanvasDrawable {
 	private void drawTextOnCanvas(GGraphics2D g2) {
 		String text = getGeoInputBox().getDisplayText();
 		g2.setFont(textFont);
-		g2.setPaint(geo.getObjectColor());
+		g2.setPaint(geo.usesDisabledStyle(null)
+				? GeoGebraColorConstants.NEUTRAL_500 : geo.getObjectColor());
 		drawText(g2, text);
 	}
 
@@ -518,7 +523,8 @@ public class DrawInputBox extends CanvasDrawable {
 		} else if (isLatexString(text)) {
 			labelDimension = drawLatex(g2, geo0, getLabelFont(), text, xLabel, (int) getLabelTop());
 		} else {
-			g2.setPaint(geo.getObjectColor());
+			g2.setPaint(geo.usesDisabledStyle(null)
+					? GeoGebraColorConstants.NEUTRAL_500 : geo.getObjectColor());
 
 			EuclidianStatic.drawIndexedString(view.getApplication(), g2, text,
 					xLabel, yLabel + getTextBottom(), false, null, null);
@@ -709,5 +715,12 @@ public class DrawInputBox extends CanvasDrawable {
 	@Override
 	public boolean isHighlighted() {
 		return view.getApplication().getSelectionManager().isKeyboardFocused(geo);
+	}
+
+	/**
+	 * @return Whether the linked {@link #geoInputBox} is currently using the disabled style.
+	 */
+	public boolean usesDisabledStyle() {
+		return geoInputBox.usesDisabledStyle(null);
 	}
 }

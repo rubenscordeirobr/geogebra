@@ -1,12 +1,31 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.view.data;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
 
 import org.geogebra.common.annotation.MissingDoc;
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.euclidian.EuclidianConstants;
 import org.geogebra.common.gui.view.data.DataDisplayModel.PlotType;
 import org.geogebra.common.gui.view.data.DataVariable.GroupType;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.arithmetic.ExpressionNodeConstants.StringType;
@@ -15,6 +34,7 @@ import org.geogebra.common.kernel.statistics.Regression;
 import org.geogebra.common.main.App;
 import org.geogebra.common.main.settings.DataAnalysisSettings;
 import org.geogebra.common.plugin.EventType;
+import org.geogebra.common.spreadsheet.core.TabularRange;
 import org.geogebra.common.util.debug.Log;
 
 /**
@@ -554,7 +574,7 @@ public class DataAnalysisModel {
 		if (!isIniting() && ctrl.isInDataSource(geo)) {
 
 			// use a runnable to allow spreadsheet table model to update
-			app.invokeLater(() -> ctrl.updateDataAnalysisView());
+			app.invokeLater(ctrl::updateDataAnalysisView);
 		}
 	}
 
@@ -612,10 +632,10 @@ public class DataAnalysisModel {
 	/**
 	 * Update UI from settings
 	 */
-	public void updateFromSettings() {
+	public void updateFromSettings(Supplier<List<TabularRange>> selectionSupplier) {
 		DataAnalysisSettings settings = app.getSettings().getDataAnalysis();
-		if (settings.getItems().size() > 0) {
-			DataSource source = new DataSource(app);
+		if (!settings.getItems().isEmpty()) {
+			DataSource source = new DataSource(app, selectionSupplier);
 			source.setDataListFromSettings(settings.getItems(), settings.getFrequencies(),
 					settings.getMode());
 			// no need to guess here
@@ -630,24 +650,22 @@ public class DataAnalysisModel {
 	 * @param sb
 	 *            XML builder
 	 */
-	public void getXML(StringBuilder sb) {
-		sb.append("<dataAnalysis mode=\"");
-		sb.append(getMode());
-		if (this.getListener().getDisplayModel(0).getSelectedPlot() != null) {
-			sb.append("\" plot1=\"");
-			sb.append(this.getListener().getDisplayModel(0).getSelectedPlot());
+	public void getXML(XMLStringBuilder sb) {
+		sb.startOpeningTag("dataAnalysis", 0).attr("mode", getMode());
+		if (getListener().getDisplayModel(0).getSelectedPlot() != null) {
+			sb.attr("plot1",
+					getListener().getDisplayModel(0).getSelectedPlot());
 		}
-		if (this.getListener().getDisplayModel(1).getSelectedPlot() != null) {
-			sb.append("\" plot2=\"");
-			sb.append(this.getListener().getDisplayModel(1).getSelectedPlot());
+		if (getListener().getDisplayModel(1).getSelectedPlot() != null) {
+			sb.attr("plot2",
+					getListener().getDisplayModel(1).getSelectedPlot());
 		}
 		if (getRegressionMode() != null) {
-			sb.append("\" regression=\"");
-			sb.append(getRegressionMode());
+			sb.attr("regression", getRegressionMode());
 		}
-		sb.append("\">\n");
+		sb.endTag();
 		getDataSource().getXMLDescription(sb);
-		sb.append("</dataAnalysis>");
+		sb.closeTag("dataAnalysis");
 	}
 
 	/**

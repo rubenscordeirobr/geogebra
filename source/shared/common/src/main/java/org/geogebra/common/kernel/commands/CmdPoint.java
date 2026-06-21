@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.commands;
 
 import org.geogebra.common.kernel.Kernel;
@@ -39,22 +55,15 @@ public class CmdPoint extends CommandProcessor {
 			arg = resArgs(c, info);
 			// need to check isGeoList first as {1,2} can be a Path but we want
 			// Point[{1,2}] to create a point
-			if (arg[0].isGeoList() && arg[0]
-					.getGeoElementForPropertiesDialog().isGeoNumeric()) {
-				if ((((GeoList) arg[0]).get(0).isGeoNumeric()
-						&& ((GeoList) arg[0]).size() == 2)
-						|| (((GeoList) arg[0]).get(0).isGeoList()
-								&& ((GeoList) ((GeoList) arg[0]).get(0))
-										.size() == 2)) {
+			if (arg[0].isGeoList()
+					&& AlgoPointsFromList.isSupportedList((GeoList) arg[0])) {
+				AlgoPointsFromList algo = new AlgoPointsFromList(cons,
+						c.getLabels(), !cons.isSuppressLabelsActive(),
+						(GeoList) arg[0]);
 
-					AlgoPointsFromList algo = new AlgoPointsFromList(cons,
-							c.getLabels(), !cons.isSuppressLabelsActive(),
-							(GeoList) arg[0]);
-
-					GeoElement[] ret = algo.getPoints();
-
-					return ret;
-				}
+				return algo.getOutputPoints().stream()
+						.map(GeoPointND::toGeoElement)
+						.toArray(GeoElement[]::new);
 			}
 			// no elseif to make sure we return something
 			if (arg[0].isPath()) {

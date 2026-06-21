@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.discrete;
 
 import java.util.ArrayList;
@@ -132,37 +148,34 @@ public class AlgoDelauneyTriangulation extends AlgoDiscrete {
 	 */
 	public static Comparator<MyLine> getComparator() {
 		if (lineComparator == null) {
-			lineComparator = new Comparator<MyLine>() {
-				@Override
-				public int compare(MyLine itemA, MyLine itemB) {
+			lineComparator = (itemA, itemB) -> {
 
-					GPoint2D p1A = itemA.p1;
-					GPoint2D p2A = itemA.p2;
-					GPoint2D p1B = itemB.p1;
-					GPoint2D p2B = itemB.p2;
+				GPoint2D p1A = itemA.p1;
+				GPoint2D p2A = itemA.p2;
+				GPoint2D p1B = itemB.p1;
+				GPoint2D p2B = itemB.p2;
 
-					// return 0 if endpoints the same
-					// so no duplicates in the TreeMap
-					if (DoubleUtil.isEqual(p1A.getX(), p2B.getX())
-							&& DoubleUtil.isEqual(p1A.getY(), p2B.getY())
-							&& DoubleUtil.isEqual(p2A.getX(), p1B.getX())
-							&& DoubleUtil.isEqual(p2A.getY(), p1B.getY())) {
-						return 0;
-					}
-					// check this one second (doesn't occur in practice)
-					if (DoubleUtil.isEqual(p1A.getX(), p1B.getX())
-							&& DoubleUtil.isEqual(p1A.getY(), p1B.getY())
-							&& DoubleUtil.isEqual(p2A.getX(), p2B.getX())
-							&& DoubleUtil.isEqual(p2A.getY(), p2B.getY())) {
-						return 0;
-					}
-
-					// need to return something sensible, otherwise tree doesn't
-					// work
-					return itemA.lengthSquared() > itemB.lengthSquared() ? -1
-							: 1;
-
+				// return 0 if endpoints the same
+				// so no duplicates in the TreeMap
+				if (DoubleUtil.isEqual(p1A.getX(), p2B.getX())
+						&& DoubleUtil.isEqual(p1A.getY(), p2B.getY())
+						&& DoubleUtil.isEqual(p2A.getX(), p1B.getX())
+						&& DoubleUtil.isEqual(p2A.getY(), p1B.getY())) {
+					return 0;
 				}
+				// check this one second (doesn't occur in practice)
+				if (DoubleUtil.isEqual(p1A.getX(), p1B.getX())
+						&& DoubleUtil.isEqual(p1A.getY(), p1B.getY())
+						&& DoubleUtil.isEqual(p2A.getX(), p2B.getX())
+						&& DoubleUtil.isEqual(p2A.getY(), p2B.getY())) {
+					return 0;
+				}
+
+				// need to return something sensible, otherwise tree doesn't
+				// work
+				return itemA.lengthSquared() > itemB.lengthSquared() ? -1
+						: 1;
+
 			};
 
 		}

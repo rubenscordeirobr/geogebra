@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.shared.mow.header;
 
 import static org.geogebra.common.euclidian.EuclidianConstants.MODE_SELECT_MOW;
@@ -114,7 +130,7 @@ public class TopBarController {
 		if (isDragButtonActive) {
 			appW.setMode(MODE_SELECT_MOW);
 		} else {
-			appW.setMode(EuclidianConstants.MODE_TRANSLATEVIEW);
+			appW.setMode(EuclidianConstants.MODE_TRANSLATE_VIEW);
 			appW.hideMenu();
 			appW.closePopups();
 		}
@@ -186,7 +202,7 @@ public class TopBarController {
 	}
 
 	private void initSettingsContextMenu(IconButton anchor) {
-		settingsContextMenu = new ContextMenuGraphicsWindowW(appW, 0, 0, false);
+		settingsContextMenu = new ContextMenuGraphicsWindowW(appW, false);
 		getSettingsContextMenu().setAutoHideEnabled(false);
 		getSettingsContextMenu().addCloseHandler(event -> anchor.setActive(false));
 	}

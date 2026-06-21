@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.exam;
 
 import javax.annotation.CheckForNull;
@@ -7,16 +23,20 @@ import org.geogebra.common.GeoGebraConstants;
 import org.geogebra.common.SuiteSubApp;
 import org.geogebra.common.exam.ExamControllerDelegate;
 import org.geogebra.common.move.ggtapi.models.Material;
+import org.geogebra.common.restrictions.RestrictionsControllerDelegate;
 import org.geogebra.web.full.main.AppWFull;
 import org.geogebra.web.html5.main.AppW;
 
-public class ExamControllerDelegateW implements ExamControllerDelegate {
+public class ExamControllerDelegateW
+		implements ExamControllerDelegate, RestrictionsControllerDelegate {
 
 	private final AppW app;
 
 	public ExamControllerDelegateW(AppW app) {
 		this.app = app;
 	}
+
+	// -- ExamControllerDelegate --
 
 	@Override
 	public void examClearApps() {
@@ -44,8 +64,10 @@ public class ExamControllerDelegateW implements ExamControllerDelegate {
 		return app.getActiveMaterial();
 	}
 
+	// -- RestrictionsControllerDelegate --
+
 	@Override
-	public @CheckForNull SuiteSubApp examGetCurrentSubApp() {
+	public @CheckForNull SuiteSubApp getCurrentSubApp() {
 		String subAppCode = app.getConfig().getSubAppCode();
 		if (!app.isSuite() || subAppCode == null) {
 			return null;
@@ -69,7 +91,7 @@ public class ExamControllerDelegateW implements ExamControllerDelegate {
 	}
 
 	@Override
-	public void examSwitchSubApp(@Nonnull SuiteSubApp subApp) {
+	public void switchSubApp(@Nonnull SuiteSubApp subApp) {
 		if (!app.isSuite()) {
 			return;
 		}

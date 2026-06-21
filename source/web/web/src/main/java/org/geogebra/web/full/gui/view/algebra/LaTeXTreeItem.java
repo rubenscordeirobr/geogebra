@@ -1,17 +1,33 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.view.algebra;
 
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.main.ScreenReader;
 import org.geogebra.common.util.StringUtil;
+import org.geogebra.editor.share.serializer.TeXSerializer;
+import org.geogebra.editor.web.MathFieldW;
 import org.geogebra.web.editor.MathFieldProcessing;
 import org.geogebra.web.full.gui.util.SyntaxAdapterImplWithPaste;
 import org.geogebra.web.html5.util.DataTest;
 import org.gwtproject.canvas.client.Canvas;
 import org.gwtproject.user.client.ui.FlowPanel;
 
-import com.himamis.retex.editor.share.serializer.TeXSerializer;
-import com.himamis.retex.editor.web.MathFieldW;
 import com.himamis.retex.renderer.web.FactoryProviderGWT;
 
 public class LaTeXTreeItem extends RadioTreeItem {
@@ -81,7 +97,7 @@ public class LaTeXTreeItem extends RadioTreeItem {
 			toastController.hide();
 			controller.onBlur(blurEvent);
 		});
-		mf.setOnFocus(focusEvent -> setFocusedStyle(true));
+		mf.setOnFocus(focusEvent -> setFocusedStyle(true, false));
 	}
 
 	private void updateEditorAriaLabel(String text) {
@@ -126,7 +142,7 @@ public class LaTeXTreeItem extends RadioTreeItem {
 	@Override
 	protected String getEditorLatex() {
 		return mf == null ? null
-				: TeXSerializer.serialize(mf.getFormula().getRootComponent());
+				: TeXSerializer.serialize(mf.getFormula().getRootNode());
 	}
 
 	@Override
@@ -175,6 +191,12 @@ public class LaTeXTreeItem extends RadioTreeItem {
 		}
 
 		return false;
+	}
+
+	@Override
+	protected void resetCanvas() {
+		canvas = null;
+		mf = null;
 	}
 
 	@Override

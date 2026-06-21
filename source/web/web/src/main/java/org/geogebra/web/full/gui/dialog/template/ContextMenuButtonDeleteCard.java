@@ -1,6 +1,28 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.dialog.template;
 
+import java.util.Set;
+
+import org.geogebra.common.contextmenu.ContextMenuFactory;
 import org.geogebra.common.contextmenu.ContextMenuItem;
+import org.geogebra.common.contextmenu.ContextMenuItemFilter;
+import org.geogebra.common.ownership.GlobalScope;
+import org.geogebra.common.ownership.SuiteScope;
 import org.geogebra.web.full.gui.contextmenu.ImageMap;
 import org.geogebra.web.full.gui.openfileview.MaterialCardI;
 import org.geogebra.web.full.gui.util.ContextMenuButtonCard;
@@ -27,9 +49,12 @@ public class ContextMenuButtonDeleteCard extends ContextMenuButtonCard {
     }
 
     private void addDeleteItem() {
-        for (ContextMenuItem item : app.getContextMenuFactory().makeMaterialContextMenu()) {
+        SuiteScope suiteScope = GlobalScope.getSuiteScope(app);
+        Set<ContextMenuItemFilter> filters = suiteScope != null
+                ? suiteScope.restrictionsController.getContextMenuItemFilters() : Set.of();
+        for (ContextMenuItem item : ContextMenuFactory.makeMaterialContextMenu(filters)) {
             wrappedPopup.addItem(new AriaMenuItem(item.getLocalizedTitle(loc),
-					ImageMap.get(item.getIcon()), this::onDelete));
+                    ImageMap.get(item.getIcon()), this::onDelete));
         }
     }
 

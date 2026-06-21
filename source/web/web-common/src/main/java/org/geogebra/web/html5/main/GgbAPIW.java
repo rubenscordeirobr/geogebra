@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.html5.main;
 
 import java.util.ArrayList;
@@ -15,6 +31,7 @@ import org.geogebra.common.euclidian.EuclidianView;
 import org.geogebra.common.euclidian.EuclidianViewInterfaceCommon;
 import org.geogebra.common.gui.view.table.InvalidValuesException;
 import org.geogebra.common.io.MyXMLio;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.io.file.Base64ZipFile;
 import org.geogebra.common.kernel.Macro;
 import org.geogebra.common.kernel.StringTemplate;
@@ -261,7 +278,7 @@ public class GgbAPIW extends GgbAPI {
 		} else {
 			str = geo.toString(StringTemplate.latexTemplate);
 		}
-		DrawEquationW.paintOnCanvasOutput(geo, str, c, app.getFontSize());
+		DrawEquationW.paintOnCanvasOutput(geo, str, c, app.getFontSizeDouble());
 		return StringUtil.removePngMarker(c.toDataUrl());
 	}
 
@@ -439,12 +456,11 @@ public class GgbAPIW extends GgbAPI {
 		getKernel().setSaving(true);
 		((ImageManagerW) app.getImageManager())
 				.adjustConstructionImages(getConstruction());
-		String constructionXml = getApplication().getXML();
-		String allMacrosXml = getApplication().getAllMacrosXMLorEmpty();
-		StringBuilder defaults2d = new StringBuilder();
-		StringBuilder defaults3d = null;
+		String allMacrosXml = getApplication().getAllMacrosXMLOrEmpty();
+		XMLStringBuilder defaults2d = new XMLStringBuilder();
+		XMLStringBuilder defaults3d = null;
 		if (app.is3D()) {
-			defaults3d = new StringBuilder();
+			defaults3d = new XMLStringBuilder();
 		}
 		getKernel().getConstruction().getConstructionDefaults()
 				.getDefaultsXML(defaults2d, defaults3d);
@@ -455,12 +471,12 @@ public class GgbAPIW extends GgbAPI {
 			archiveContent.put(MyXMLio.XML_FILE_MACRO, allMacrosXml);
 		}
 
-		if (defaults2d.length() > 0) {
+		if (!defaults2d.isEmpty()) {
 			archiveContent.put(MyXMLio.XML_FILE_DEFAULTS_2D,
 					defaults2d.toString());
 		}
 
-		if (defaults3d != null && defaults3d.length() > 0) {
+		if (defaults3d != null && !defaults3d.isEmpty()) {
 			archiveContent.put(MyXMLio.XML_FILE_DEFAULTS_3D,
 					defaults3d.toString());
 		}
@@ -468,7 +484,7 @@ public class GgbAPIW extends GgbAPI {
 		if (!StringUtil.emptyTrim(geogebraJavascript)) {
 			archiveContent.put(MyXMLio.JAVASCRIPT_FILE, geogebraJavascript);
 		}
-
+		String constructionXml = getApplication().getXML();
 		archiveContent.put(MyXMLio.XML_FILE, constructionXml);
 
 		// GGB-1758 write images at the end
@@ -554,7 +570,7 @@ public class GgbAPIW extends GgbAPI {
 	public GgbFile createAllMacrosArchive() {
 		GgbFile archiveContent = new GgbFile("");
 		writeMacroImages(archiveContent);
-		String allMacrosXml = getApplication().getAllMacrosXMLorEmpty();
+		String allMacrosXml = getApplication().getAllMacrosXMLOrEmpty();
 		if (!"".equals(allMacrosXml)) {
 			writeMacroImages(archiveContent);
 			archiveContent.put(MyXMLio.XML_FILE_MACRO, allMacrosXml);
@@ -570,7 +586,7 @@ public class GgbAPIW extends GgbAPI {
 	public GgbFile createMacroArchive(Macro macro) {
 		GgbFile archiveContent = new GgbFile("");
 		writeMacroImage(archiveContent, macro);
-		String macroXml = getApplication().getMacroXMLorEmpty(macro);
+		String macroXml = getApplication().getMacroXMLOrEmpty(macro);
 		if (!"".equals(macroXml)) {
 			writeMacroImage(archiveContent, macro);
 			archiveContent.put(MyXMLio.XML_FILE_MACRO, macroXml);
@@ -1261,8 +1277,13 @@ public class GgbAPIW extends GgbAPI {
 		app.getSaveController().setRunAfterSave(null);
 	}
 
-	@Override
-	public void handlePageAction(String eventType, String pageIdx, Object appState) {
+	/**
+	 * add/delete/copy/paste slide actions
+	 * @param eventType - event type (add, delete, etc.)
+	 * @param pageIdx - page index
+	 * @param appState - appState
+	 */
+	public void handlePageAction(String eventType, String pageIdx, JsPropertyMap<?> appState) {
 		PageListControllerInterface pageController = ((AppW) app).getPageController();
 		if (pageController != null) {
 			pageController.handlePageAction(eventType, pageIdx, appState);

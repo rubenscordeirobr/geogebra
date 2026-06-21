@@ -1,14 +1,35 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.view.probcalculator;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.TreeSet;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 import org.geogebra.common.awt.GColor;
+import org.geogebra.common.awt.annotations.HasNativeSubclass;
 import org.geogebra.common.euclidian.EuclidianView;
 import org.geogebra.common.gui.SetLabels;
 import org.geogebra.common.gui.view.data.PlotSettings;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.CircularDefinitionException;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.Kernel;
@@ -55,23 +76,22 @@ import org.geogebra.common.kernel.statistics.CmdRealDistribution2Params;
 import org.geogebra.common.main.App;
 import org.geogebra.common.main.GeoGebraColorConstants;
 import org.geogebra.common.main.Localization;
-import org.geogebra.common.main.settings.AbstractSettings;
 import org.geogebra.common.main.settings.ProbabilityCalculatorSettings;
 import org.geogebra.common.main.settings.ProbabilityCalculatorSettings.Dist;
 import org.geogebra.common.main.settings.SettingListener;
 import org.geogebra.common.plugin.EuclidianStyleConstants;
 import org.geogebra.common.plugin.Operation;
 import org.geogebra.common.util.debug.Log;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * Common view for probability calculator
  *
  * @author gabor
  */
+@HasNativeSubclass
 public abstract class ProbabilityCalculatorView
-		implements View, SettingListener, SetLabels {
+		implements View, SettingListener<ProbabilityCalculatorSettings>, SetLabels {
 
 	public static final double PADDING_TOP_PX = 20.0;
 	private final DiscreteDistributionFactory discreteDistributionFactory;
@@ -92,9 +112,9 @@ public abstract class ProbabilityCalculatorView
 	 */
 	protected Construction cons;
 
-	private static final GColor COLOR_NORMAL_OVERLAY = GColor.RED;
+	private static final GColor COLOR_NORMAL_OVERLAY = GeoGebraColorConstants.NEUTRAL_900;
 
-	private static final GColor COLOR_PDF_FILL = GColor.BLUE;
+	private static final GColor COLOR_PDF_FILL = GeoGebraColorConstants.PURPLE_600;
 
 	static final GColor COLOR_POINT = GColor.BLACK;
 
@@ -158,12 +178,12 @@ public abstract class ProbabilityCalculatorView
 	protected boolean showProbGeos = true;
 	protected boolean showNormalOverlay = false;
 
-	private static final double opacityIntegral = 0.5f;
+	private static final double opacityIntegral = 0.7f;
 	private static final double opacityDiscrete = 0.0f; // entire bar chart
-	private static final double opacityDiscreteInterval = 0.5f; // bar chart
+	private static final double opacityDiscreteInterval = 0.7f; // bar chart
 	// interval
 	private static final int thicknessCurve = 4;
-	private static final int thicknessBarChart = 3;
+	private static final int thicknessBarChart = 4;
 
 	protected static final double nearlyOne = 1 - 1E-6;
 
@@ -183,6 +203,16 @@ public abstract class ProbabilityCalculatorView
 	private GeoElement integralLeft;
 	private GeoElement integralRight;
 	private DiscreteTwoTailedGraph discreteTwoTailedGraph;
+	private final Set<Listener> listeners = new HashSet<>();
+
+	/**
+	 * Listener notified when the probability calculator view state changes in a way that may
+	 * affect dependent views.
+	 */
+	public interface Listener {
+		/** Called after the probability calculator view state has changed. */
+		void probabilityCalculatorViewChanged();
+	}
 
 	/**
 	 * @param app application
@@ -205,6 +235,26 @@ public abstract class ProbabilityCalculatorView
 		xAxis = new ProbabilityXAxis(kernel);
 		discreteDistributionFactory = new DiscreteDistributionFactory(cons);
 		updateRoundingFlags();
+	}
+
+	/**
+	 * Registers a listener for probability calculator view changes.
+	 * @param listener listener to add
+	 */
+	public void addListener(@Nonnull Listener listener) {
+		listeners.add(listener);
+	}
+
+	/**
+	 * Unregisters a probability calculator view change listener.
+	 * @param listener listener to remove
+	 */
+	public void removeListener(@Nonnull Listener listener) {
+		listeners.remove(listener);
+	}
+
+	private void notifyListeners() {
+		listeners.forEach(Listener::probabilityCalculatorViewChanged);
 	}
 
 	/**
@@ -268,6 +318,7 @@ public abstract class ProbabilityCalculatorView
 		if (setCumulativeNoFire(isCumulative)) {
 			changeProbabilityType();
 			updateAll(true);
+			notifyListeners();
 		}
 	}
 
@@ -333,6 +384,7 @@ public abstract class ProbabilityCalculatorView
 			GeoNumberValue[] parameters, boolean isCumulative) {
 		setProbabilityCalculatorNoFire(distributionType, parameters, isCumulative);
 		updateAll(true);
+		notifyListeners();
 	}
 
 	protected void setProbabilityCalculatorNoFire(Dist distributionType,
@@ -378,9 +430,7 @@ public abstract class ProbabilityCalculatorView
 		if (setDefaultBounds && !isIniting) {
 			setDefaultBounds();
 		}
-		if (getResultPanel() != null) {
-			updateProbabilityType(getResultPanel());
-		}
+		updateProbabilityType(getResultPanel());
 		updateGUI();
 		updateStylebar();
 	}
@@ -423,10 +473,6 @@ public abstract class ProbabilityCalculatorView
 	// =================================================
 	// Plotting
 	// =================================================
-	private static GColor colorPDF() {
-		return GeoGebraColorConstants.DARKBLUE;
-	}
-
 	/**
 	 * Creates the required GeoElements for the currently selected distribution
 	 * type and parameters.
@@ -487,7 +533,7 @@ public abstract class ProbabilityCalculatorView
 		cons.removeFromConstructionList(pAlgo);
 
 		GeoPoint curvePoint = (GeoPoint) pAlgo.getOutput(0);
-		curvePoint.setObjColor(COLOR_POINT);
+		curvePoint.setObjColor(GeoGebraColorConstants.GEOGEBRA_OBJECT_RED);
 		curvePoint.setPointSize(4);
 		curvePoint.setLayer(f.getLayer() + 1);
 		curvePoint.setSelectionAllowed(false);
@@ -509,8 +555,8 @@ public abstract class ProbabilityCalculatorView
 				curvePoint, (GeoPoint) pointAlgo.getOutput(0), null,
 				false);
 		GeoElement xSegment = seg1.getOutput(0);
-		xSegment.setObjColor(GColor.BLUE);
-		xSegment.setLineThickness(3);
+		xSegment.setObjColor(GeoGebraColorConstants.GEOGEBRA_OBJECT_GREY);
+		xSegment.setLineThickness(4);
 		xSegment.setLineType(
 				EuclidianStyleConstants.LINE_TYPE_DASHED_SHORT);
 		xSegment.setEuclidianVisible(showProbGeos);
@@ -533,8 +579,9 @@ public abstract class ProbabilityCalculatorView
 				curvePoint, v);
 		cons.removeFromConstructionList(seg2);
 		GeoElement ySegment = seg2.getOutput(0);
-		ySegment.setObjColor(GColor.RED);
-		ySegment.setLineThickness(3);
+		ySegment.setObjColor(GeoGebraColorConstants.GEOGEBRA_OBJECT_RED);
+		ySegment.setLineOpacity(204);
+		ySegment.setLineThickness(4);
 		ySegment.setLineType(EuclidianStyleConstants.LINE_TYPE_FULL);
 		ySegment.setEuclidianVisible(showProbGeos);
 		ySegment.setFixed(true);
@@ -550,7 +597,8 @@ public abstract class ProbabilityCalculatorView
 			pdfCurve = buildDensityCurveExpression(selectedDist, false);
 			cons.removeFromConstructionList(pdfCurve);
 		}
-		densityCurve.setObjColor(colorPDF());
+		densityCurve.setObjColor(GeoGebraColorConstants.PURPLE_600);
+		densityCurve.setLineOpacity(255);
 		densityCurve.setLineThickness(thicknessCurve);
 		densityCurve.setFixed(true);
 		densityCurve.setSelectionAllowed(false);
@@ -640,7 +688,6 @@ public abstract class ProbabilityCalculatorView
 	private void createSimpleDiscreteGraph(GeoNumberValue xMin, GeoNumberValue xMax) {
 		GeoList intervalValueList = takeSubList(discreteValueList, xMin, xMax);
 		GeoList intervalProbList = takeSubList(discreteProbList, xMin, xMax);
-
 		discreteIntervalGraph = createIntervalGraph(intervalValueList, intervalProbList);
 		plotGeoList.add(discreteIntervalGraph);
 		hideTwoTailedDiscreteGraph();
@@ -717,10 +764,9 @@ public abstract class ProbabilityCalculatorView
 		}
 
 		if (isCumulative) {
-			graph.setObjColor(GColor.RED);
-			graph.setLineThickness(3);
-			graph
-					.setLineType(EuclidianStyleConstants.LINE_TYPE_FULL);
+			graph.setObjColor(GeoGebraColorConstants.GEOGEBRA_OBJECT_RED);
+			graph.setLineThickness(4);
+			graph.setLineType(EuclidianStyleConstants.LINE_TYPE_FULL);
 		} else if (graphType == GRAPH_LINE || graphType == GRAPH_STEP) {
 			graph.setObjColor(COLOR_PDF_FILL);
 			graph.setLineThickness(thicknessBarChart + 2);
@@ -764,7 +810,7 @@ public abstract class ProbabilityCalculatorView
 	}
 
 	private void styleDiscreteGraph() {
-		discreteGraph.setObjColor(colorPDF());
+		discreteGraph.setObjColor(GeoGebraColorConstants.PURPLE_600);
 		discreteGraph.setAlphaValue(opacityDiscrete);
 		discreteGraph.setLineThickness(thicknessBarChart);
 		discreteGraph.setLayer(1);
@@ -843,7 +889,8 @@ public abstract class ProbabilityCalculatorView
 			validateLowHigh(oldProbMode);
 		}
 		updateProbabilityType(getResultPanel());
-		updateResult(getResultPanel());
+		updateResult();
+		notifyListeners();
 	}
 
 	private GeoElement createIntegral(GeoNumberValue low, GeoNumberValue high) {
@@ -969,7 +1016,9 @@ public abstract class ProbabilityCalculatorView
 		GeoElement geo = algo.getResult();
 
 		geo.setObjColor(COLOR_NORMAL_OVERLAY);
-		geo.setLineThickness(thicknessCurve - 1);
+		geo.setLineOpacity(255);
+		geo.setLineType(EuclidianStyleConstants.LINE_TYPE_DASHED_LONG);
+		geo.setLineThickness(4);
 		geo.setEuclidianVisible(true);
 		geo.setFixed(true);
 		geo.setSelectionAllowed(false);
@@ -1294,7 +1343,7 @@ public abstract class ProbabilityCalculatorView
 			// set the window dimensions of the target EV to match the prob calc
 			// dimensions
 
-			EuclidianView ev = (EuclidianView) app.getView(euclidianViewID);
+			EuclidianView ev = (EuclidianView) app.getEuclidianViewById(euclidianViewID);
 
 			ev.setRealWorldCoordSystem(plotSettings.xMin, plotSettings.xMax,
 					plotSettings.yMin, plotSettings.yMax);
@@ -1372,21 +1421,20 @@ public abstract class ProbabilityCalculatorView
 	}
 
 	@Override
-	public void settingsChanged(AbstractSettings settings) {
-		ProbabilityCalculatorSettings pcSettings =
-				(ProbabilityCalculatorSettings) settings;
-		setProbabilityCalculatorNoFire(pcSettings.getDistributionType(),
-				pcSettings.getParameters(), pcSettings.isCumulative());
-		this.probMode = pcSettings.getProbMode();
-		if (pcSettings.isIntervalSet()) {
-			setLow(pcSettings.getLow());
-			setHigh(pcSettings.getHigh());
+	public void settingsChanged(ProbabilityCalculatorSettings settings) {
+		setProbabilityCalculatorNoFire(settings.getDistributionType(),
+				settings.getParameters(), settings.isCumulative());
+		this.probMode = settings.getProbMode();
+		if (settings.isIntervalSet()) {
+			setLow(settings.getLow());
+			setHigh(settings.getHigh());
 		}
-		setShowNormalOverlay(((ProbabilityCalculatorSettings) settings).isOverlayActive());
-		updateAll(!pcSettings.isIntervalSet());
+		setShowNormalOverlay(settings.isOverlayActive());
+		updateAll(!settings.isIntervalSet());
 		if (getStatCalculator() != null) {
 			getStatCalculator().settingsChanged();
 		}
+		notifyListeners();
 	}
 
 	/**
@@ -1480,8 +1528,12 @@ public abstract class ProbabilityCalculatorView
 	 * @return probability of selected interval
 	 */
 	protected double intervalProbability() {
-		return probManager.intervalProbability(roundIfDiscrete(getLow()),
-				roundIfDiscrete(getHigh()),
+		return intervalProbability(getLow(), getHigh());
+	}
+
+	protected double intervalProbability(double low, double high) {
+		return probManager.intervalProbability(roundIfDiscrete(low),
+				roundIfDiscrete(high),
 				selectedDist, parameters, probMode);
 	}
 
@@ -1555,6 +1607,7 @@ public abstract class ProbabilityCalculatorView
 				this.integral.updateCascade();
 			}
 		}
+		notifyListeners();
 	}
 
 	/**
@@ -1893,57 +1946,52 @@ public abstract class ProbabilityCalculatorView
 	 * returns settings in XML format
 	 * @param sb XML builder
 	 */
-	public void getXML(StringBuilder sb) {
+	public void getXML(XMLStringBuilder sb) {
 
 		if (selectedDist == null) {
 			return;
 		}
 
-		sb.append("<probabilityCalculator>\n");
-		sb.append("\t<distribution");
+		sb.startOpeningTag("probabilityCalculator", 0).endTag();
+		sb.startTag("distribution")
+				.attr("type", selectedDist.ordinal())
+				.attr("isCumulative", isCumulative)
+				.attr("isOverlayActive", isShowNormalOverlay())
+				.attr("parameters", getParametersString())
+				.endTag();
 
-		sb.append(" type=\"");
-		sb.append(selectedDist.ordinal());
-		sb.append("\"");
-
-		sb.append(" isCumulative=\"");
-		sb.append(isCumulative ? "true" : "false");
-		sb.append("\"");
-
-		sb.append(" isOverlayActive=\"");
-		sb.append(isShowNormalOverlay() ? "true" : "false");
-		sb.append("\"");
-
-		sb.append(" parameters=\"");
-		for (GeoNumberValue parameter : parameters) {
-			sb.append(parameter.getLabel(StringTemplate.xmlTemplate));
-			sb.append(",");
-		}
-		sb.deleteCharAt(sb.lastIndexOf(","));
-		sb.append("\"/>\n");
-
-		sb.append("\t<interval");
-
-		sb.append(" mode=\"");
-		sb.append(this.probMode);
-		sb.append("\"");
-
-		sb.append(" low=\"");
-		sb.append(getLow());
-		sb.append("\"");
-
-		sb.append(" high=\"");
-		sb.append(getHigh());
-		sb.append("\"/>\n");
+		sb.startTag("interval")
+				.attr("mode", this.probMode)
+				.attr("low", getLow())
+				.attr("high", getHigh())
+				.endTag();
 		if (getStatCalculator() != null) {
 			getStatCalculator().getXML(sb, !isDistributionTabOpen());
 		}
-		sb.append("</probabilityCalculator>\n");
+		sb.closeTag("probabilityCalculator");
+	}
+
+	private StringBuilder getParametersString() {
+		if (parameters == null) {
+			return new StringBuilder();
+		}
+		int idx = 0;
+		StringBuilder params = new StringBuilder(parameters.length);
+		for (GeoNumberValue parameter : parameters) {
+			if (idx > 0) {
+				params.append(",");
+			}
+			params.append(parameter.getLabel(StringTemplate.xmlTemplate));
+			idx++;
+		}
+		return params;
 	}
 
 	protected abstract boolean isDistributionTabOpen();
 
-	protected abstract StatisticsCalculator getStatCalculator();
+	protected StatisticsCalculator getStatCalculator() {
+		return null;
+	}
 
 	/**
 	 * @return information about mean and standard deviation
@@ -2018,7 +2066,6 @@ public abstract class ProbabilityCalculatorView
 		discreteGraph.update();
 		if (isTwoTailedMode()) {
 			discreteTwoTailedGraph.update();
-
 		} else {
 			discreteIntervalGraph.update();
 		}
@@ -2052,20 +2099,30 @@ public abstract class ProbabilityCalculatorView
 		updateOutputForIntervals();
 		if (probMode == PROB_INTERVAL) {
 			xAxis.showBothPoints(showProbGeos);
-			resultPanel.showInterval();
+			if (resultPanel != null) {
+				resultPanel.showInterval();
+			}
 		} else if (probMode == PROB_TWO_TAILED) {
 			xAxis.showBothPoints(showProbGeos);
-			showTwoTailed(resultPanel);
+			if (resultPanel != null) {
+				showTwoTailed(resultPanel);
+			}
 		} else if (probMode == PROB_LEFT) {
-			resultPanel.showLeft();
-			switchToLeftProbability(oldProbMode, isDiscrete);
+			if (resultPanel != null) {
+				resultPanel.showLeft();
+			}
+			switchToLeftProbability(oldProbMode);
 		} else if (probMode == PROB_RIGHT) {
-			resultPanel.showRight();
-			switchToRightProbability(oldProbMode, isDiscrete);
+			if (resultPanel != null) {
+				resultPanel.showRight();
+			}
+			switchToRightProbability(oldProbMode);
 		}
 
 		// make result field editable for inverse probability calculation
-		resultPanel.setResultEditable(probMode != PROB_INTERVAL && probMode != PROB_TWO_TAILED);
+		if (resultPanel != null) {
+			resultPanel.setResultEditable(probMode != PROB_INTERVAL && probMode != PROB_TWO_TAILED);
+		}
 
 		if (isDiscrete) {
 			setHigh(Math.round(getHigh()));
@@ -2080,18 +2137,44 @@ public abstract class ProbabilityCalculatorView
 		updateIntervalProbability();
 	}
 
-	private void switchToLeftProbability(int oldProbMode, boolean isDiscrete) {
+	private void switchToLeftProbability(int oldProbMode) {
 		if (oldProbMode == PROB_RIGHT) {
 			setHighDefault();
 		}
 
-		if (isDiscrete) {
+		updateOffscreenBoundForLeft();
+		xAxis.showHighOnly(showProbGeos);
+	}
+
+	private void updateOffscreenBoundForLeft() {
+		if (isDiscreteProbability()) {
 			setLow(discreteValueAt(0));
 			updateOutputForIntervals();
 		} else {
 			setLowOffscreen();
 		}
-		xAxis.showHighOnly(showProbGeos);
+	}
+
+	/**
+	 * Update the offscreen side of the range.
+	 */
+	public void updateOffscreenRange() {
+		if (probMode == PROB_RIGHT) {
+			resetDataRange();
+			updateOffscreenBoundForRight();
+		} else if (probMode == PROB_LEFT) {
+			resetDataRange();
+			updateOffscreenBoundForLeft();
+		}
+	}
+
+	private void resetDataRange() {
+		if (isDiscreteProbability()) {
+			removeGeos();
+			createDiscreteLists();
+		} else {
+			updatePlotSettings();
+		}
 	}
 
 	private double discreteValueAt(int i) {
@@ -2102,19 +2185,22 @@ public abstract class ProbabilityCalculatorView
 		setLow(plotSettings.xMin - 1);
 	}
 
-	private void switchToRightProbability(int oldProbMode, boolean isDiscrete) {
+	private void switchToRightProbability(int oldProbMode) {
 		if (oldProbMode == PROB_LEFT) {
 			setLowDefault();
 		}
 
-		if (isDiscrete) {
+		updateOffscreenBoundForRight();
+		xAxis.showLowOnly(showProbGeos);
+	}
+
+	private void updateOffscreenBoundForRight() {
+		if (isDiscreteProbability()) {
 			setHigh(discreteValueAt(discreteValueList.size() - 1));
 			updateOutputForIntervals();
 		} else {
 			setHighOffscreen();
 		}
-
-		xAxis.showLowOnly(showProbGeos);
 	}
 
 	protected void setLowDefault() {
@@ -2198,7 +2284,9 @@ public abstract class ProbabilityCalculatorView
 	}
 
 	protected void updateLowHigh(ResultPanel resultPanel) {
-		resultPanel.updateLowHigh(format(low), format(high));
+		if (resultPanel != null) {
+			resultPanel.updateLowHigh(format(low), format(high));
+		}
 	}
 
 	private boolean isResultEditable() {
@@ -2256,7 +2344,10 @@ public abstract class ProbabilityCalculatorView
 	 */
 	public void onParameterUpdate() {
 		updateOutput(false);
+		setDefaultBounds();
+		updateProbabilityType(getResultPanel());
 		updateResult();
+		notifyListeners();
 	}
 
 	/**
@@ -2264,5 +2355,35 @@ public abstract class ProbabilityCalculatorView
 	 */
 	public void disableInterval(boolean disable) {
 		// overridden for platform
+	}
+
+	/**
+	 * Update left or low after probability result was changed by user.
+	 * Takes care of handling the edges between bars.
+	 * @param value new probability result
+	 */
+	public void handleResultChange(double value) {
+		if (getProbMode() == ProbabilityCalculatorView.PROB_LEFT) {
+			double newHigh = inverseProbability(value);
+			if (isDiscreteProbability()
+					&& areSameString(intervalProbability(getLow(), newHigh - 1), value)) {
+				setHigh(newHigh - 1);
+			} else {
+				setHigh(newHigh);
+			}
+		}
+		if (getProbMode() == ProbabilityCalculatorView.PROB_RIGHT) {
+			double newLow = inverseProbability(1 - value);
+			if (isDiscreteProbability()
+					&& areSameString(intervalProbability(newLow + 1, getHigh()), value)) {
+				setLow(newLow + 1);
+			} else {
+				setLow(newLow);
+			}
+		}
+	}
+
+	private boolean areSameString(double v1, double v2) {
+		return format(v1).equals(format(v2));
 	}
 }

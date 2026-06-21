@@ -1,19 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * AlgoIntersectConics.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 1. December 2001
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.algos;
@@ -970,16 +968,16 @@ public class AlgoIntersectConics extends AlgoIntersect implements SymbolicParame
 		// k x^2 + l y^2 + m + 2n x y + 2o x + 2p y = 0
 		// double a = Amatrix[0];
 		// double b = Amatrix[1];
-		double c = Amatrix[2];
-		double d = Amatrix[3];
-		double e = Amatrix[4];
-		double f = Amatrix[5];
+		final double c = Amatrix[2];
+		final double d = Amatrix[3];
+		final double e = Amatrix[4];
+		final double f = Amatrix[5];
 
-		double k = Bmatrix[0];
-		double l = Bmatrix[1];
-		double m = Bmatrix[2];
-		double o = Bmatrix[4];
-		double p = Bmatrix[5];
+		final double k = Bmatrix[0];
+		final double l = Bmatrix[1];
+		final double m = Bmatrix[2];
+		final double o = Bmatrix[4];
+		final double p = Bmatrix[5];
 
 		double[] eqn = new double[5];
 
@@ -1033,16 +1031,16 @@ public class AlgoIntersectConics extends AlgoIntersect implements SymbolicParame
 
 		// a x^2 + b y^2 + c + 2d x y + 2e x + 2f y = 0
 		// k x^2 + l y^2 + m + 2n x y + 2o x + 2p y = 0
-		double a = Amatrix[0];
-		double b = Amatrix[1];
-		double c = Amatrix[2];
+		final double a = Amatrix[0];
+		final double b = Amatrix[1];
+		final double c = Amatrix[2];
 		// double d = Amatrix[3];
-		double e = Amatrix[4];
-		double f = Amatrix[5];
+		final double e = Amatrix[4];
+		final double f = Amatrix[5];
 
-		double k = Bmatrix[0];
-		double l = Bmatrix[1];
-		double m = Bmatrix[2];
+		final double k = Bmatrix[0];
+		final double l = Bmatrix[1];
+		final double m = Bmatrix[2];
 		// double n = Bmatrix[2];
 		double o = Bmatrix[4];
 		double p = Bmatrix[5];
@@ -1099,15 +1097,14 @@ public class AlgoIntersectConics extends AlgoIntersect implements SymbolicParame
 
 		// a x^2 + b y^2 + c + 2d x y + 2e x + 2f y = 0
 		// k x^2 + l y^2 + m + 2n x y + 2o x + 2p y = 0
-		double a = Amatrix[0];
-		double b = Amatrix[1];
-		double c = Amatrix[2];
-		double d = Amatrix[3];
-		double e = Amatrix[4];
-		double f = Amatrix[5];
+		final double a = Amatrix[0];
+		final double b = Amatrix[1];
+		final double c = Amatrix[2];
+		final double d = Amatrix[3];
+		final double e = Amatrix[4];
+		final double f = Amatrix[5];
 
-		// double k = Bmatrix[0];
-		// double l = Bmatrix[1];
+		// k, l both 0;
 		double m = Bmatrix[2];
 		double n = Bmatrix[3];
 		double o = Bmatrix[4];

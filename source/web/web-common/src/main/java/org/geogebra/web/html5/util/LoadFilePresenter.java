@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.html5.util;
 
 import org.geogebra.common.GeoGebraConstants;
@@ -32,7 +48,7 @@ public class LoadFilePresenter {
 	 *            app
 	 */
 	public void onPageLoad(final AppletParameters view, final AppW app) {
-		ArchiveLoader loader = app.getArchiveLoader();
+		final ArchiveLoader loader = app.getArchiveLoader();
 		String base64String;
 		String filename;
 		String jsonString;
@@ -149,7 +165,7 @@ public class LoadFilePresenter {
 	 * @return whether special perspective (search / customize) was used
 	 */
 	boolean openEmptyApp(final AppW app, AppletParameters ae) {
-		// we dont have content, it is an app
+		// we don't have content, it is an app
 		Log.debug("no base64content, App loaded");
 
 		// code moved here from AppWapplication.afterCoreObjectsInited - start
@@ -210,7 +226,7 @@ public class LoadFilePresenter {
 	private static Perspective getPerspective(AppW app, String perspective) {
 		Perspective pd = PerspectiveDecoder.decode(perspective,
 				app.getKernel().getParser(),
-				ToolBar.getAllToolsNoMacros(true, !GlobalScope.examController.isIdle(), app),
+				ToolBar.getAllToolsNoMacros(true, GlobalScope.isExamActive(app), app),
 				app.getLayout());
 		if ("1".equals(perspective) || "2".equals(perspective)
 				|| "5".equals(perspective)) {

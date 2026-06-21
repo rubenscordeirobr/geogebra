@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.cas.view;
 
 import org.geogebra.common.awt.GPoint;
@@ -66,7 +82,7 @@ public class CASTableControllerW extends CASTableCellController implements
 	}
 
 	@Override
-	public void handleLongTouch(int x, int y) {
+	public void handleLongTouch(double x, double y) {
 		CASTableW table = view.getConsoleTable();
 		if (!table.isSelectedIndex(startSelectRow)) {
 			table.setSelectedRows(startSelectRow, startSelectRow);
@@ -137,7 +153,7 @@ public class CASTableControllerW extends CASTableCellController implements
 			// do this even if left/right click, even if clipboard is not
 			// supported!
 			Widget wid = table.getWidget(point.y, point.x);
-			if ((wid != null) && (wid instanceof RowHeaderWidget)) {
+			if (wid instanceof RowHeaderWidget) {
 				// quick implementation would call the handler
 				if (((RowHeaderWidget) wid).getHandler() != null) {
 					((RowHeaderWidget) wid).getHandler().onMouseUp(event);

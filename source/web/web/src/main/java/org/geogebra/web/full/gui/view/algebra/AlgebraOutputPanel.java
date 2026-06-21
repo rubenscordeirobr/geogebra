@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.view.algebra;
 
 import java.util.Set;
@@ -14,7 +30,9 @@ import org.geogebra.common.kernel.geos.DescriptionMode;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.kernelND.GeoElementND;
 import org.geogebra.common.util.IndexHTMLBuilder;
+import org.geogebra.editor.share.util.Unicode;
 import org.geogebra.web.full.css.MaterialDesignResources;
+import org.geogebra.web.html5.gui.util.AriaHelper;
 import org.geogebra.web.html5.gui.util.ClickStartHandler;
 import org.geogebra.web.html5.gui.util.NoDragImage;
 import org.geogebra.web.html5.gui.util.ToggleButton;
@@ -24,8 +42,6 @@ import org.gwtproject.user.client.ui.FlowPanel;
 import org.gwtproject.user.client.ui.HTML;
 import org.gwtproject.user.client.ui.Image;
 import org.gwtproject.user.client.ui.Label;
-
-import com.himamis.retex.editor.share.util.Unicode;
 
 /**
  * Output part of AV item
@@ -41,6 +57,7 @@ public class AlgebraOutputPanel extends FlowPanel {
 	public AlgebraOutputPanel() {
 		valuePanel = new FlowPanel();
 		valuePanel.addStyleName("avValue");
+		valuePanel.getElement().setTabIndex(0);
 	}
 
 	public Canvas getValCanvas() {
@@ -96,16 +113,24 @@ public class AlgebraOutputPanel extends FlowPanel {
 		ClickStartHandler.init(button, new ClickStartHandler(true, true) {
 			@Override
 			public void onClickStart(int x, int y, PointerEventType type) {
-				AlgebraOutputFormat nextFormat = AlgebraOutputFormat.getNextFormat(
-						geo, engineeringNotation, algebraOutputFormatFilters);
-				AlgebraOutputFormat.switchToNextFormat(
-						geo, engineeringNotation, algebraOutputFormatFilters);
-				if (nextFormat != null) {
-					button.select(nextFormat);
-				}
+				applyNextFormat(geo, engineeringNotation, algebraOutputFormatFilters, button);
 			}
 		});
+		button.addKeyActivateHandler(() -> applyNextFormat(geo,
+				engineeringNotation, algebraOutputFormatFilters, button));
 		return button;
+	}
+
+	private static void applyNextFormat(GeoElement geo, boolean engineeringNotation,
+			Set<AlgebraOutputFormatFilter> algebraOutputFormatFilters,
+			AlgebraOutputFormatButton button) {
+		AlgebraOutputFormat nextFormat = AlgebraOutputFormat.getNextFormat(
+				geo, engineeringNotation, algebraOutputFormatFilters);
+		AlgebraOutputFormat.switchToNextFormat(
+				geo, engineeringNotation, algebraOutputFormatFilters);
+		if (nextFormat != null) {
+			button.select(nextFormat);
+		}
 	}
 
 	/**
@@ -121,6 +146,8 @@ public class AlgebraOutputPanel extends FlowPanel {
 				geo, engineering, algebraOutputFormatFilters);
 		if (nextFormat != null) {
 			button.select(nextFormat);
+			AriaHelper.setLabel(button,
+					geo.getApp().getLocalization().getMenu(nextFormat.getScreenReaderLabel()));
 		}
 		parent.add(button);
 	}

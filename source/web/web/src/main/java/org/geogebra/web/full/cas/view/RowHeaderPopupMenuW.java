@@ -1,14 +1,33 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.cas.view;
+
+import static elemental2.dom.DomGlobal.navigator;
 
 import org.geogebra.common.kernel.geos.GeoCasCell;
 import org.geogebra.common.util.CopyPaste;
 import org.geogebra.common.util.debug.Log;
-import org.geogebra.web.full.gui.view.spreadsheet.CopyPasteCutW;
 import org.geogebra.web.full.html5.AttachedToDOM;
 import org.geogebra.web.full.javax.swing.GPopupMenuW;
 import org.geogebra.web.html5.gui.menu.AriaMenuItem;
 import org.geogebra.web.html5.main.AppW;
 import org.geogebra.web.html5.util.CopyPasteW;
+
+import jsinterop.base.Js;
 
 /**
  * The one popup menu used in web CAS
@@ -27,8 +46,7 @@ public class RowHeaderPopupMenuW extends
 	 * @param app
 	 *            application
 	 */
-	public RowHeaderPopupMenuW(
-	        CASTableW casTableW, AppW app) {
+	public RowHeaderPopupMenuW(CASTableW casTableW, AppW app) {
 		super(app);
 		this.app = app;
 		rowHeaderPopupMenu = new GPopupMenuW(app);
@@ -78,7 +96,7 @@ public class RowHeaderPopupMenuW extends
 				() -> actionPerformed(CellAction.TEXT));
 		rowHeaderPopupMenu.addItem(miUseAsText);
 
-		if (CopyPasteCutW.checkClipboardSupported()) {
+		if (Js.isTruthy(navigator.clipboard)) {
 
 			AriaMenuItem copyItem = new AriaMenuItem(loc.getMenu("Copy"), null,
 					() -> actionPerformed(CellAction.COPY));

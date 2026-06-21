@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.spreadsheet.core;
 
 import java.util.Arrays;
@@ -25,8 +41,8 @@ final class TableLayout {
 	private double[] rowHeights;
 	private double[] cumulativeWidths;
 	private double[] cumulativeHeights;
-	final double defaultRowHeight;
-	final double defaultColumnWidth;
+	double defaultRowHeight;
+	double defaultColumnWidth;
 	private double rowHeaderWidth = DEFAULT_ROW_HEADER_WIDTH;
 	private double columnHeaderHeight;
 
@@ -58,6 +74,9 @@ final class TableLayout {
 	 * @return width in points
 	 */
 	double getWidth(int column) {
+		if (column < 0 || column >= columnWidths.length) {
+			return 0;
+		}
 		return columnWidths[column];
 	}
 
@@ -67,6 +86,9 @@ final class TableLayout {
 	 * @return height in points
 	 */
 	double getHeight(int row) {
+		if (row < 0 || row >= rowHeights.length) {
+			return 0;
+		}
 		return rowHeights[row];
 	}
 
@@ -76,6 +98,9 @@ final class TableLayout {
 	 * @return x-coordinate of column's left edge
 	 */
 	double getMinX(int column) {
+		if (column < 0 || column >= cumulativeWidths.length) {
+			return 0;
+		}
 		return cumulativeWidths[column];
 	}
 
@@ -85,6 +110,9 @@ final class TableLayout {
 	 * @return y-coordinate of row's top edge
 	 */
 	double getMinY(int row) {
+		if (row < 0 || row >= cumulativeHeights.length) {
+			return 0;
+		}
 		return cumulativeHeights[row];
 	}
 
@@ -93,6 +121,14 @@ final class TableLayout {
 	 */
 	int numberOfRows() {
 		return rowHeights.length;
+	}
+
+	void setRowHeaderWidth(double rowHeaderWidth) {
+		this.rowHeaderWidth = rowHeaderWidth < 0 ? DEFAULT_ROW_HEADER_WIDTH : rowHeaderWidth;
+	}
+
+	void setColumnHeaderHeight(double columnHeaderHeight) {
+		this.columnHeaderHeight = columnHeaderHeight < 0 ? defaultRowHeight : columnHeaderHeight;
 	}
 
 	/**
@@ -424,6 +460,11 @@ final class TableLayout {
 			}
 		}
 		return heights;
+	}
+
+	void setDefaultCellSize(double width, double height) {
+		defaultRowHeight = height;
+		defaultColumnWidth = width;
 	}
 
 	/**

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian;
 
 import java.util.ArrayList;
@@ -8,6 +24,8 @@ import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.awt.GPoint;
+import org.geogebra.common.awt.GPoint2D;
+import org.geogebra.common.euclidian.event.PointerEventType;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.algos.AlgoCirclePointRadius;
 import org.geogebra.common.kernel.algos.AlgoCircleThreePoints;
@@ -99,8 +117,8 @@ public class EuclidianPenFreehand extends EuclidianPen {
 	private int[] brk;
 	private int recognizer_queue_length = 0;
 
-	private int minX = Integer.MAX_VALUE;
-	private int maxX = Integer.MIN_VALUE;
+	private double minX = Integer.MAX_VALUE;
+	private double maxX = Integer.MIN_VALUE;
 
 	private static class Inertia {
 		double mass = 0;
@@ -164,10 +182,10 @@ public class EuclidianPenFreehand extends EuclidianPen {
 
 	@Override
 	public void handleMouseReleasedForPenMode(boolean right, int x, int y,
-			boolean isPinchZooming) {
-		penPoints.add(new GPoint(x, y));
+			boolean isPinchZooming, PointerEventType eventType) {
+		penPoints.add(new GPoint2D(x, y));
 
-		GeoElement shape = checkExpectedShape();
+		GeoElement shape = checkExpectedShape(eventType);
 
 		penPoints.clear();
 		previewPoints.clear();
@@ -182,7 +200,7 @@ public class EuclidianPenFreehand extends EuclidianPen {
 	}
 
 	@Override
-	protected void addPointPenMode(GPoint newPoint) {
+	protected void addPointPenMode(GPoint2D newPoint) {
 		if (minX > newPoint.getX()) {
 			minX = newPoint.getX();
 		}
@@ -193,7 +211,7 @@ public class EuclidianPenFreehand extends EuclidianPen {
 	}
 
 	private GeoElement createFunction() {
-		int n = maxX - minX + 1;
+		int n = (int) (maxX - minX + 1);
 
 		if (n < 0) {
 			return null;
@@ -203,8 +221,8 @@ public class EuclidianPenFreehand extends EuclidianPen {
 		double monotonicTest = 0;
 
 		for (int i = 0; i < penPoints.size() - 1; i++) {
-			GPoint p1 = penPoints.get(i);
-			GPoint p2 = penPoints.get(i + 1);
+			GPoint2D p1 = penPoints.get(i);
+			GPoint2D p2 = penPoints.get(i + 1);
 			if (p2.x >= p1.x) {
 				monotonicTest++;
 			}
@@ -226,8 +244,8 @@ public class EuclidianPenFreehand extends EuclidianPen {
 			freehand1[i] = Double.NaN;
 		}
 
-		for (GPoint p : penPoints) {
-			int index = p.x - minX;
+		for (GPoint2D p : penPoints) {
+			int index = (int) (p.x - minX);
 			if (index >= 0 && index < freehand1.length
 					&& Double.isNaN(freehand1[index])) {
 				freehand1[index] = view.toRealWorldCoordY(p.y);
@@ -302,7 +320,7 @@ public class EuclidianPenFreehand extends EuclidianPen {
 	/**
 	 * Creates predicted shape if possible
 	 */
-	GeoElement checkExpectedShape() {
+	GeoElement checkExpectedShape(PointerEventType eventType) {
 		if (expected == null) {
 			GeoElement shapeCreated = checkShapes();
 
@@ -319,7 +337,7 @@ public class EuclidianPenFreehand extends EuclidianPen {
 		case vectorPolygon:
 			return createPolygon();
 		case circleThreePoints:
-			return createCircle();
+			return createCircle(eventType);
 		case function:
 			return createFunction();
 		}
@@ -330,8 +348,8 @@ public class EuclidianPenFreehand extends EuclidianPen {
 	/**
 	 * creates a circle if possible
 	 */
-	private GeoElement createCircle() {
-		GeoElement circle = tryCircleThroughExistingPoints();
+	private GeoElement createCircle(PointerEventType eventType) {
+		GeoElement circle = tryCircleThroughExistingPoints(eventType);
 
 		if (circle != null) {
 			return circle;
@@ -345,12 +363,11 @@ public class EuclidianPenFreehand extends EuclidianPen {
 	 *
 	 * @return {@link GeoElement circle}
 	 */
-	private GeoElement tryCircleThroughExistingPoints() {
+	private GeoElement tryCircleThroughExistingPoints(PointerEventType eventType) {
 		GeoElement circle = null;
 		ArrayList<GeoPoint> list = new ArrayList<>();
-		for (GPoint p : this.penPoints) {
-			this.view.setHits(p,
-					this.view.getEuclidianController().getDefaultEventType());
+		for (GPoint2D p : this.penPoints) {
+			this.view.setHits(new GPoint((int) p.x, (int) p.y), eventType);
 			if (this.view.getHits().containsGeoPoint()) {
 				GeoPoint point = (GeoPoint) this.view.getHits()
 						.getFirstHit(TestGeo.GEOPOINT);
@@ -462,7 +479,7 @@ public class EuclidianPenFreehand extends EuclidianPen {
 			int r = 0;
 			for (int j = 0; j < datasize; j++) {
 
-				GPoint point = penPoints.get(r);
+				GPoint2D point = penPoints.get(r);
 				r += step;
 
 				px = view.toRealWorldCoordX(point.getX());
@@ -507,7 +524,7 @@ public class EuclidianPenFreehand extends EuclidianPen {
 		GeoPoint point = new GeoPoint(this.app.getKernel().getConstruction(), 0,
 				0, 1);
 		double error = 0;
-		for (GPoint p : penPoints) {
+		for (GPoint2D p : penPoints) {
 			point.setCoords(view.toRealWorldCoordX(p.x),
 					view.toRealWorldCoordY(p.y), 1);
 			error += conic.distance(point);
@@ -521,7 +538,7 @@ public class EuclidianPenFreehand extends EuclidianPen {
 					new String[] { null, null }, conic);
 			GeoPointND[] focus = algo.getFocus();
 
-			int type = conic.getType();
+			final int type = conic.getType();
 			GeoPoint pointOnConic = this.app.getKernel().getAlgoDispatcher()
 					.point(null, conic, null);
 
@@ -836,8 +853,6 @@ public class EuclidianPenFreehand extends EuclidianPen {
 	}
 
 	private void get_segment_geometry(Inertia s, RecoSegment r) {
-		int i;
-		int start = r.startpt;
 		r.xcenter = center_x(s);
 		r.ycenter = center_y(s);
 		double a1 = i_xx(s);
@@ -848,7 +863,8 @@ public class EuclidianPenFreehand extends EuclidianPen {
 		double lmin = 0;
 		double lmax = 0;
 		double l;
-		for (i = start; i <= r.endpt; ++i) {
+		int start = r.startpt;
+		for (int i = start; i <= r.endpt; ++i) {
 			l = (penPoints.get(start).x - r.xcenter) * Math.cos(r.angle)
 					+ (penPoints.get(start).y - r.ycenter) * Math.sin(r.angle);
 			if (l < lmin) {
@@ -1165,7 +1181,7 @@ public class EuclidianPenFreehand extends EuclidianPen {
 		s.sxy = 0.;
 		s.sy = 0.;
 		s.syy = 0.;
-		int[] temp1 = new int[4];
+		double[] temp1 = new double[4];
 
 		for (int i = start; i < end; ++i) {
 			temp1[0] = penPoints.get(i).x;

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.openGL;
 
 import org.geogebra.common.annotation.MissingDoc;
@@ -34,10 +50,10 @@ public class PlotterSurfaceElements extends PlotterSurface {
 
 	private interface DrawEllipticSurface {
 		@MissingDoc
-		public void drawNCr(Coords normal);
+		void drawNCr(Coords normal);
 
 		@MissingDoc
-		public void drawNCrm(Coords normal);
+		void drawNCrm(Coords normal);
 
 		/**
 		 * compute radius and z for given latitude
@@ -49,13 +65,13 @@ public class PlotterSurfaceElements extends PlotterSurface {
 		 * @param rz
 		 *            radius and z return
 		 */
-		public void computeRadiusAndZ(int v, int latitudeLength, double[] rz);
+		void computeRadiusAndZ(int v, int latitudeLength, double[] rz);
 
 		/**
 		 * 
 		 * @return true if we draw poles
 		 */
-		public boolean drawPoles();
+		boolean drawPoles();
 
 		/**
 		 * 
@@ -65,7 +81,7 @@ public class PlotterSurfaceElements extends PlotterSurface {
 		 *            TODO
 		 * @return next jump for latitude length
 		 */
-		public int initNextJump(int latitudeLength, int longitudeLength);
+		int initNextJump(int latitudeLength, int longitudeLength);
 
 		/**
 		 * 
@@ -75,13 +91,13 @@ public class PlotterSurfaceElements extends PlotterSurface {
 		 *            latitude length
 		 * @return updated value for next jump
 		 */
-		public int updateNextJump(int nextJump, int latitudeLength);
+		int updateNextJump(int nextJump, int latitudeLength);
 
 		/**
 		 * 
 		 * @return true if we draw equator
 		 */
-		public boolean drawEquator();
+		boolean drawEquator();
 
 		/**
 		 * 
@@ -89,7 +105,7 @@ public class PlotterSurfaceElements extends PlotterSurface {
 		 *            latitude index
 		 * @return true if we draw top part at vi (normals and vertices)
 		 */
-		public boolean drawTop(int vi);
+		boolean drawTop(int vi);
 
 		/**
 		 * 
@@ -97,17 +113,17 @@ public class PlotterSurfaceElements extends PlotterSurface {
 		 *            latitude index
 		 * @return true if we draw bottom part at vi (normals and vertices)
 		 */
-		public boolean drawBottom(int vi);
+		boolean drawBottom(int vi);
 
 		/**
 		 * 
 		 * @return north pole
 		 */
-		public Coords getNorthPole();
+		Coords getNorthPole();
 
 	}
 
-	private class DrawSphere implements DrawEllipticSurface {
+	private final class DrawSphere implements DrawEllipticSurface {
 
 		private PlotterSurface surface;
 		private Coords center;
@@ -116,7 +132,7 @@ public class PlotterSurfaceElements extends PlotterSurface {
 		protected DrawSphere() {
 		}
 
-		public void set(PlotterSurface surface, Coords center, double radius) {
+		void set(PlotterSurface surface, Coords center, double radius) {
 			this.surface = surface;
 			this.center = center;
 			this.radius = radius;
@@ -174,7 +190,7 @@ public class PlotterSurfaceElements extends PlotterSurface {
 
 	}
 
-	private class DrawEllipsoid implements DrawEllipticSurface {
+	private final class DrawEllipsoid implements DrawEllipticSurface {
 
 		private PlotterSurface surface;
 		private Coords center;
@@ -189,10 +205,7 @@ public class PlotterSurfaceElements extends PlotterSurface {
 		private Coords n = new Coords(4);
 		private Coords tmpCoords = new Coords(4);
 
-		protected DrawEllipsoid() {
-		}
-
-		public void set(PlotterSurface surface, Coords center, Coords ev0,
+		void set(PlotterSurface surface, Coords center, Coords ev0,
 				Coords ev1, Coords ev2, double r0, double r1, double r2) {
 			this.surface = surface;
 			this.center = center;
@@ -318,7 +331,7 @@ public class PlotterSurfaceElements extends PlotterSurface {
 		protected DrawHyperboloidOneSheet() {
 		}
 
-		public void set(PlotterSurface surface, Coords center, Coords ev0,
+		void set(PlotterSurface surface, Coords center, Coords ev0,
 				Coords ev1, Coords ev2, double r0, double r1, double r2,
 				boolean fading) {
 			this.surface = surface;
@@ -333,7 +346,7 @@ public class PlotterSurfaceElements extends PlotterSurface {
 			this.fading = fading;
 		}
 
-		public void setMinMax(double min, double max) {
+		void setMinMax(double min, double max) {
 			if (min < 0) {
 				if (max > 0) {
 					this.min = 0;
@@ -503,13 +516,10 @@ public class PlotterSurfaceElements extends PlotterSurface {
 
 	}
 
-	private class DrawHyperboloidTwoSheets extends DrawHyperboloidOneSheet {
-
-		protected DrawHyperboloidTwoSheets() {
-		}
+	private final class DrawHyperboloidTwoSheets extends DrawHyperboloidOneSheet {
 
 		@Override
-		public void setMinMax(double min, double max) {
+		void setMinMax(double min, double max) {
 			if (min < 0) {
 				if (max > 0) {
 					this.min = 0;
@@ -578,13 +588,10 @@ public class PlotterSurfaceElements extends PlotterSurface {
 
 	}
 
-	private class DrawParaboloid extends DrawHyperboloidOneSheet {
-
-		protected DrawParaboloid() {
-		}
+	private final class DrawParaboloid extends DrawHyperboloidOneSheet {
 
 		@Override
-		public void setMinMax(double min, double max) {
+		void setMinMax(double min, double max) {
 			this.min = min;
 			this.max = max;
 
@@ -988,26 +995,14 @@ public class PlotterSurfaceElements extends PlotterSurface {
 
 	}
 
-	private void setIndices(int longitude, int longitudeLength,
-			DrawEllipticSurface dse) {
-
+	private void setIndices(int longitude, int longitudeLength, DrawEllipticSurface dse) {
 		// ///////////////
 		// set indices
 		arrayI = manager.getCurrentGeometryIndices(arrayIndex);
-
 		arrayIndex = 0;
-
-		short lastStartIndex = 0;
-		short lastLength = (short) longitudeLength;
-		short currentStartIndex = lastStartIndex;
-		short currentLength = (short) longitudeLength;
-
 		// both = 1 if only drawing up or down, both = 2 if drawing both
 		boolean drawTop = true;
 		boolean drawBottom = true;
-		boolean lastDrawTop = true;
-		boolean lastDrawBottom = true;
-		short lastBoth = 1;
 		short both = 2;
 		int vi = latitudeMin + 1;
 		if (dse.drawEquator()) {
@@ -1022,11 +1017,13 @@ public class PlotterSurfaceElements extends PlotterSurface {
 				both = 1;
 			}
 		}
+		boolean lastDrawTop = true, lastDrawBottom = true;
 		int nextJump = dse.initNextJump(latitude, longitude);
-		debug("latitude : " + latitude + " , latitude-nextJump : "
-				+ (latitude - nextJump));
-		int next = 0;
-
+		int next;
+		short lastBoth;
+		short lastStartIndex = 0;
+		short currentStartIndex = lastStartIndex;
+		short currentLength = (short) longitudeLength;
 		do {
 
 			next = Math.min(latitudeMax, latitude - nextJump);
@@ -1058,8 +1055,7 @@ public class PlotterSurfaceElements extends PlotterSurface {
 				debug("vi : " + vi + " -- both : " + both);
 
 				lastStartIndex = currentStartIndex;
-				lastLength = currentLength;
-				currentStartIndex += lastLength * lastBoth;
+				currentStartIndex += currentLength * lastBoth;
 
 				if (lastDrawTop && drawTop) { // top triangles
 					short currentIndex = currentStartIndex;
@@ -1165,8 +1161,7 @@ public class PlotterSurfaceElements extends PlotterSurface {
 				lastBoth = both;
 
 				lastStartIndex = currentStartIndex;
-				lastLength = currentLength;
-				currentStartIndex += lastLength * lastBoth;
+				currentStartIndex += currentLength * lastBoth;
 				currentLength /= 2;
 
 				if (lastDrawTop && drawTop) { // top triangles
@@ -1302,8 +1297,7 @@ public class PlotterSurfaceElements extends PlotterSurface {
 		lastBoth = both;
 
 		lastStartIndex = currentStartIndex;
-		lastLength = currentLength;
-		currentStartIndex += lastLength * lastBoth;
+		currentStartIndex += currentLength * lastBoth;
 
 		if (dse.drawPoles()) {
 			// north pole
@@ -2134,7 +2128,7 @@ public class PlotterSurfaceElements extends PlotterSurface {
 		arrayIndex++;
 	}
 
-	final private static void debug(String s) {
+	private static void debug(String s) {
 		if (DEBUG) {
 			Log.debug(s);
 		}

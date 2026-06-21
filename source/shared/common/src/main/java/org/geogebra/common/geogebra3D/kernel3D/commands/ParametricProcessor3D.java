@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.kernel3D.commands;
 
 import org.geogebra.common.geogebra3D.kernel3D.algos.AlgoCurveCartesian3D;
@@ -24,8 +40,7 @@ import org.geogebra.common.kernel.geos.GeoNumeric;
 import org.geogebra.common.kernel.matrix.CoordSys;
 import org.geogebra.common.kernel.matrix.Coords;
 import org.geogebra.common.util.debug.Log;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * Processor for 3D parametric curves
@@ -283,10 +298,8 @@ public class ParametricProcessor3D extends ParametricProcessor {
 	 */
 	public static void updateParabola(GeoConic3D conic, ExpressionValue[] coefX,
 			ExpressionValue[] coefY, ExpressionValue[] coefZ) {
-		Kernel kernel = conic.getKernel();
 		double mx = eval(coefX[0]), my = eval(coefY[0]), mz = eval(coefZ[0]);
 		double vx = eval(coefX[1]), vy = eval(coefY[1]), vz = eval(coefZ[1]);
-
 		double wx = eval(coefX[2]), wy = eval(coefY[2]), wz = eval(coefZ[2]);
 		CoordSys cs = new CoordSys(2);
 		cs.resetCoordSys();
@@ -297,6 +310,7 @@ public class ParametricProcessor3D extends ParametricProcessor {
 		Coords v = cs.getNormalProjection(new Coords(vx, vy, vz, 0))[1];
 		Coords w = cs.getNormalProjection(new Coords(wx, wy, wz, 0))[1];
 
+		Kernel kernel = conic.getKernel();
 		FunctionVariable px = new FunctionVariable(kernel, "x");
 		FunctionVariable py = new FunctionVariable(kernel, "y");
 		ExpressionNode t = px.wrap().multiply(w.getY())

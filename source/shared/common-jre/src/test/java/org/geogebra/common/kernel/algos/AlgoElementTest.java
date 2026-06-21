@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.algos;
 
 import static org.geogebra.common.BaseUnitTest.hasValue;
@@ -20,13 +36,18 @@ import org.geogebra.common.kernel.geos.GeoPoint;
 import org.geogebra.common.kernel.geos.MoveGeos;
 import org.geogebra.common.kernel.matrix.Coords;
 import org.geogebra.common.plugin.script.GgbScript;
+import org.geogebra.common.util.MockedCasValues;
+import org.geogebra.common.util.MockedCasValuesExtension;
 import org.geogebra.test.BaseAppTestSetup;
 import org.geogebra.test.annotation.Issue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+@ExtendWith(MockedCasValuesExtension.class)
+@SuppressWarnings("checkstyle:RegexpSinglelineCheck") // Tabs in CsvSources/MockedCasValues
 public class AlgoElementTest extends BaseAppTestSetup {
 	@BeforeEach
 	void setupApp() {
@@ -34,13 +55,17 @@ public class AlgoElementTest extends BaseAppTestSetup {
 	}
 
 	@ParameterizedTest
-	@CsvSource(value = {"Integral(x,1,2);\\int\\limits_{1}^{2}x\\,\\mathrm{d}x",
-			"Integral(x);\\int x\\,\\mathrm{d}x",
-			"Integral(f,1,2);\\int\\limits_{1}^{2}f\\,\\mathrm{d}n",
-			"Integral(f);\\int f\\,\\mathrm{d}n",
-			"Sequence(Integral(x^k),k,1,2);"
-					+ "Sequence\\left(\\int x^{k}\\,\\mathrm{d}x, k, 1, 2 \\right)"},
-			delimiterString = ";")
+	@CsvSource(delimiterString = "->", value = {
+			"Integral(x,1,2)				-> \\int\\limits_{1}^{2}x\\,\\mathrm{d}x",
+			"NIntegral(x,1,2)				-> \\int\\limits_{1}^{2}x\\,\\mathrm{d}x",
+			"Integral(x)					-> \\int x\\,\\mathrm{d}x",
+			"Integral(f,1,2)				-> \\int\\limits_{1}^{2}f\\,\\mathrm{d}n",
+			"NIntegral(f,1,2)				-> \\int\\limits_{1}^{2}f\\,\\mathrm{d}n",
+			"Integral(x, 1, 2, false)		-> \\int\\limits_{1}^{2}x\\,\\mathrm{d}x",
+			"Integral(f)					-> \\int f\\,\\mathrm{d}n",
+			"Sequence(Integral(x^k),k,1,2)	-> "
+					+ "Sequence\\left(\\int x^{k}\\,\\mathrm{d}x, k, 1, 2 \\right)",
+	})
 	@Issue("APPS-4732")
 	public void latexIntegral(String cmd, String latex) {
 		evaluate("f(n)=n^2");
@@ -48,11 +73,27 @@ public class AlgoElementTest extends BaseAppTestSetup {
 	}
 
 	@ParameterizedTest
-	@CsvSource(value = {"Sum(n-k,n,1,3);\\sum_{n=1}^{3}\\left(n - k \\right)",
-			"Sum(n,n,1,3);\\sum_{n=1}^{3}n",
-			"Sum(n^k,n,1,3);\\sum_{n=1}^{3}n^{k}",
-			"Sum(sin(n),n,1,3);\\sum_{n=1}^{3}\\operatorname{sin} \\left( n \\right)"},
-			delimiterString = ";")
+	@CsvSource(delimiterString = "->", value = {
+			"IntegralSymbolic(x^2)		-> \\int x^{2}\\,\\mathrm{d}x",
+			"IntegralSymbolic(cos(t),t)	-> "
+					+ "\\int \\operatorname{cos} \\left( t \\right)\\,\\mathrm{d}t",
+	})
+	@MockedCasValues({
+			"IntegralSymbolic(x²)			-> x^3 / 3",
+			"IntegralSymbolic(cos(t), t)	-> sin(t)",
+	})
+	public void latexIntegralSymbolic(String cmd, String latex) {
+		setupApp(SuiteSubApp.CAS);
+		assertEquals(latex, evaluateGeoElement(cmd).getDefinition(StringTemplate.latexTemplate));
+	}
+
+	@ParameterizedTest
+	@CsvSource(delimiterString = "->", value = {
+			"Sum(n-k,n,1,3)		-> \\sum_{n=1}^{3}\\left(n - k \\right)",
+			"Sum(n,n,1,3)		-> \\sum_{n=1}^{3}n",
+			"Sum(n^k,n,1,3)		-> \\sum_{n=1}^{3}n^{k}",
+			"Sum(sin(n),n,1,3)	-> \\sum_{n=1}^{3}\\operatorname{sin} \\left( n \\right)",
+	})
 	public void latexSum(String cmd, String latex) {
 		getKernel().setSymbolicMode(SymbolicMode.SYMBOLIC_AV);
 		assertEquals(latex, evaluateGeoElement(cmd).getDefinition(StringTemplate.latexTemplate));
@@ -82,13 +123,14 @@ public class AlgoElementTest extends BaseAppTestSetup {
 	}
 
 	@ParameterizedTest
-	@CsvSource(value = {"Integral(x-d,a,b);\\int\\limits_{a}^{b}x - d\\,\\mathrm{d}x",
-			"Integral(t-d,a,b);\\int\\limits_{a}^{b}t - d\\,\\mathrm{d}d",
-			"Integral(s-d,a,b);\\int\\limits_{a}^{b}s - d\\,\\mathrm{d}d",
-			"Integral(s-r,a,b);\\int\\limits_{a}^{b}s - r\\,\\mathrm{d}r",
-			"Integral(t-x,a,b);\\int\\limits_{a}^{b}t - x\\,\\mathrm{d}x",
-			"Integral(t,a,b);\\int\\limits_{a}^{b}t\\,\\mathrm{d}t"},
-			delimiterString = ";")
+	@CsvSource(delimiterString = "->", value = {
+			"Integral(x-d,a,b)	-> \\int\\limits_{a}^{b}x - d\\,\\mathrm{d}x",
+			"Integral(t-d,a,b)	-> \\int\\limits_{a}^{b}t - d\\,\\mathrm{d}d",
+			"Integral(s-d,a,b)	-> \\int\\limits_{a}^{b}s - d\\,\\mathrm{d}d",
+			"Integral(s-r,a,b)	-> \\int\\limits_{a}^{b}s - r\\,\\mathrm{d}r",
+			"Integral(t-x,a,b)	-> \\int\\limits_{a}^{b}t - x\\,\\mathrm{d}x",
+			"Integral(t,a,b)	-> \\int\\limits_{a}^{b}t\\,\\mathrm{d}t",
+	})
 	@Issue("APPS-5345")
 	public void latexIntegralShouldHaveCorrectDerivativeVariable(String cmd, String latex) {
 		getKernel().setSymbolicMode(SymbolicMode.SYMBOLIC_AV);

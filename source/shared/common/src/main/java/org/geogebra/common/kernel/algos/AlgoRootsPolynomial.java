@@ -1,26 +1,32 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.algos;
 
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.EquationSolverInterface;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.StringTemplate;
+import org.geogebra.common.kernel.arithmetic.ExpressionValue;
+import org.geogebra.common.kernel.arithmetic.Fractions;
 import org.geogebra.common.kernel.arithmetic.Function;
 import org.geogebra.common.kernel.arithmetic.PolyFunction;
 import org.geogebra.common.kernel.commands.Commands;
@@ -380,7 +386,13 @@ public class AlgoRootsPolynomial extends AlgoIntersect {
 	 *            degree of derivative to compute roots from
 	 */
 	public final void calcRoots(Function fun, int derivDegree) {
-		UnivariateFunction evalFunction = calcRootsMultiple(fun, derivDegree,
+		Function numerator = fun;
+		if (derivDegree == 0) {
+			ExpressionValue[] fraction = new ExpressionValue[2];
+			Fractions.getFraction(fraction, fun.getExpression(), true);
+			numerator = new Function(fraction[0].wrap(), fun.getFunctionVariable());
+		}
+		UnivariateFunction evalFunction = calcRootsMultiple(numerator, derivDegree,
 				solution, eqnSolver, true);
 
 		if (solution.curRealRoots > 1) {
@@ -428,7 +440,7 @@ public class AlgoRootsPolynomial extends AlgoIntersect {
 	public static UnivariateFunction calcRootsMultiple(Function fun,
 			int derivDegree, Solution solution,
 			EquationSolverInterface eqnSolver, boolean skipDoubleRoots) {
-		LinkedList<PolyFunction> factorList;
+		List<PolyFunction> factorList;
 		PolyFunction derivPoly = null; // only needed for derivatives
 		UnivariateFunction evalFunction = null; // needed to remove wrong extrema
 												// and inflection points

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian.draw;
 
 import org.geogebra.common.awt.GGraphics2D;
@@ -36,15 +52,15 @@ public class DrawSurface extends Drawable {
 
 	private static class SurfaceCurve implements CurveEvaluable {
 
-		private GeoSurfaceCartesian2D surface;
+		private final GeoSurfaceCartesian2D surface;
 		private double val;
 		private boolean fixed;
 
-		public SurfaceCurve(GeoSurfaceCartesian2D surface) {
+		SurfaceCurve(GeoSurfaceCartesian2D surface) {
 			this.surface = surface;
 		}
 
-		public void set(double i, boolean fixed) {
+		private void set(double i, boolean fixed) {
 			this.val = i;
 			this.fixed = fixed;
 		}
@@ -63,7 +79,6 @@ public class DrawSurface extends Drawable {
 
 		@Override
 		public double[] newDoubleArray() {
-			// TODO Auto-generated method stub
 			return new double[2];
 		}
 
@@ -150,7 +165,7 @@ public class DrawSurface extends Drawable {
 		g2.setPaint(getObjectColor());
 		g2.setStroke(objStroke);
 		if (gp != null) {
-			g2.draw(gp);
+			gp.draw(g2);
 		}
 	}
 

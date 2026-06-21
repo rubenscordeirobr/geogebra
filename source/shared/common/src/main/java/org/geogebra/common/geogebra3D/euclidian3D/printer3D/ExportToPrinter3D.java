@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.printer3D;
 
 import java.util.ArrayList;
@@ -128,28 +144,28 @@ public class ExportToPrinter3D {
 		private int v1;
 		private int v2;
 
-		public SegmentIndex() {
+		SegmentIndex() {
 			set(-1, -1);
 		}
 
-		public SegmentIndex(int v1, int v2) {
+		SegmentIndex(int v1, int v2) {
 			set(v1, v2);
 		}
 
-		public void set(int v1, int v2) {
+		void set(int v1, int v2) {
 			this.v1 = v1;
 			this.v2 = v2;
 		}
 
-		public void setReverse(int v1, int v2) {
+		void setReverse(int v1, int v2) {
 			set(v2, v1);
 		}
 
-		public int getV1() {
+		int getV1() {
 			return v1;
 		}
 
-		public int getV2() {
+		int getV2() {
 			return v2;
 		}
 

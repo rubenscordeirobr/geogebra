@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel;
 
 import java.util.HashSet;
@@ -100,10 +116,10 @@ public class ScheduledPreviewFromInputBar implements Runnable {
 
 			if (kernel.getSymbolicMode() == SymbolicMode.SYMBOLIC_AV
 					&& ve.any(Inspecting::isVectorDivision)) {
-				throw new MyError(kernel.getLocalization(), MyError.Errors.IllegalDivision);
-			}
-
-			if (ve != null) {
+				MyError err = new MyError(kernel.getLocalization(), MyError.Errors.IllegalDivision);
+				ErrorHelper.handleError(err, null, kernel.getLocalization(),
+						validation);
+			} else if (ve != null) {
 				validInput = input;
 			}
 		} catch (MyError t) {

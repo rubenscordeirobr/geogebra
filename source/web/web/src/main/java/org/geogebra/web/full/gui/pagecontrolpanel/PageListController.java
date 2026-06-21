@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.pagecontrolpanel;
 
 import java.util.ArrayList;
@@ -28,9 +44,9 @@ import org.geogebra.common.plugin.EventType;
 import org.geogebra.common.util.StringUtil;
 import org.geogebra.common.util.debug.Log;
 import org.geogebra.gwtutil.NavigatorUtil;
+import org.geogebra.web.awt.GGraphics2DW;
 import org.geogebra.web.full.gui.pagecontrolpanel.DragController.Cards;
 import org.geogebra.web.full.main.AppWFull;
-import org.geogebra.web.html5.awt.GGraphics2DW;
 import org.geogebra.web.html5.euclidian.EuclidianViewW;
 import org.geogebra.web.html5.euclidian.EuclidianViewWInterface;
 import org.geogebra.web.html5.export.Canvas2Pdf;
@@ -64,7 +80,6 @@ import com.google.gwt.core.client.Scheduler;
 
 import elemental2.dom.DomGlobal;
 import jsinterop.base.Any;
-import jsinterop.base.Js;
 import jsinterop.base.JsPropertyMap;
 
 /**
@@ -211,7 +226,6 @@ public class PageListController implements PageListControllerInterface,
 		int width = (int) Math.floor(ev1.getExportWidth() * scale);
 		int height = (int) Math.floor(ev1.getExportHeight() * scale);
 
-		int currentIndex = selectedCard.getPageIndex();
 		savePreviewCard(selectedCard);
 
 		Canvas2Pdf.PdfContext ctx = PDFEncoderW.getContext(width, height,
@@ -228,7 +242,7 @@ public class PageListController implements PageListControllerInterface,
 		GGraphics2DW pdfGraphics = new GGraphics2DW(ctx);
 
 		this.exportedPages = 0;
-
+		int currentIndex = selectedCard.getPageIndex();
 		app.registerOpenFileListener(() -> {
 			int n = slides.size();
 			if (exportedPages == n) {
@@ -599,9 +613,9 @@ public class PageListController implements PageListControllerInterface,
 	}
 
 	@Override
-	public void handlePageAction(String eventType, String pageId, Object appState) {
+	public void handlePageAction(String eventType, String pageId, JsPropertyMap<?> appState) {
 		refreshSlide(selectedCard);
-		JsPropertyMap<?> args = appState == null ? JsPropertyMap.of() : Js.asPropertyMap(appState);
+		JsPropertyMap<?> args = appState == null ? JsPropertyMap.of() : appState;
 		switch (eventType) {
 		case "addPage":
 			PagePreviewCard card = addNewPreviewCard(getSlideCount(),
@@ -813,7 +827,7 @@ public class PageListController implements PageListControllerInterface,
 	}
 
 	@Override
-	public boolean executeAction(ActionType action,  String... args) {
+	public boolean executeAction(ActionType action, String... args) {
 		switch (action) {
 		case ADD_PAGE:
 			executeAddSlideAction(args);

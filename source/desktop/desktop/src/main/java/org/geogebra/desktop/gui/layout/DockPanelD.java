@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.layout;
 
 import java.awt.BorderLayout;
@@ -23,7 +39,7 @@ import java.util.Comparator;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -360,7 +376,7 @@ public abstract class DockPanelD extends JPanel implements ActionListener,
 	 *         will return the empty icon or null for Win Vista / 7 to prevent
 	 *         the "checkbox bug"
 	 */
-	public ImageIcon getIcon() {
+	public Icon getIcon() {
 		if (AppD.WINDOWS) {
 			return null;
 		}
@@ -836,7 +852,7 @@ public abstract class DockPanelD extends JPanel implements ActionListener,
 
 		titlePanel.setVisible(app.getSettings().getLayout().showTitleBar()
 				&& !(isAlone && !isMaximized())
-				&& (!isOpenInFrame()));
+				&& !isOpenInFrame());
 
 		// update stylebar visibility
 		setShowStyleBar(isStyleBarVisible());

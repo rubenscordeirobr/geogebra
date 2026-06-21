@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.dialog.options.model;
 
 import java.util.List;
@@ -72,7 +88,7 @@ public class ConicEqnModel extends MultipleOptionsModel {
 	public void updateProperties() {
 		// check if all conics have same type and mode
 		// and if specific, explicit is possible
-		GeoQuadricND temp, geo0 = getConicAt(0);
+		GeoQuadricND geo0 = getConicAt(0);
 		boolean equalType = true;
 		boolean equalMode = true;
 		boolean specificPossible = geo0.isSpecificFormPossible();
@@ -81,7 +97,7 @@ public class ConicEqnModel extends MultipleOptionsModel {
 		boolean vertexformPossible = geo0.isVertexFormPossible();
 		boolean conicformPossible = geo0.isConicFormPossible();
 		for (int i = 1; i < getGeosLength(); i++) {
-			temp = getConicAt(i);
+			GeoQuadricND temp = getConicAt(i);
 			// same type?
 			if (geo0.getType() != temp.getType()) {
 				equalType = false;

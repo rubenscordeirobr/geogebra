@@ -2,23 +2,26 @@
 
 //CHECKSTYLE:OFF
 
-/* 
- GeoGebra - Dynamic Mathematics for Everyone
- http://www.geogebra.org
-
- This file is part of GeoGebra.
- This code has been written initially for Scilab (http://www.scilab.org/).
-
- This program is free software; you can redistribute it and/or modify it 
- under the terms of the GNU General Public License as published by 
- the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
+// This code has been written initially for Scilab (http://www.scilab.org/).
 
 package org.geogebra.desktop.gui.editor;
 
 import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 import javax.swing.text.Document;
@@ -144,11 +147,18 @@ public final class MatchingBlockScanner {
 	private int start;
 	private int end;
 
+	/**
+	 * @param doc document
+	 */
 	public MatchingBlockScanner(Document doc) {
 		this.doc = doc;
 		this.elem = doc.getDefaultRootElement();
 	}
 
+	/**
+	 * @param pos position
+	 * @return matching positions
+	 */
 	public MatchingPositions getMatchingBlock(int pos, boolean lr) {
 		int p1, s = 1;
 		try {
@@ -230,10 +240,8 @@ public final class MatchingBlockScanner {
 	 * 
 	 * @param in
 	 *            the java.io.Inputstream to read input from.
-	 * @throws UnsupportedEncodingException
 	 */
-	public MatchingBlockScanner(java.io.InputStream in)
-			throws UnsupportedEncodingException {
+	public MatchingBlockScanner(java.io.InputStream in) {
 		this(new java.io.InputStreamReader(in, StandardCharsets.UTF_8));
 	}
 
@@ -345,6 +353,7 @@ public final class MatchingBlockScanner {
 
 	/**
 	 * Returns the current lexical state.
+	 * @return current state
 	 */
 	public final int yystate() {
 		return zzLexicalState;
@@ -362,6 +371,7 @@ public final class MatchingBlockScanner {
 
 	/**
 	 * Returns the text matched by the current regular expression.
+	 * @return matched text
 	 */
 	public final String yytext() {
 		return new String(zzBuffer, zzStartRead, zzMarkedPos - zzStartRead);
@@ -384,6 +394,7 @@ public final class MatchingBlockScanner {
 
 	/**
 	 * Returns the length of the matched text region.
+	 * @return length
 	 */
 	public final int yylength() {
 		return zzMarkedPos - zzStartRead;

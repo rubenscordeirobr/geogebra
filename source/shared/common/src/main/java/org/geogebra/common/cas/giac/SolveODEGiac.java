@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.cas.giac;
 
 import static org.geogebra.common.cas.giac.GiacMacro.last;
@@ -18,13 +34,13 @@ public class SolveODEGiac {
 						// case the equation contains only y and other variable
 						// as x,by default use for variable list y,x
 						// #5099
-						 when(
-						 "size(lname(%0) intersect [x])==0&&size(lname(%0) intersect [y])==1&&size(lname(%0) minus [y])>0",
-						 "normal(map(desolve(%0,x,y),x->y=x))",
-						 "normal(map(desolve(%0),x->y=x))"),
+						when(
+						"size(lname(%0) intersect [x])==0&&size(lname(quote(%0)) intersect [y])>0&&size(lname(quote(%0)) minus [y])>0",
+						"normal(map(desolve(%0,x,y),x->y=x))",
+						"normal(map(desolve(%0),x->y=x))"),
 						// add y'= if it's missing
-						 "normal(map(desolve(y'=%0),x->y=x))") + "],",
-						 "when(length(solveodeans)==1,solveodeans[0],solveodeans)"));
+						"normal(map(desolve(y'=%0),x->y=x))") + "],",
+						"when(length(solveodeans)==1,solveodeans[0],solveodeans)"));
 		// goes through 1 point
 		// SolveODE[y''=x,(1,1)]
 		// goes through 1 point,y'= missing

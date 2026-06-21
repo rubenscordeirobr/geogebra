@@ -1,13 +1,17 @@
-/* 
- GeoGebra - Dynamic Mathematics for Everyone
- http://www.geogebra.org
-
- This file is part of GeoGebra.
-
- This program is free software; you can redistribute it and/or modify it 
- under the terms of the GNU General Public License as published by 
- the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.cas;
@@ -40,13 +44,13 @@ import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.geos.GeoSymbolicI;
 import org.geogebra.common.kernel.parser.ParseException;
 import org.geogebra.common.kernel.parser.Parser;
+import org.geogebra.common.kernel.parser.TokenMgrException;
 import org.geogebra.common.kernel.parser.function.ParserFunctions;
 import org.geogebra.common.main.App;
 import org.geogebra.common.main.BracketsError;
 import org.geogebra.common.util.StringUtil;
 import org.geogebra.common.util.debug.Log;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * Handles parsing and evaluating of input in the CAS view.
@@ -222,10 +226,12 @@ public class CASparser implements CASParserInterface {
 	public ValidExpression parseGiac(String exp) throws CASException {
 		try {
 			return parser.parseGiac(exp);
-		} catch (Throwable t) {
-			Log.debug(t.getStackTrace());
-			return new MyDouble(parser.getKernel(), Double.NaN);
+		} catch (TokenMgrException | ParseException ex) {
+			Log.debug("Problem parsing " + exp +  ": " + ex.getMessage());
+		} catch (RuntimeException t) {
+			Log.debug(t);
 		}
+		return new MyDouble(parser.getKernel(), Double.NaN);
 	}
 
 	/**
@@ -240,16 +246,16 @@ public class CASparser implements CASParserInterface {
 
 	/**
 	 * Converts all index characters ('_', '{', '}') in the given String to
-	 * "unicode" + charactercode + DELIMITER Strings. This is needed so that
+	 * {@code "unicode" + charactercode + DELIMITER} Strings. This is needed so that
 	 * labels like a_{12} are preserved
 	 * 
 	 * @param str
 	 *            input string with _,{,}
 	 * @param replaceUnicode
-	 *            whether unicode characters need to be encoded
+	 *            whether Unicode characters need to be encoded
 	 * @return string where _,{,} are replaced
 	 */
-	public synchronized String replaceIndices(String str,
+	public static synchronized String replaceIndices(String str,
 			boolean replaceUnicode) {
 		int len = str.length();
 		StringBuilder replaceIndices = new StringBuilder();
@@ -266,11 +272,10 @@ public class CASparser implements CASParserInterface {
 						// \\_ is translated to _
 						replaceIndices
 								.deleteCharAt(replaceIndices.length() - 1);
-						replaceIndices.append('_');
 					} else {
 						state = FA.UNDERSCORE;
-						appendcode(replaceIndices, '_');
 					}
+					replaceIndices.append('_');
 				} else if (c == Unicode.EULER_CHAR) {
 					replaceIndices.append('e');
 				} else if (replaceUnicode && c > 127
@@ -288,26 +293,36 @@ public class CASparser implements CASParserInterface {
 
 			case UNDERSCORE:
 				if (c == '{') {
+					if (str.length() > i + 2 && str.charAt(i + 2) == '}') {
+						appendCharTo(replaceIndices, str.charAt(i + 1));
+						i += 2;
+						state = FA.NORMAL;
+						continue;
+					}
 					state = FA.LONG_INDEX;
 				} else {
 					state = FA.NORMAL;
 				}
-				appendcode(replaceIndices, c);
+				appendCharTo(replaceIndices, c);
 				break;
 
 			case LONG_INDEX:
 				if (c == '}') {
 					state = FA.NORMAL;
 				}
-				appendcode(replaceIndices, c);
+				appendCharTo(replaceIndices, c);
 				break;
 			}
 		}
-
-		// Log.debug(insertSpecialChars(replaceIndices.toString())+"
-		// "+replaceIndices.toString());
-
 		return replaceIndices.toString();
+	}
+
+	private static void appendCharTo(StringBuilder replaceIndices, char c) {
+		if ('0' <= c && c <= '9' || 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z') {
+			replaceIndices.append(c);
+		} else {
+			appendcode(replaceIndices, c);
+		}
 	}
 
 	private static void appendcode(StringBuilder replaceIndices, int code) {
@@ -419,8 +434,7 @@ public class CASparser implements CASParserInterface {
 	public String translateToCAS(ValidExpression ve,
 			StringTemplate casStringType, CASGenericInterface cas) {
 
-			boolean deriveWithoutSurds = ve.getTopLevelCommand() != null
-					&& ve.getTopLevelCommand().getName().equals("Solve");
+		boolean deriveWithoutSurds = ve.isTopLevelCommand("Solve");
 
 		return ve.wrap().getCASstring(deriveWithoutSurds
 					? casStringType.deriveWithoutSurds() : casStringType, false);

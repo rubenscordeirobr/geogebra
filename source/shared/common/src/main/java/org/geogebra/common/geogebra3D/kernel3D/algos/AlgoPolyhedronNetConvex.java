@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.kernel3D.algos;
 
 import java.util.ArrayList;
@@ -108,13 +124,10 @@ public class AlgoPolyhedronNetConvex extends AlgoElement3D {
 		}
 
 		outputNet = new OutputHandler<>(
-				new ElementFactory<GeoPolyhedronNet>() {
-					@Override
-					public GeoPolyhedronNet newElement() {
-						GeoPolyhedronNet p1 = new GeoPolyhedronNet(cons);
-						p1.setParentAlgorithm(AlgoPolyhedronNetConvex.this);
-						return p1;
-					}
+				() -> {
+					GeoPolyhedronNet p1 = new GeoPolyhedronNet(cons);
+					p1.setParentAlgorithm(this);
+					return p1;
 				});
 
 		outputNet.adjustOutputSize(1);
@@ -448,17 +461,14 @@ public class AlgoPolyhedronNetConvex extends AlgoElement3D {
 	}
 
 	private OutputHandler<GeoPoint3D> createOutputPoints() {
-		return new OutputHandler<>(new ElementFactory<GeoPoint3D>() {
-			@Override
-			public GeoPoint3D newElement() {
-				GeoPoint3D p1 = new GeoPoint3D(cons);
-				p1.setCoords(0, 0, 0, 1);
-				p1.setParentAlgorithm(AlgoPolyhedronNetConvex.this);
-				getNet().addPointCreated(p1);
-				p1.setLabelVisible(false);
-				p1.setAuxiliaryObject(Auxiliary.YES_DEFAULT);
-				return p1;
-			}
+		return new OutputHandler<>(() -> {
+			GeoPoint3D p1 = new GeoPoint3D(cons);
+			p1.setCoords(0, 0, 0, 1);
+			p1.setParentAlgorithm(this);
+			getNet().addPointCreated(p1);
+			p1.setLabelVisible(false);
+			p1.setAuxiliaryObject(Auxiliary.YES_DEFAULT);
+			return p1;
 		});
 	}
 
@@ -643,25 +653,19 @@ public class AlgoPolyhedronNetConvex extends AlgoElement3D {
 
 	private OutputHandler<GeoSegment3D> createOutputSegments() {
 		return new OutputHandler<>(
-				new ElementFactory<GeoSegment3D>() {
-					@Override
-					public GeoSegment3D newElement() {
-						GeoSegment3D s = new GeoSegment3D(cons);
-						s.setAuxiliaryObject(Auxiliary.YES_DEFAULT);
-						return s;
-					}
+				() -> {
+					GeoSegment3D s = new GeoSegment3D(cons);
+					s.setAuxiliaryObject(Auxiliary.YES_DEFAULT);
+					return s;
 				});
 	}
 
 	private OutputHandler<GeoPolygon3D> createOutputPolygons() {
 		return new OutputHandler<>(
-				new ElementFactory<GeoPolygon3D>() {
-					@Override
-					public GeoPolygon3D newElement() {
-						GeoPolygon3D p1 = new GeoPolygon3D(cons);
-						p1.setAuxiliaryObject(Auxiliary.YES_DEFAULT);
-						return p1;
-					}
+				() -> {
+					GeoPolygon3D p1 = new GeoPolygon3D(cons);
+					p1.setAuxiliaryObject(Auxiliary.YES_DEFAULT);
+					return p1;
 				});
 	}
 
@@ -691,7 +695,7 @@ public class AlgoPolyhedronNetConvex extends AlgoElement3D {
 	 *            polygon
 	 * @return 3D coords of all points
 	 */
-	protected static final Coords[] getPointsCoords(GeoPolygon polygon) {
+	protected static Coords[] getPointsCoords(GeoPolygon polygon) {
 		int l = polygon.getPointsLength();
 		Coords[] points = new Coords[l];
 		for (int i = 0; i < l; i++) {

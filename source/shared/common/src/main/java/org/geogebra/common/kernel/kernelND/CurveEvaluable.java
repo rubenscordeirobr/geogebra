@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.kernelND;
 
 import org.geogebra.common.kernel.geos.GeoElement;
@@ -17,7 +33,7 @@ public interface CurveEvaluable {
 	 * 
 	 * @return minimum parameter value for this path
 	 */
-	public double getMinParameter();
+	double getMinParameter();
 
 	/**
 	 * Returns the largest possible parameter value for this path (may be
@@ -25,14 +41,14 @@ public interface CurveEvaluable {
 	 * 
 	 * @return maximum parameter value for this path
 	 */
-	public double getMaxParameter();
+	double getMaxParameter();
 
 	/**
 	 * create new double[] to store point coords
 	 * 
 	 * @return new double[] with correct dimension
 	 */
-	public double[] newDoubleArray();
+	double[] newDoubleArray();
 
 	/**
 	 * 
@@ -42,7 +58,7 @@ public interface CurveEvaluable {
 	 *            second point
 	 * @return max abs distance between points coords
 	 */
-	public double distanceMax(double[] p1, double[] p2);
+	double distanceMax(double[] p1, double[] p2);
 
 	/**
 	 * Evaluates the curve for given parameter value
@@ -62,27 +78,27 @@ public interface CurveEvaluable {
 	 * @return an interval within [a, b] where the curve is defined.
 	 * 
 	 */
-	public double[] getDefinedInterval(double a, double b);
+	double[] getDefinedInterval(double a, double b);
 
 	/**
 	 * @return whether this curve is tracing
 	 */
-	public boolean getTrace();
+	boolean getTrace();
 
 	/**
 	 * @return whether this curve is closed
 	 */
-	public boolean isClosedPath();
+	boolean isClosedPath();
 
 	/**
 	 * @return whether this is a function of x
 	 */
-	public boolean isFunctionInX();
+	boolean isFunctionInX();
 
 	/**
 	 * @return cast to geo OR cast parent to geo
 	 */
-	public GeoElement toGeoElement();
+	GeoElement toGeoElement();
 
 	default double getMinDistX() {
 		return 0;

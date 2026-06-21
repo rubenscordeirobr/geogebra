@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian;
 
 import static org.junit.Assert.assertEquals;
@@ -12,25 +28,20 @@ import org.geogebra.common.jre.headless.AppCommon;
 import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.geos.GeoImage;
-import org.geogebra.common.main.settings.config.AppConfigDefault;
+import org.geogebra.common.kernel.kernelND.GeoElementND;
 import org.geogebra.common.plugin.EuclidianStyleConstants;
+import org.geogebra.test.BaseAppTestSetup;
 import org.geogebra.test.TestEvent;
-import org.junit.Before;
 
-public class BaseEuclidianControllerTest extends BaseUnitTest {
+public class BaseEuclidianControllerTest extends BaseAppTestSetup {
 
 	protected EuclidianController ec;
-
-	@Override
-	public AppCommon createAppCommon() {
-		return AppCommonFactory.create3D(new AppConfigDefault());
-	}
 
 	/**
 	 * Set up the controller
 	 */
-	@Before
 	public void setUpController() {
+		setupClassicApp();
 		ec = getApp().getActiveEuclidianView().getEuclidianController();
 		reset();
 	}
@@ -185,6 +196,15 @@ public class BaseEuclidianControllerTest extends BaseUnitTest {
 		GeoImage img = new GeoImage(getApp().getKernel().getConstruction());
 		img.setImageFileName("foo.png", 50, 50);
 		return img;
+	}
+
+	protected <T extends GeoElement> T add(String input) {
+		GeoElementND[] evaluate = evaluate(input);
+		return evaluate.length > 0 ? (T) evaluate[0] : null;
+	}
+
+	protected Drawable getDrawable(GeoElement geo) {
+		return (Drawable) getApp().getActiveEuclidianView().getDrawableND(geo);
 	}
 
 }

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.color;
 
 import java.awt.Color;
@@ -24,7 +40,7 @@ public class GeoGebraColorChooser extends JColorChooser implements SetLabels {
 
 	private static final long serialVersionUID = 1L;
 
-	private AppD app;
+	private final AppD app;
 
 	/**
 	 * @param app application
@@ -81,10 +97,9 @@ public class GeoGebraColorChooser extends JColorChooser implements SetLabels {
 		UIManager.put("ColorChooser.resetText", loc.getMenu("Reset"));
 
 		AbstractColorChooserPanel[] panels = getChooserPanels();
-		for (int i = 0; i < panels.length; i++) {
-			AbstractColorChooserPanel panel = panels[i];
-			if (panel instanceof GeoGebraColorChooserPanel) {
-				((GeoGebraColorChooserPanel) panel).setLabels();
+		for (AbstractColorChooserPanel panel : panels) {
+			if (panel instanceof GeoGebraColorChooserPanel swatchPanel) {
+				swatchPanel.setLabels();
 			}
 		}
 	}
@@ -94,10 +109,9 @@ public class GeoGebraColorChooser extends JColorChooser implements SetLabels {
 	 */
 	public void updateFonts() {
 		AbstractColorChooserPanel[] panels = getChooserPanels();
-		for (int i = 0; i < panels.length; i++) {
-			AbstractColorChooserPanel panel = panels[i];
-			if (panel instanceof GeoGebraColorChooserPanel) {
-				((GeoGebraColorChooserPanel) panel).updateFonts();
+		for (AbstractColorChooserPanel panel : panels) {
+			if (panel instanceof GeoGebraColorChooserPanel swatchPanel) {
+				swatchPanel.updateFonts();
 			}
 		}
 	}

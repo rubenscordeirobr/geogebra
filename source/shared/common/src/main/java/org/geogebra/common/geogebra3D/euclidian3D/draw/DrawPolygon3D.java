@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.draw;
 
 import java.util.ArrayList;
@@ -257,7 +273,7 @@ public class DrawPolygon3D extends Drawable3DSurfaces implements Previewable {
 	 * @param verticesLength
 	 *            vertices length (may not equal vertices.length due to cache)
 	 */
-	static final public void drawPolygon(Renderer renderer, GeoPolygon polygon,
+	static public void drawPolygon(Renderer renderer, GeoPolygon polygon,
 			Coords[] vertices, int verticesLength) {
 
 		Coords n = polygon.getMainDirection();
@@ -299,7 +315,7 @@ public class DrawPolygon3D extends Drawable3DSurfaces implements Previewable {
 		}
 	}
 
-	static final private void drawConvex(Renderer renderer, GeoPolygon polygon,
+	static private void drawConvex(Renderer renderer, GeoPolygon polygon,
 			Coords n, Coords[] vertices, int verticesLength,
 			Convexity convexity) {
 		boolean reverse = polygon.getReverseNormalForDrawing()
@@ -309,7 +325,7 @@ public class DrawPolygon3D extends Drawable3DSurfaces implements Previewable {
 				verticesLength, reverse);
 	}
 
-	static final private void drawFans(Renderer renderer, GeoPolygon polygon,
+	static private void drawFans(Renderer renderer, GeoPolygon polygon,
 			Coords n, Coords[] vertices, int verticesLength) {
 
 		PolygonTriangulation pt = polygon.getPolygonTriangulation();
@@ -442,7 +458,6 @@ public class DrawPolygon3D extends Drawable3DSurfaces implements Previewable {
 			return;
 		}
 
-		int index;
 		Iterator<ArrayList<GeoPointND>> spi = segmentsPoints.iterator();
 		Iterator<GeoPointND> i = selectedPoints.iterator();
 		GeoPointND point = null; // current point of the selected points
@@ -498,9 +513,9 @@ public class DrawPolygon3D extends Drawable3DSurfaces implements Previewable {
 
 		GeoPointND[] points = new GeoPointND[selectedPoints.size() + 1];
 
-		index = 0;
-		for (Iterator<GeoPointND> p = selectedPoints.iterator(); p.hasNext();) {
-			points[index] = p.next();
+		int index = 0;
+		for (GeoPointND selectedPoint : selectedPoints) {
+			points[index] = selectedPoint;
 			index++;
 		}
 

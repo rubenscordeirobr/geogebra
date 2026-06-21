@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.implicit;
 
 import java.util.Arrays;
@@ -20,7 +36,7 @@ class ImplicitCurveMarchingRect implements MarchingRect {
 	boolean singular;
 	Coords coords = new Coords(3);
 
-	public ImplicitCurveMarchingRect(int x, int y, double fx, double fy, boolean singular) {
+	ImplicitCurveMarchingRect(int x, int y, double fx, double fy, boolean singular) {
 		this.x = x;
 		this.y = y;
 		this.fx = fx;
@@ -29,7 +45,7 @@ class ImplicitCurveMarchingRect implements MarchingRect {
 		this.shares = 0;
 	}
 
-	public ImplicitCurveMarchingRect[] split(GeoImplicitCurve geoImplicitCurve, int factor) {
+	ImplicitCurveMarchingRect[] split(GeoImplicitCurve geoImplicitCurve, int factor) {
 		double fx2 = fx * 0.5;
 		double fy2 = fy * 0.5;
 		double x1 = this.coords.val[0];

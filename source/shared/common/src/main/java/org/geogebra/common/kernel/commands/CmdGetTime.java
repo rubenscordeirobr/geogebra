@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.commands;
 
 import java.util.Calendar;
@@ -117,23 +133,12 @@ public class CmdGetTime extends CommandProcessor {
 	@SuppressWarnings("deprecation")
 	private static void decode(Date cal, char c, StringBuilder sb,
 			Localization loc) {
-
-		// GeoNumeric mins1 = new GeoNumeric(cons, cal.getMinutes());
 		int d = cal.getDay() + 1;
-		// GeoNumeric day = new GeoNumeric(cons, d);
 		int m = cal.getMonth() + 1;
-		// GeoNumeric month1 = new GeoNumeric(cons, m);
-		// GeoNumeric year1 = new GeoNumeric(cons, cal.getYear() + 1900);
-		// GeoNumeric secs1 = new GeoNumeric(cons, cal.getSeconds());
-		// GeoNumeric hours1 = new GeoNumeric(cons, cal.getHours());
-		// GeoNumeric date1 = new GeoNumeric(cons, cal.getDate());
-		// GeoNumeric ms1 = new GeoNumeric(cons, cal.getTime() % 1000);
 		int date = cal.getDate();
 		int month = cal.getMonth();
 		int year = cal.getYear() + 1900;
 		int hours = cal.getHours();
-		int mins = cal.getMinutes();
-		int secs = cal.getSeconds();
 		int yearday = 0;
 		String dayStr = loc == null ? "" : loc.getMenu("Day." + d);
 		String monthStr = loc == null ? "" : loc.getMenu("Month." + m);
@@ -288,6 +293,7 @@ public class CmdGetTime extends CommandProcessor {
 			}
 			break;
 		case 'i':
+			int mins = cal.getMinutes();
 			if (mins < 10) {
 				sb.append(0).append(mins);
 			} else {
@@ -295,6 +301,7 @@ public class CmdGetTime extends CommandProcessor {
 			}
 			break;
 		case 's':
+			int secs = cal.getSeconds();
 			if (secs < 10) {
 				sb.append(0).append(secs);
 			} else {

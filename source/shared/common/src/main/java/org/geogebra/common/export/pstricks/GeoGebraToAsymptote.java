@@ -1,9 +1,17 @@
 /*
-This file is part of GeoGebra.
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.export.pstricks;
@@ -16,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GAffineTransform;
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.awt.GFont;
@@ -24,7 +33,6 @@ import org.geogebra.common.awt.GShape;
 import org.geogebra.common.euclidian.DrawableND;
 import org.geogebra.common.euclidian.draw.DrawPoint;
 import org.geogebra.common.export.UnicodeTeX;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.MyPoint;
 import org.geogebra.common.kernel.StringTemplate;
@@ -71,9 +79,8 @@ import org.geogebra.common.main.App;
 import org.geogebra.common.plugin.EuclidianStyleConstants;
 import org.geogebra.common.util.StringUtil;
 import org.geogebra.common.util.debug.Log;
-
-import com.himamis.retex.editor.share.util.Greek;
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Greek;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * @author Andy Zhu
@@ -353,9 +360,7 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 		double height = algo.getB().getDouble();
 		double[] lf = algo.getLeftBorders();
 		double min = lf[0];
-		double q1 = lf[1];
 		double med = lf[2];
-		double q3 = lf[3];
 		double max = lf[4];
 
 		// Min vertical bar
@@ -365,6 +370,8 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 		// Med vertical bar
 		drawLine(med, y - height, med, y + height, geo);
 		// Min-q1 horizontal
+		double q1 = lf[1];
+		double q3 = lf[3];
 		drawLine(min, y, q1, y, geo);
 		// q3-max
 		drawLine(q3, y, max, y, geo);
@@ -389,7 +396,7 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 			codeFilledObject.append(",0) -- (");
 			codeFilledObject.append(format(x[0] + width / 2));
 			codeFilledObject.append(",");
-			codeFilledObject.append(format(y[0]) + ")");
+			codeFilledObject.append(format(y[0])).append(")");
 			endTransparentFill(g, codeFilledObject);
 			for (int i = 0; i < length - 1; i++) {
 				startTransparentFill(codeFilledObject);
@@ -814,8 +821,6 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 
 			// draw the [circular?] dot if right angle and decoration is dot
 			if (drawAngleAs(geo, EuclidianStyleConstants.RIGHT_ANGLE_STYLE_DOT)) {
-				double diameter = geo.getLineThickness()
-						/ euclidianView.getXscale();
 				double radius = arcSize / euclidianView.getXscale() / 1.7;
 				double labelAngle = (angSt + angExt) / 2.0;
 				double x1 = m[0] + radius * Math.cos(labelAngle);
@@ -829,6 +834,8 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 				}
 				addPoint(format(x1), format(x2), code);
 				code.append(",");
+				double diameter = geo.getLineThickness()
+						/ euclidianView.getXscale();
 				code.append(format(diameter));
 				code.append(")");
 				endDraw(geo);
@@ -857,9 +864,9 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 		double angEnd = angEnd0 - angle;
 		code.append(format(Math.toDegrees(angEnd)));
 		code.append(")");
-		if (lineOptionCode(geo, true) != null) {
+		if (lineOptionCode(geo) != null) {
 			packSpaceAfter(code, ",");
-			code.append(lineOptionCode(geo, true));
+			code.append(lineOptionCode(geo));
 		} // TODO: resize?
 		if (anticlockwise) {
 			code.append(",EndArcArrow(6)");
@@ -911,9 +918,6 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 	@Override
 	protected void drawSlider(GeoNumeric geo) {
 		boolean horizontal = geo.isSliderHorizontal();
-		double max = geo.getIntervalMax();
-		double min = geo.getIntervalMin();
-		double value = geo.getValue();
 		double width = geo.getSliderWidth();
 		double x = geo.getSliderX();
 		double y = geo.getSliderY();
@@ -931,6 +935,9 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 		String label = StringUtil.toLaTeXString(geo.getLabelDescription(),
 				true);
 		geoPoint.setLabel(label);
+		double max = geo.getIntervalMax();
+		double min = geo.getIntervalMin();
+		double value = geo.getValue();
 		double param = (value - min) / (max - min);
 		geoPoint.setPointSize(2 + (geo.getLineThickness() + 1) / 3);
 		geoPoint.setLabelVisible(geo.isLabelVisible());
@@ -1000,9 +1007,6 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 				codePreamble.append("usepackage(\"eurosym\"); ");
 			}
 		}
-		GColor geocolor = geo.getObjectColor();
-		int style = geo.getFontStyle();
-		int size = (int) (geo.getFontSizeMultiplier() * getApp().getFontSize());
 		GeoPointND gp;
 		double x, y;
 		// compute location of text
@@ -1029,7 +1033,9 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 				.toRealWorldCoordY(y - euclidianView.getFont().getSize());
 		int id = st.indexOf("\n");
 		boolean comma = false;
-
+		GColor geocolor = geo.getObjectColor();
+		int style = geo.getFontStyle();
+		double size = geo.getFontSize(getApp().getFontSizeDouble());
 		// One line
 		if (id == -1 || isLatex) {
 			if (!compact) {
@@ -1050,14 +1056,14 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 				comma = true;
 				colorCode(geocolor, code);
 			}
-			if (size != getApp().getFontSize()) { // fontsize
+			if (size != getApp().getFontSizeDouble()) { // fontsize
 				if (!comma) {
 					code.append(",");
 				} else {
 					packSpace(code, "+");
 				}
 				code.append("fontsize(");
-				code.append(fontsize + size - getApp().getFontSize());
+				code.append(fontsize + size - getApp().getFontSizeDouble());
 				code.append(")");
 			} else if (compactcse5) { // use default font pen for cse5
 				if (!comma) {
@@ -1099,14 +1105,14 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 				comma = true;
 				colorCode(geocolor, code);
 			}
-			if (size != getApp().getFontSize()) { // fontsize
+			if (size != getApp().getFontSizeDouble()) { // fontsize
 				if (!comma) {
 					code.append(",");
 				} else {
 					packSpace(code, "+");
 				}
 				code.append("fontsize(");
-				code.append(fontsize + size - getApp().getFontSize());
+				code.append(fontsize + size - getApp().getFontSizeDouble());
 				code.append(")");
 			} else if (compactcse5) { // use default font pen for cse5
 				if (!comma) {
@@ -1123,21 +1129,20 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 	@Override
 	protected void drawGeoConicPart(GeoConicPart geo) {
 		StringBuilder tempsb = new StringBuilder();
-		double r1 = geo.getHalfAxes()[0], r2 = geo.getHalfAxes()[1];
-		double startAngle = geo.getParameterStart();
 		double endAngle = geo.getParameterEnd();
 		// Get all coefficients form the transform matrix
 		GAffineTransform af = geo.getAffineTransform();
+		double startAngle = geo.getParameterStart();
+		if (startAngle > endAngle) {
+			startAngle -= Math.PI * 2;
+		}
 		double m11 = af.getScaleX();
 		double m22 = af.getScaleY();
 		double m12 = af.getShearX();
 		double m21 = af.getShearY();
 		double tx = af.getTranslateX();
 		double ty = af.getTranslateY();
-
-		if (startAngle > endAngle) {
-			startAngle -= Math.PI * 2;
-		}
+		double r1 = geo.getHalfAxes()[0], r2 = geo.getHalfAxes()[1];
 		// Fill if: SECTOR and fill type not set to FILL_NONE
 		if (m11 == 1 && m22 == 1 && m12 == 0 && m21 == 0) {
 			if (geo.getConicPartType() == GeoConicNDConstants.CONIC_PART_SECTOR
@@ -1444,12 +1449,12 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 		addPoint(x1, y1, code);
 		code.append("--");
 		addPoint(x2, y2, code);
-		if (lineOptionCode(geo, true) != null) {
+		if (lineOptionCode(geo) != null) {
 			code.append(",");
 			if (!compact) {
 				code.append(" ");
 			}
-			code.append(lineOptionCode(geo, true));
+			code.append(lineOptionCode(geo));
 		}
 		code.append(",EndArrow(6)); ");
 	}
@@ -1774,24 +1779,21 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 	 *            GeoPoint with style not equal to the standard dot style.
 	 */
 	protected void drawSpecialPoint(GeoPointND geo) {
-		// radius = dotsize (pt) * (2.54 cm)/(72 pt per inch) * XUnit / cm
-		double dotsize = geo.getPointSize();
-		double radius = dotsize * (2.54 / 72) * frame.getXUnit();
-		int dotstyle = geo.getPointStyle();
-		if (dotstyle == -1) { // default
-			dotstyle = EuclidianStyleConstants.POINT_STYLE_DOT;
-		}
 		double[] A = new double[3];
-
 		geo.getInhomCoords(A);
-
 		if (A[2] != 0) {
 			Log.error("can't export 3D Point" + geo.getLabelSimple());
 			return;
 		}
-
+		double dotsize = geo.getPointSize();
+		int dotstyle = geo.getPointStyle();
+		if (dotstyle == -1) { // default
+			dotstyle = EuclidianStyleConstants.POINT_STYLE_DOT;
+		}
 		double x = A[0];
 		double y = A[1];
+		// radius = dotsize (pt) * (2.54 cm)/(72 pt per inch) * XUnit / cm
+		double radius = dotsize * (2.54 / 72) * frame.getXUnit();
 		GColor dotcolor = geo.getObjectColor();
 
 		switch (dotstyle) {
@@ -2015,9 +2017,6 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 	@Override
 	protected void drawGeoRay(GeoRayND geo) {
 		GeoPointND pointStart = geo.getStartPoint();
-		double x1 = pointStart.getInhomX();
-		String y1 = format(pointStart.getInhomY());
-
 		Coords equation = geo
 				.getCartesianEquationVector(euclidianView.getMatrix());
 
@@ -2029,6 +2028,8 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 		// String tmpy = format(y);
 		double inf = xmin, sup = xmax; // determine left and right bounds on x
 										// to draw ray
+		double x1 = pointStart.getInhomX();
+		String y1 = format(pointStart.getInhomY());
 		if (y > 0) {
 			inf = x1;
 			yEndpoint = (-z - x * inf) / y;
@@ -2161,9 +2162,9 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 		endDraw(geo, str);
 		String s = str.toString();
 		StringBuilder sb = new StringBuilder();
-		if (lineOptionCode(geo, true) != null) {
+		if (lineOptionCode(geo) != null) {
 			packSpaceAfter(sb, ",");
-			sb.append(lineOptionCode(geo, true));
+			sb.append(lineOptionCode(geo));
 		}
 		sb.append("); ");
 		StringBuilder sa = new StringBuilder();
@@ -2235,7 +2236,6 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 				format(ymax) + "; ");
 		if (!compact) {
 			codePreamble.append(" /* image dimensions */\n");
-		} else { /* codePreamble.append("\n"); */
 		}
 	}
 
@@ -2380,10 +2380,8 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 			// if(compactcse5) {
 			// codePoint.append(",fp");
 			// }
-			if (isPointLabel && !frame.getKeepDotColors()) {
-				// configurable or default black?
-				// temp empty
-			} else if (!geocolor.equals(GColor.BLACK)) {
+			if (!(isPointLabel && !frame.getKeepDotColors())
+					&& !geocolor.equals(GColor.BLACK)) {
 				if (compactcse5) {
 					codePoint.append(",fp+");
 				} else {
@@ -2532,33 +2530,31 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 	// xaxis/yaxis.
 	// note: may shift around relative positions of certain labels.
 	private void drawAxis() {
-		boolean xAxis = euclidianView.getShowXaxis();
-		boolean yAxis = euclidianView.getShowYaxis();
-		boolean bx = euclidianView.getShowAxesNumbers()[0];
-		boolean by = euclidianView.getShowAxesNumbers()[1];
-		String Dx = format(euclidianView.getAxesNumberingDistances()[0]);
-		String Dy = format(euclidianView.getAxesNumberingDistances()[1]);
 		String[] label = euclidianView.getAxesLabels(false);
-		String[] units = euclidianView.getAxesUnitLabels();
-		int axisStyle = euclidianView.getAxesLineStyle();
-		int[] tickStyle = euclidianView.getAxesTickStyles();
-		GColor axisColor = euclidianView.getAxesColor();
-		boolean axisBold = (axisStyle & 2) == EuclidianStyleConstants.AXES_BOLD;
-
 		String lx = "", ly = ""; // axis labels
 		if (label[0] != null) {
 			lx = "$" + StringUtil.toLaTeXString(label[0], true) + "$";
 		}
 		if (label[1] != null) {
 			ly = "$" + StringUtil.toLaTeXString(label[1], true) + "$";
-		/*
-		 * follow format: void xaxis(picture pic=currentpicture, Label L="",
-		 * axis axis=YZero, real xmin=-infinity, real xmax=infinity, pen
-		 * p=currentpen, ticks ticks=NoTicks, arrowbar arrow=None, bool
-		 * above=false);
-		 */
+			/*
+			 * follow format: void xaxis(picture pic=currentpicture, Label L="",
+			 * axis axis=YZero, real xmin=-infinity, real xmax=infinity, pen
+			 * p=currentpen, ticks ticks=NoTicks, arrowbar arrow=None, bool
+			 * above=false);
+			 */
 		}
-
+		final boolean xAxis = euclidianView.getShowXaxis();
+		final boolean yAxis = euclidianView.getShowYaxis();
+		final boolean bx = euclidianView.getShowAxesNumbers()[0];
+		final boolean by = euclidianView.getShowAxesNumbers()[1];
+		String Dx = format(euclidianView.getAxesNumberingDistances()[0]);
+		String Dy = format(euclidianView.getAxesNumberingDistances()[1]);
+		String[] units = euclidianView.getAxesUnitLabels();
+		int axisStyle = euclidianView.getAxesLineStyle();
+		int[] tickStyle = euclidianView.getAxesTickStyles();
+		GColor axisColor = euclidianView.getAxesColor();
+		boolean axisBold = (axisStyle & 2) == EuclidianStyleConstants.AXES_BOLD;
 		// Note: code for xaxis and yaxis duplicated twice.
 		// When making changes, be sure to update both.
 		if (xAxis || yAxis) {
@@ -2916,7 +2912,7 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 	}
 
 	// Line style code; does not include comma.
-	private String lineOptionCode(GeoElementND geo, boolean transparency) {
+	private String lineOptionCode(GeoElementND geo) {
 		StringBuilder sb = new StringBuilder();
 		int linethickness = geo.getLineThickness();
 		int linestyle = geo.getLineType();
@@ -2935,14 +2931,9 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 			packSpace(sb, "+");
 			colorCode(info.getLinecolor(), sb);
 		}
-		if (transparency && geo.isFillable() && info.getAlpha() > 0.0f) {
-			/*
-			 * TODO: write opacity code? if (!noPlus) packSpace("+",sb); else
-			 * noPlus = false; sb.append("fillcolor="); ColorCode(linecolor,sb);
-			 * sb.append(",fillstyle=solid,opacity=");
-			 * sb.append(geo.getAlphaValue());
-			 */
-		}
+		/*
+		 * TODO: write opacity code?
+		 */
 		return sb.toString();
 	}
 
@@ -3239,22 +3230,12 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 			}
 			break;
 		}
-		/*
-		 * if (!geocolor.equals(Color.BLACK)){ ColorCode2(geocolor,code);
-		 * code.append("{"); } // Colors moved to drawText()
-		 * 
-		 * if (size!=app.getFontSize()) { String formatFont=resizeFont(size); if
-		 * (null!=formatFont) code.append(formatFont); }
-		 */
 
 		// strip final '$'
 		code.append(st.substring(0, st.length() - 1));
 		if (!isLatex || st.charAt(st.length() - 1) != '$') {
 			code.append(st.charAt(st.length() - 1));
 		}
-
-		// if (size!=app.getFontSize()) code.append("}");
-		// if (!geocolor.equals(Color.BLACK)) code.append("}");
 
 		switch (style) {
 		default:
@@ -3401,9 +3382,9 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 		if (fillInequality) {
 			return;
 		}
-		if (lineOptionCode(geo, true) != null) {
+		if (lineOptionCode(geo) != null) {
 			packSpaceAfter(sb, ",");
-			sb.append(lineOptionCode(geo, true));
+			sb.append(lineOptionCode(geo));
 		}
 		sb.append("); ");
 	}
@@ -3459,9 +3440,9 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 			packSpaceAfter(sb, ",");
 			colorLightCode(info.getLinecolor(), info.getAlpha(), sb);
 		}
-		if (lineOptionCode(geo, true) != null) {
+		if (lineOptionCode(geo) != null) {
 			packSpaceAfter(sb, ",");
-			sb.append(lineOptionCode(geo, true));
+			sb.append(lineOptionCode(geo));
 		}
 		sb.append("); ");
 	}
@@ -3590,7 +3571,7 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 		// look up unicodeTable conversions and replace with LaTeX commands
 		while (it.hasNext()) {
 			char skey = it.next();
-			s1 = s1.replace(skey + "",
+			s1 = s1.replace(String.valueOf(skey),
 					"\\\\" + UnicodeTeX.getMap().get(skey) + " ");
 		}
 
@@ -3610,7 +3591,6 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 			if (s1.charAt(i - 1) == '\\'
 					&& (i == 1 || s1.charAt(i - 2) != '\\')) {
 				sb.append(s1.charAt(i));
-				continue;
 			} else if (s1.charAt(i) == '$') {
 				sb.append("\\$");
 			} else {
@@ -3703,7 +3683,7 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 			String latexName = "\\" + latexNameNoBackslash;
 
 			// temporary code: may be redundant, fail-safe
-			renameFunc(sb, greek.unicode + "", latexNameNoBackslash);
+			renameFunc(sb, String.valueOf(greek.unicode), latexNameNoBackslash);
 
 			renameFunc(sb, latexName, latexNameNoBackslash);
 		}
@@ -3769,7 +3749,7 @@ public class GeoGebraToAsymptote extends GeoGebraExport {
 				&& FillType.STANDARD == curves[0].getFillType()) {
 			return false;
 		}
-		String lineOptionCode = lineOptionCode(curves[0], true);
+		String lineOptionCode = lineOptionCode(curves[0]);
 		for (int i = 0; i < curves.length; i++) {
 			drawSingleCurveCartesian(curves[i], false);
 		}

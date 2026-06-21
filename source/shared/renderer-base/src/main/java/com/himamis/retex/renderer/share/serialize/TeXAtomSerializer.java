@@ -47,9 +47,8 @@ import com.himamis.retex.renderer.share.platform.FactoryProvider;
  *
  */
 public class TeXAtomSerializer {
-	public static final String DEGREE = "\u2218";
-	public static final String HYPERBOLICS = "sinh cosh tanh coth sech csch";
-	public static final String TRIGONOMETRICS = "sin cos tan cot sec csc" + HYPERBOLICS;
+	private static final String HYPERBOLICS = "sinh cosh tanh coth sech csch";
+	private static final String TRIGONOMETRICS = "sin cos tan cot sec csc" + HYPERBOLICS;
 	private final SerializationAdapter adapter;
 
 	/**
@@ -69,28 +68,23 @@ public class TeXAtomSerializer {
 		if (root instanceof FractionAtom) {
 			return serializeFractionAtom((FractionAtom) root);
 		}
-		if (root instanceof NthRoot) {
-			NthRoot nRoot = (NthRoot) root;
+		if (root instanceof NthRoot nRoot) {
 			String index = nRoot.getRoot() == null ? "" : serialize(nRoot.getRoot());
 			if (index.isEmpty()) {
 				return adapter.sqrt(serialize(nRoot.getTrueBase()));
 			}
 			return adapter.nroot(serialize(nRoot.getTrueBase()), index);
 		}
-		if (root instanceof CharAtom) {
-			CharAtom ch = (CharAtom) root;
+		if (root instanceof CharAtom ch) {
 			return adapter.convertCharacter(ch.getCharacter());
 		}
-		if (root instanceof TypedAtom) {
-			TypedAtom ch = (TypedAtom) root;
+		if (root instanceof TypedAtom ch) {
 			return serialize(ch.getBase());
 		}
-		if (root instanceof ScriptsAtom) {
-			ScriptsAtom ch = (ScriptsAtom) root;
+		if (root instanceof ScriptsAtom ch) {
 			return subSup(ch);
 		}
-		if (root instanceof FencedAtom) {
-			FencedAtom ch = (FencedAtom) root;
+		if (root instanceof FencedAtom ch) {
 			Atom bracketsContent = ch.getTrueBase();
 			if (isBinomial(bracketsContent)) {
 				return serialize(bracketsContent);
@@ -131,7 +125,7 @@ public class TeXAtomSerializer {
 			Atom accent = ((IsAccentedAtom) root).getAccent();
 			String content = serialize(((IsAccentedAtom) root).getTrueBase());
 			if (accent == Symbols.VEC) {
-				return " vector " + content;
+				return " " + adapter.vector(content);
 			}
 			String accentCommand = ((IsAccentedAtom) root).getCommand();
 			if (accentCommand != null) {
@@ -143,15 +137,15 @@ public class TeXAtomSerializer {
 			return content + serialize(accent);
 		}
 		if (root instanceof TextCircledAtom) {
-			return "circled " + serialize(((TextCircledAtom) root).getTrueBase());
+			return adapter.circled(serialize(((TextCircledAtom) root).getTrueBase()));
 		}
-		if (root instanceof HasUnderOver) {
-			return serialize(((HasUnderOver) root).getUnderOver())
-					+ (((HasUnderOver) root).isUnder() ? " under " : " over ")
-					+ serialize(((HasUnderOver) root).getTrueBase());
+		if (root instanceof HasUnderOver underOver) {
+			String decoration = serialize(underOver.getUnderOver());
+			String base = serialize(underOver.getTrueBase());
+			return underOver.isUnder() ? adapter.under(decoration, base)
+					: adapter.over(decoration, base);
 		}
-		if (root instanceof HasElements) {
-			HasElements row = (HasElements) root;
+		if (root instanceof HasElements row) {
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; row.getElement(i) != null; i++) {
 				sb.append(serialize(row.getElement(i)));
@@ -163,8 +157,7 @@ public class TeXAtomSerializer {
 			return ((HasCharacter) root).getCharacter();
 		}
 
-		if (root instanceof ColorAtom) {
-			ColorAtom row = (ColorAtom) root;
+		if (root instanceof ColorAtom row) {
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; row.getElement(i) != null; i++) {
 				sb.append(serialize(row.getElement(i)));
@@ -192,7 +185,7 @@ public class TeXAtomSerializer {
 			if (base.matches("\\d+")) {
 				return serializeOverLine(base);
 			}
-			return "Segment " + base;
+			return adapter.segment(base);
 		}
 
 		// BoldAtom, ItAtom, TextStyleAtom, StyleAtom, RomanAtom
@@ -208,9 +201,7 @@ public class TeXAtomSerializer {
 		if (root == null) {
 			return "";
 		}
-		FactoryProvider.debugS("Unhandled atom:"
-				+ (root.getClass() + " " + root.toString()));
-
+		FactoryProvider.debugS("Unhandled atom:" + root.getClass() + " " + root);
 		return "?";
 	}
 
@@ -249,7 +240,7 @@ public class TeXAtomSerializer {
 			for (int col = 0; col < cols; col++) {
 				sb.append(tableAdapter.matrixRowStart(col));
 				for (int row = 0; row < rows; row++) {
-					sb.append(serialize(matrix.get(row, col)));
+					sb.append(serializeMatrixElem(matrix.get(row, col)));
 
 					if (row < rows - 1) {
 						sb.append(tableAdapter.getSeparator());
@@ -265,7 +256,7 @@ public class TeXAtomSerializer {
 			for (int row = 0; row < rows; row++) {
 				sb.append(tableAdapter.matrixRowStart(row));
 				for (int col = 0; col < cols; col++) {
-					sb.append(serialize(matrix.get(row, col)));
+					sb.append(serializeMatrixElem(matrix.get(row, col)));
 
 					if (col < cols - 1) {
 						sb.append(tableAdapter.getSeparator());
@@ -283,8 +274,12 @@ public class TeXAtomSerializer {
 		return sb.toString();
 	}
 
-	private String serializeSymbol(SymbolAtom symbol) {
+	private String serializeMatrixElem(Atom elemColRow) {
+		return serialize(elemColRow).equals(" ")
+				? adapter.blank() : serialize(elemColRow);
+	}
 
+	private String serializeSymbol(SymbolAtom symbol) {
 		return adapter.convertCharacter(symbol.getUnicode());
 	}
 
@@ -320,8 +315,8 @@ public class TeXAtomSerializer {
 		}
 
 		// eg sum/product
-		return serialize(trueBase) + " from " + serialize(bigOp.getBottom()) + " to "
-				+ serialize(bigOp.getTop());
+		return adapter.operatorFromTo(serialize(trueBase), serialize(bigOp.getBottom()),
+				serialize(bigOp.getTop()));
 	}
 
 	private String serializeOverLine(String base) {
@@ -343,7 +338,7 @@ public class TeXAtomSerializer {
 	private String getFunctionName(Atom trueBase) {
 		String name = serialize(trueBase);
 		if (isHyperbolic(name)) {
-			return " hyperbolic " + name.substring(0, name.length() - 1);
+			return adapter.hyperbolic(name.substring(0, name.length() - 1));
 		}
 		return " " + name;
 	}

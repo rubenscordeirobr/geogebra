@@ -1,6 +1,21 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.view.spreadsheet;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,8 +39,8 @@ import org.geogebra.common.util.debug.Log;
  * 
  */
 public class CreateObjectModel {
-	private CellRangeProcessor cp;
-	private ArrayList<TabularRange> selectedRanges;
+	private SpreadsheetToolProcessor toolProcessor;
+	private List<TabularRange> selectedRanges;
 
 	public static final int TYPE_LIST = 0;
 	public static final int TYPE_MATRIX = 2;
@@ -237,10 +252,10 @@ public class CreateObjectModel {
 			newGeo.remove();
 		}
 
-		int column1 = selectedRanges.get(0).getMinColumn();
-		int column2 = selectedRanges.get(0).getMaxColumn();
-		int row1 = selectedRanges.get(0).getMinRow();
-		int row2 = selectedRanges.get(0).getMaxRow();
+		final int column1 = selectedRanges.get(0).getMinColumn();
+		final int column2 = selectedRanges.get(0).getMaxColumn();
+		final int row1 = selectedRanges.get(0).getMinRow();
+		final int row2 = selectedRanges.get(0).getMaxRow();
 
 		boolean copyByValue = listener.isCopiedByValue();
 		boolean scanByColumn = listener.isScannedByColumn();
@@ -256,12 +271,12 @@ public class CreateObjectModel {
 				// do nothing
 				break;
 			case TYPE_LIST:
-				newGeo = cp.createList(getSelectedRanges(), scanByColumn,
+				newGeo = toolProcessor.createList(getSelectedRanges(), scanByColumn,
 						copyByValue);
 				break;
 
 			case TYPE_LISTOFPOINTS:
-				newGeo = cp.createPointGeoList(getSelectedRanges(),
+				newGeo = toolProcessor.createPointGeoList(getSelectedRanges(),
 						copyByValue, leftToRight, doStoreUndo,
 						doCreateFreePoints);
 				newGeo.setLabel(null);
@@ -273,19 +288,19 @@ public class CreateObjectModel {
 				break;
 
 			case TYPE_MATRIX:
-				newGeo = cp.createMatrix(column1, column2, row1, row2,
+				newGeo = toolProcessor.createMatrix(column1, column2, row1, row2,
 						copyByValue, transpose);
 				break;
 
 			case TYPE_TABLETEXT:
-				newGeo = cp.createTableText(column1, column2, row1, row2,
+				newGeo = toolProcessor.createTableText(column1, column2, row1, row2,
 						copyByValue, transpose);
 				newGeo.setEuclidianVisible(false);
 				newGeo.updateRepaint();
 				break;
 
 			case TYPE_POLYLINE:
-				newGeo = cp.createPolyLine(getSelectedRanges(), copyByValue,
+				newGeo = toolProcessor.createPolyLine(getSelectedRanges(), copyByValue,
 						leftToRight);
 				newGeo.setLabel(null);
 				GeoPointND[] pts = ((AlgoPolyLine) newGeo.getParentAlgorithm())
@@ -341,19 +356,19 @@ public class CreateObjectModel {
 		return newGeo.toGeoElement().getAlgebraDescriptionTextOrHTMLDefault(sb);
 	}
 
-	public CellRangeProcessor getCellRangeProcessor() {
-		return cp;
+	public SpreadsheetToolProcessor getToolProcessor() {
+		return toolProcessor;
 	}
 
-	public void setCellRangeProcessor(CellRangeProcessor cp) {
-		this.cp = cp;
+	public void setToolProcessor(SpreadsheetToolProcessor toolProcessor) {
+		this.toolProcessor = toolProcessor;
 	}
 
-	public ArrayList<TabularRange> getSelectedRanges() {
+	public List<TabularRange> getSelectedRanges() {
 		return selectedRanges;
 	}
 
-	public void setSelectedRanges(ArrayList<TabularRange> selectedRanges) {
+	public void setSelectedRanges(List<TabularRange> selectedRanges) {
 		this.selectedRanges = selectedRanges;
 	}
 

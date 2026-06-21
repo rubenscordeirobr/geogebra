@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+ 
 package org.geogebra.common.kernel.arithmetic.simplifiers;
 
 import static org.geogebra.common.kernel.arithmetic.simplifiers.RationalizeFractionAlgo.checkDecimals;
@@ -17,7 +33,6 @@ import org.geogebra.common.kernel.arithmetic.ExpressionValue;
 import org.geogebra.common.kernel.geos.GeoNumeric;
 import org.geogebra.common.kernel.geos.GeoText;
 import org.geogebra.common.kernel.kernelND.GeoElementND;
-import org.geogebra.common.main.PreviewFeature;
 import org.geogebra.common.util.DoubleUtil;
 import org.geogebra.test.BaseAppTestSetup;
 import org.geogebra.test.annotation.Issue;
@@ -46,7 +61,8 @@ public class RationalizationTest extends BaseAppTestSetup {
 			"(3 (sqrt(3) + 1)) / sqrt(2)",
 			"(-5 + sqrt(5)) / (-3 + sqrt(9))",
 			"(6 + sqrt(10)) / (-4 + sqrt(9))",
-			"(sqrt(3) + 1) / (sqrt(2) - 1)"
+			"(sqrt(3) + 1) / (sqrt(2) - 1)",
+			"(5 sqrt(2))/(2 sqrt(10))"
 	})
 	public void testSupported(String definition) {
 		GeoElementND geo = evaluateGeoElement(definition);
@@ -110,8 +126,8 @@ public class RationalizationTest extends BaseAppTestSetup {
 			"1E100/1E99, 10",
 			"1E100 /(1E99+sqrt(2)), 10",
 			"1E50, 1*10^(50)",
-			"(10^10)^5, 100000000000000000000000000000000000000000000000000",
-			"1E50/sqrt(2), 70710678118654750000000000000000000000000000000000"
+			"(10^10)^5, 1 ⋅ 10⁵⁰",
+			"1E50/sqrt(2), 7.07106781186548 ⋅ 10⁴⁹"
 	})
 	public void testRationalizeBigNumbers(String definition, String expected) {
 		rationalizationShouldBe(definition, expected);
@@ -344,7 +360,7 @@ public class RationalizationTest extends BaseAppTestSetup {
 			"-5, 2, -1, 3, (sqrt(6) + sqrt(2) - 5 - 5sqrt(3)) / 2",
 			"-5, 2, 1, 6, (5 - sqrt(2) + 2sqrt(3) - 5sqrt(6)) / 5",
 			"-4, 2, 1, 2, 6 - 5sqrt(2)",
-			"-4, 3, 2,  2, (2sqrt(3) + 4sqrt(2) - 8 - sqrt(6)) / 2",
+			"-4, 3, 2, 2, (2sqrt(3) + 4sqrt(2) - 8 - sqrt(6)) / 2",
 			"2, 2, 0, 6, (sqrt(6) + sqrt(3)) / 3",
 			"-3, 4, 4, 2, (sqrt(2) - 4) / 14",
 			"-4, 8, -5, 2, (16 - 6sqrt(2)) / 23",
@@ -360,7 +376,7 @@ public class RationalizationTest extends BaseAppTestSetup {
 			"-1, 3, 0, 10, (sqrt(30) - sqrt(10)) / 10",
 			"-5, 3, -2, 6 , (2sqrt(3) + 3sqrt(2) - 10 - 5sqrt(6)) / 2",
 			"7, 4, -3, 6, -9 - 3sqrt(6)",
-			"6, 7, 5, 2,  (30 - 6sqrt(2) + 5sqrt(7) - sqrt(14)) / 23",
+			"6, 7, 5, 2, (30 - 6sqrt(2) + 5sqrt(7) - sqrt(14)) / 23",
 			"-9, 2, 3, 6, (9sqrt(6) + 3sqrt(2) - 27 - 2sqrt(3)) / 3",
 			"-3, 2, 7, 7, (3sqrt(7) + 7sqrt(2) - 21 - sqrt(14)) / 42"
 	})
@@ -375,7 +391,6 @@ public class RationalizationTest extends BaseAppTestSetup {
 
 	@Test
 	public void testFormulaText() {
-		PreviewFeature.setPreviewFeaturesEnabled(true);
 		evaluate("a = -1");
 		evaluate("b = 5");
 		evaluate("c = -2");

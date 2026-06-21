@@ -1,6 +1,4 @@
-/*
- * Created on 2003-11-02
- */
+// vendored
 
 package org.geogebra.common.io;
 
@@ -9,9 +7,8 @@ import java.util.Locale;
 import java.util.Objects;
 
 import org.geogebra.common.util.debug.Log;
-
-import com.himamis.retex.editor.share.util.Greek;
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Greek;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * Apache 2.0 Licence
@@ -891,7 +888,7 @@ public class MathMLParser {
 	 */
 	void parseBlock(String startTag, StringBuilder result, boolean appendSpace)
 			throws XMLParseException {
-		boolean closeBracketNow = this.closeBracketNext;
+		final boolean closeBracketNow = this.closeBracketNext;
 		this.closeBracketNext = false;
 		String endTag = generateEndTag(startTag);
 
@@ -1116,9 +1113,6 @@ public class MathMLParser {
 		} else if (blocksToSkip < 0) {
 
 			for (int i = 0; i > blocksToSkip; i--) {
-
-				int subBlocks = 1;
-
 				while (strBuf.charAt(pos) != '>') {
 					pos--;
 				}
@@ -1135,6 +1129,7 @@ public class MathMLParser {
 				String blockEndTag = new String(tagBuf);
 				String blockStartTag = new String(tagBuf.deleteCharAt(1));
 
+				int subBlocks = 1;
 				do {
 					while (strBuf.charAt(pos) != '>') {
 						pos--;

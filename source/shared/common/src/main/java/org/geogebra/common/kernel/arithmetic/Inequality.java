@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.arithmetic;
@@ -466,15 +470,27 @@ public class Inequality {
 	}
 
 	/**
-	 * @param ineq other inequality
-	 * @return whether these inequalities represent the same set of points in R^2
+	 * @param ineq Other inequality
+	 * @return Whether these inequalities represent the same set of points in R^2.
 	 */
 	public ExtendedBoolean isEqual(Inequality ineq) {
+		ExtendedBoolean isEqualBorder = isEqualBorder(ineq);
+		if (isEqualBorder.boolVal()) {
+			return ExtendedBoolean.newExtendedBoolean(isUnbounded()
+					|| isStrict() == ineq.isStrict());
+		}
+		return isEqualBorder;
+	}
+
+	/**
+	 * @param ineq Other inequality
+	 * @return Whether these inequalities share the same border.
+	 */
+	public ExtendedBoolean isEqualBorder(Inequality ineq) {
 		if (border == null || ineq.border == null || !compatibleTypes(type, ineq.type)) {
 			return ExtendedBoolean.UNKNOWN;
 		}
-		if (isAboveBorder == ineq.isAboveBorder && (isUnbounded() || isStrict()
-				== ineq.isStrict())) {
+		if (isAboveBorder == ineq.isAboveBorder) {
 			return border.isEqualExtended(ineq.border);
 		}
 		return ExtendedBoolean.FALSE;

@@ -1,9 +1,28 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.view.data;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.geogebra.common.gui.view.data.DataItem.SourceType;
 import org.geogebra.common.gui.view.spreadsheet.CellRangeUtil;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.algos.AlgoDependentList;
 import org.geogebra.common.kernel.algos.AlgoDependentPoint;
@@ -15,6 +34,7 @@ import org.geogebra.common.kernel.geos.GeoNumeric;
 import org.geogebra.common.kernel.geos.GeoPoint;
 import org.geogebra.common.main.App;
 import org.geogebra.common.main.Localization;
+import org.geogebra.common.main.SpreadsheetTableModel;
 import org.geogebra.common.plugin.GeoClass;
 import org.geogebra.common.plugin.Operation;
 import org.geogebra.common.spreadsheet.core.Spreadsheet;
@@ -32,7 +52,7 @@ import org.geogebra.common.util.debug.Log;
  */
 public class DataVariable {
 
-	private final App app;
+	private final SpreadsheetTableModel tableModel;
 
 	/**
 	 * Identifier for the data grouping type
@@ -58,12 +78,12 @@ public class DataVariable {
 	/**
 	 * Constructs a DataVariable
 	 * 
-	 * @param app
-	 *            application
+	 * @param loc localization
+	 * @param tableModel table model
 	 */
-	public DataVariable(App app) {
-		this.loc = app.getLocalization();
-		this.app = app;
+	public DataVariable(Localization loc, SpreadsheetTableModel tableModel) {
+		this.loc = loc;
+		this.tableModel = tableModel;
 	}
 
 	// =============================================
@@ -129,13 +149,13 @@ public class DataVariable {
 			frequency = null;
 			classes = null;
 			if (values.size() == 0) {
-				values.add(new DataItem(app));
+				values.add(new DataItem(tableModel));
 			}
 			break;
 
 		case FREQUENCY:
 			if (frequency == null) {
-				frequency = new DataItem(app);
+				frequency = new DataItem(tableModel);
 				frequency.setGeoClass(GeoClass.NUMERIC);
 				frequency.setDescription(loc.getMenu("Frequency"));
 			}
@@ -144,12 +164,12 @@ public class DataVariable {
 
 		case CLASS:
 			if (frequency == null) {
-				frequency = new DataItem(app);
+				frequency = new DataItem(tableModel);
 				frequency.setGeoClass(GeoClass.NUMERIC);
 				frequency.setDescription(loc.getMenu("Frequency"));
 			}
 			if (classes == null) {
-				classes = new DataItem(new Double[0], app);
+				classes = new DataItem(new double[0], tableModel);
 				classes.setDescription(loc.getMenu("Classes"));
 			}
 
@@ -230,7 +250,7 @@ public class DataVariable {
 			numClasses = frequency.getGeoCount();
 		}
 
-		Double[] leftBorder = new Double[numClasses + 1];
+		double[] leftBorder = new double[numClasses + 1];
 		leftBorder[0] = classStart;
 		for (int i = 1; i < leftBorder.length; i++) {
 			leftBorder[i] = leftBorder[i - 1] + classWidth;
@@ -290,9 +310,8 @@ public class DataVariable {
 	 *            data items
 	 */
 	public void setValueItems(DataItem... valueItem) {
-		values = new ArrayList<>();
+		values = new ArrayList<>(Arrays.asList(valueItem));
 		for (DataItem item : valueItem) {
-			values.add(item);
 			item.setDescription(loc.getMenu("Data"));
 		}
 	}
@@ -330,7 +349,7 @@ public class DataVariable {
 			values = new ArrayList<>();
 		}
 
-		DataItem item = new DataItem(app);
+		DataItem item = new DataItem(tableModel);
 		item.setGeoClass(geoClass);
 		values.add(item);
 	}
@@ -531,14 +550,14 @@ public class DataVariable {
 	}
 
 	/**
-	 * @param app
-	 *            application
+	 * @param loc
+	 *            localization
 	 * @return titles
 	 */
-	public ArrayList<String> getTitles(App app) {
+	public ArrayList<String> getTitles(Localization loc) {
 		ArrayList<String> list = new ArrayList<>();
 		for (DataItem item : getItemList()) {
-			list.add(item.getDataTitle(app, enableHeader));
+			list.add(item.getDataTitle(loc, enableHeader));
 		}
 		return list;
 	}
@@ -662,25 +681,25 @@ public class DataVariable {
 	 * @param sb
 	 *            XML builder
 	 */
-	public void getXML(StringBuilder sb) {
+	public void getXML(XMLStringBuilder sb) {
 		// save these fields to XML:
 		// groupType, enableHeader
-		sb.append("<variable>\n");
+		sb.startOpeningTag("variable", 0).endTag();
 		// save the DataItems to XML
 		for (DataItem item : values) {
 
-			sb.append("<item ranges=\"");
-			ArrayList<TabularRange> crList = item.getRangeList();
+			sb.startTag("item");
+			List<TabularRange> crList = item.getRangeList();
 			if (crList != null) {
-				appendTabularRanges(sb, crList);
+				sb.attr("ranges", appendTabularRanges(crList));
 			}
-			sb.append("\"/>\n");
+			sb.endTag();
 		}
 		if (frequency != null) {
 			// save the frequencies to XML
-			sb.append("<item frequencies=\"");
-			appendTabularRanges(sb, frequency.getRangeList());
-			sb.append("\"/>\n");
+			sb.startTag("item");
+			sb.attr("frequencies", appendTabularRanges(frequency.getRangeList()));
+			sb.endTag();
 		}
 		if (classes != null) {
 			// write item XML
@@ -688,11 +707,12 @@ public class DataVariable {
 		if (label != null) {
 			// write item XML
 		}
-		sb.append("</variable>\n");
+		sb.closeTag("variable");
 	}
 
-	private void appendTabularRanges(StringBuilder sb, ArrayList<TabularRange> crList) {
+	private String appendTabularRanges(List<TabularRange> crList) {
 		boolean first = true;
+		StringBuilder sb = new StringBuilder();
 		for (TabularRange cr : crList) {
 			if (cr != null) {
 				sb.append(first ? "" : ",");
@@ -700,6 +720,7 @@ public class DataVariable {
 				first = false;
 			}
 		}
+		return sb.toString();
 	}
 
 }

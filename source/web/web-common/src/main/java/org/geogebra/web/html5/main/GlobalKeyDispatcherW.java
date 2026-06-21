@@ -1,5 +1,22 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.html5.main;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.geogebra.common.euclidian.EuclidianView;
@@ -9,6 +26,11 @@ import org.geogebra.common.main.App;
 import org.geogebra.common.main.GlobalKeyDispatcher;
 import org.geogebra.common.util.CopyPaste;
 import org.geogebra.common.util.debug.Log;
+import org.geogebra.editor.share.util.GWTKeycodes;
+import org.geogebra.editor.share.util.JavaKeyCodes;
+import org.geogebra.editor.share.util.KeyCodes;
+import org.geogebra.editor.web.KeyCodeUtil;
+import org.geogebra.editor.web.MathFieldW;
 import org.geogebra.gwtutil.NavigatorUtil;
 import org.geogebra.web.html5.gui.AlgebraInput;
 import org.geogebra.web.html5.gui.GuiManagerInterfaceW;
@@ -24,11 +46,6 @@ import org.gwtproject.event.dom.client.KeyUpHandler;
 import org.gwtproject.user.client.DOM;
 import org.gwtproject.user.client.Event;
 import org.gwtproject.user.client.EventListener;
-
-import com.himamis.retex.editor.share.util.GWTKeycodes;
-import com.himamis.retex.editor.share.util.JavaKeyCodes;
-import com.himamis.retex.editor.share.util.KeyCodes;
-import com.himamis.retex.editor.web.MathFieldW;
 
 import elemental2.dom.DomGlobal;
 
@@ -117,7 +134,7 @@ public class GlobalKeyDispatcherW extends GlobalKeyDispatcher
 		rightAltDown = false;
 	}
 
-	private class GlobalShortcutHandler implements EventListener {
+	private final class GlobalShortcutHandler implements EventListener {
 
 		@Override
 		public void onBrowserEvent(Event event) {
@@ -157,28 +174,51 @@ public class GlobalKeyDispatcherW extends GlobalKeyDispatcher
 				handled = true;
 			}
 			if (isControlKeyDown(event)) {
-				handled = handleCtrlKeys(NavigatorUtil.translateGWTcode(event.getKeyCode()),
+				handled = handleCtrlKeys(KeyCodeUtil.translateGWTCode(event.getKeyCode()),
 						event.getShiftKey(), false, true);
 			}
-			KeyCodes kc = NavigatorUtil.translateGWTcode(event.getKeyCode());
+			KeyCodes kc = KeyCodeUtil.translateGWTCode(event.getKeyCode());
 			if (kc == KeyCodes.TAB) {
 				if (!escPressed) {
 					handled = handleTab(event.getShiftKey());
 				}
 			} else if (kc == KeyCodes.ESCAPE) {
 				escPressed = true;
+				if (exitFromComposite()) {
+					event.preventDefault();
+					event.stopPropagation();
+					return true;
+				}
 				handleEscForDropdown();
 				if (app.isApplet()) {
 					((AppW) GlobalKeyDispatcherW.this.app).moveFocusToLastWidget();
 				} else {
 					handleEscapeForNonApplets();
 				}
+
 				handled = true;
 			} else {
 				handled = handled || handleSelectedGeosKeys(event);
 			}
 			return handled;
 		}
+
+		private boolean exitFromComposite() {
+			AccessibilityManagerInterface am = app.getAccessibilityManager();
+			if (am.hasFocusInComposite()) {
+				am.blurCompositeFocus();
+				return true;
+			}
+			return false;
+		}
+	}
+
+	@Override
+	protected void toggleAlgebraView() {
+		if (!app.getConfig().hasAlgebraView()) {
+			return;
+		}
+		((GuiManagerInterfaceW) app.getGuiManager()).toggleAlgebraView();
 	}
 
 	@Override
@@ -186,7 +226,6 @@ public class GlobalKeyDispatcherW extends GlobalKeyDispatcher
 		if (!app.getConfig().hasTableView()) {
 			return;
 		}
-
 		((GuiManagerInterfaceW) app.getGuiManager()).toggleTableValuesView();
 	}
 
@@ -195,8 +234,16 @@ public class GlobalKeyDispatcherW extends GlobalKeyDispatcher
 		if (!app.isSpreadsheetEnabled()) {
 			return;
 		}
-
 		((GuiManagerInterfaceW) app.getGuiManager()).toggleSpreadsheetView();
+	}
+
+	@Override
+	protected void toggleDistributionView() {
+		if (app.isUnbundled()) {
+			((GuiManagerInterfaceW) app.getGuiManager()).toggleDistributionView();
+		} else {
+			super.toggleDistributionView();
+		}
 	}
 
 	private void handleCtrlAltX() {
@@ -226,18 +273,24 @@ public class GlobalKeyDispatcherW extends GlobalKeyDispatcher
 	@Override
 	public void onKeyPress(KeyPressEvent event) {
 		setDownKeys(event);
-		KeyCodes kc = NavigatorUtil.translateGWTcode(event.getNativeEvent()
-				.getKeyCode());
-		// Do not prevent default for the v key, otherwise paste events are not fired
-		if (kc != KeyCodes.TAB && event.getCharCode() != 'v'
-				&& event.getCharCode() != 'c' && event.getCharCode() != 'x') {
+		boolean nativeFocusInComposite = app.getAccessibilityManager().handlesEnterInComposite();
+		if (shouldNotEventPassThrough(event) && !nativeFocusInComposite) {
 			event.preventDefault();
 			event.stopPropagation();
 		}
-		// this needs to be done in onKeyPress -- keyUp is not case sensitive
+
 		if (!event.isAltKeyDown() && !event.isControlKeyDown() && !app.isWhiteboardActive()) {
-			this.renameStarted(event.getCharCode());
+				keyPressedOnGeo(event.getCharCode());
+
 		}
+	}
+
+	private static boolean shouldNotEventPassThrough(KeyPressEvent event) {
+		KeyCodes kc = KeyCodeUtil.translateGWTCode(event.getNativeEvent()
+				.getKeyCode());
+		// Do not prevent default for the v key, otherwise paste events are not fired
+		return kc != KeyCodes.TAB && event.getCharCode() != 'v'
+				&& event.getCharCode() != 'c' && event.getCharCode() != 'x';
 	}
 
 	@Override
@@ -255,7 +308,7 @@ public class GlobalKeyDispatcherW extends GlobalKeyDispatcher
 	 *            event
 	 */
 	public void handleGeneralKeys(KeyUpEvent event) {
-		KeyCodes kc = NavigatorUtil.translateGWTcode(event.getNativeKeyCode());
+		KeyCodes kc = KeyCodeUtil.translateGWTCode(event.getNativeKeyCode());
 
 		boolean handled = handleGeneralKeys(kc,
 				event.isShiftKeyDown(),
@@ -278,16 +331,43 @@ public class GlobalKeyDispatcherW extends GlobalKeyDispatcher
 	 * @return if key was consumed
 	 */
 	public boolean handleSelectedGeosKeys(NativeEvent event) {
+		KeyCodes key = KeyCodeUtil.translateGWTCode(event.getKeyCode());
+		ArrayList<GeoElement> geos = selection.getSelectedGeos();
+		if (isControlKeyDown(event)) {
+			if (handleControlArrows(geos, key)) {
+				return true;
+			}
+		}
 		return handleSelectedGeosKeys(
-				NavigatorUtil.translateGWTcode(event
-						.getKeyCode()), selection.getSelectedGeos(),
+				key, geos,
 				event.getShiftKey(), event.getCtrlKey(), event.getAltKey(),
 				false);
 	}
 
+	private boolean handleControlArrows(ArrayList<GeoElement> geos, KeyCodes key) {
+		switch (key) {
+		case DOWN, RIGHT -> {
+			return handleControlArrowsForAlgebraView(geos, true);
+		}
+		case UP, LEFT -> {
+			return handleControlArrowsForAlgebraView(geos, false);
+		}
+		}
+		return false;
+	}
+
+	private boolean handleControlArrowsForAlgebraView(List<GeoElement> geos, boolean forward) {
+		if (geos.size() != 1) {
+			return false;
+		}
+
+		AccessibilityManagerInterface am = app.getAccessibilityManager();
+		return forward ? am.focusNextInComposite() : am.focusPreviousInComposite();
+	}
+
 	@Override
 	public void onKeyDown(KeyDownEvent event) {
-		KeyCodes kc = NavigatorUtil.translateGWTcode(event.getNativeKeyCode());
+		KeyCodes kc = KeyCodeUtil.translateGWTCode(event.getNativeKeyCode());
 		setDownKeys(event);
 
 		boolean handled = handleSelectedGeosKeys(event.getNativeEvent());
@@ -314,6 +394,7 @@ public class GlobalKeyDispatcherW extends GlobalKeyDispatcher
 		AccessibilityManagerInterface am = app.getAccessibilityManager();
 
 		app.getActiveEuclidianView().closeDropdowns();
+		am.blurCompositeFocus();
 
 		if (isShiftDown) {
 			return am.focusPrevious();
@@ -402,10 +483,23 @@ public class GlobalKeyDispatcherW extends GlobalKeyDispatcher
 	public static boolean isGlobalEvent(NativeEvent event) {
 		int code = event.getKeyCode();
 		if (isControlKeyDown(event)) {
+			if (isViewTogglingShortcut(code, event.getShiftKey())) {
+				return true;
+			}
 			return code == JavaKeyCodes.VK_S || code == JavaKeyCodes.VK_D;
 		} else {
 			return code == JavaKeyCodes.VK_F4;
 		}
+	}
+
+	private static boolean isViewTogglingShortcut(int keyCode, boolean shift) {
+		return shift && switch (keyCode) {
+			case JavaKeyCodes.VK_A,
+				 JavaKeyCodes.VK_U,
+				 JavaKeyCodes.VK_P,
+				 JavaKeyCodes.VK_S -> true;
+			default -> false;
+		};
 	}
 
 	@Override

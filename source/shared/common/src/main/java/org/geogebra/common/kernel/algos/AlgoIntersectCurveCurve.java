@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.algos;
@@ -158,21 +162,20 @@ public class AlgoIntersectCurveCurve extends AlgoIntersectCoordSysCurve
 			Function funy1 = curve.getFun(1);
 			Function funy2 = curve2.getFun(1);
 
-			ExpressionNode enx1 = funx1.getExpression();
-			ExpressionNode eny1 = funy1.getExpression();
-			ExpressionNode enx2 = funx2.getExpression();
-			ExpressionNode eny2 = funy2.getExpression();
-
-			FunctionVariable fVarx1 = funx1.getFunctionVariable();
-			FunctionVariable fVarx2 = funx2.getFunctionVariable();
-			FunctionVariable fVary1 = funy1.getFunctionVariable();
-			FunctionVariable fVary2 = funy2.getFunctionVariable();
-
 			// Jacobian matrix
 			// partial derivative of eg enx2 wrt
 			// curve.getFunX().getFunctionVariable() is zero, so ignore
+			ExpressionNode enx1 = funx1.getExpression();
+			ExpressionNode enx2 = funx2.getExpression();
+			FunctionVariable fVarx1 = funx1.getFunctionVariable();
+			FunctionVariable fVarx2 = funx2.getFunctionVariable();
 			ExpressionNode j00 = enx1.derivative(fVarx1, kernel);
 			ExpressionNode minusj10 = enx2.derivative(fVarx2, kernel);
+
+			ExpressionNode eny1 = funy1.getExpression();
+			ExpressionNode eny2 = funy2.getExpression();
+			FunctionVariable fVary1 = funy1.getFunctionVariable();
+			FunctionVariable fVary2 = funy2.getFunctionVariable();
 			ExpressionNode j01 = eny1.derivative(fVary1, kernel);
 			ExpressionNode minusj11 = eny2.derivative(fVary2, kernel);
 

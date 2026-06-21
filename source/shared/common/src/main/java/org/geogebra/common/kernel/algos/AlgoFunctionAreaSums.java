@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.algos;
@@ -769,8 +773,6 @@ public abstract class AlgoFunctionAreaSums extends AlgoElement implements DrawIn
 				sum.setUndefined();
 				return;
 			}
-
-			UnivariateFunction fun = f.getFunction();
 			double ad = a.getDouble();
 			double bd = b.getDouble();
 			if (!onlyZoom) {
@@ -795,14 +797,12 @@ public abstract class AlgoFunctionAreaSums extends AlgoElement implements DrawIn
 				yval = new double[N];
 				leftBorder = new double[N];
 			}
+			UnivariateFunction fun = f.getFunction();
 			UnivariateFunction fmin = fun;
 			if (type == SumType.UPPERSUM) {
 				fmin = new NegativeRealRootFunction(fun); // use -f to find
 															// maximum
 			}
-
-			double totalArea = 0;
-			double left, right, min;
 
 			// calculate the min and max x-coords of what actually needs to be
 			// drawn
@@ -822,9 +822,10 @@ public abstract class AlgoFunctionAreaSums extends AlgoElement implements DrawIn
 			boolean doSubSamples = !DoubleUtil.isZero(subStep)
 					&& Math.abs(STEP) > subStep;
 			boolean positiveStep = STEP >= 0;
+			double totalArea = 0;
 			for (int i = 0; i < N; i++) {
 				leftBorder[i] = ad + i * STEP;
-
+				double left, right, min;
 				if (positiveStep) {
 					left = leftBorder[i];
 					right = leftBorder[i] + STEP;
@@ -1271,12 +1272,7 @@ public abstract class AlgoFunctionAreaSums extends AlgoElement implements DrawIn
 	 * @return true iff this is trapezoidal sums
 	 */
 	public boolean useTrapeziums() {
-		switch (type) {
-		case TRAPEZOIDALSUM:
-			return true;
-		default:
-			return false;
-		}
+		return type == SumType.TRAPEZOIDALSUM;
 	}
 
 	/**

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.cas.view;
 
 import java.util.ArrayList;
@@ -83,14 +99,14 @@ public class CASInputHandler {
 		CASTableCellEditor cellEditor = consoleTable.getEditor();
 
 		// get possibly selected text
-		String selectedText = cellEditor.getInputSelectedText();
+		final String selectedText = cellEditor.getInputSelectedText();
 
-		int selStart = cellEditor.getInputSelectionStart();
-		int selEnd = cellEditor.getInputSelectionEnd();
+		final int selStart = cellEditor.getInputSelectionStart();
+		final int selEnd = cellEditor.getInputSelectionEnd();
 		String selRowInput = cellEditor.getInput();
 
 		// needed for GGB-517
-		if (cellValue.getLocalizedInput().equals("")) {
+		if (cellValue.getLocalizedInput().isEmpty()) {
 			cellValue.setInput(selRowInput);
 		}
 
@@ -343,8 +359,7 @@ public class CASInputHandler {
 		if (isNumeric && inVE != null) {
 			// evaluation text is wrapped only if the input is not
 			// already wrapped
-			if (inVE.getTopLevelCommand() == null
-					|| !inVE.getTopLevelCommand().getName().equals("Numeric")) {
+			if (!inVE.isTopLevelCommand("Numeric")) {
 				cellValue.setProcessingInformation(prefix,
 						ggbcmd + "["
 								+ inVE.toString(StringTemplate.numericNoLocal)
@@ -587,16 +602,7 @@ public class CASInputHandler {
 	private void processMultipleRows(String ggbcmd, String oldXML) {
 		// get current row and input text
 		consoleTable.stopEditing();
-		int selRow = consoleTable.getSelectedRow();
-		if (selRow < 0) {
-			selRow = consoleTable.getRowCount() - 1;
-		}
-
-		int currentRow = selRow;
-
 		int[] selectedIndices = consoleTable.getSelectedRows();
-		int nrEquations;
-
 		// remove empty cells because empty cells' inputVE vars are null
 		ArrayList<Integer> l = new ArrayList<>();
 		for (int i = 0; i < selectedIndices.length; i++) {
@@ -608,15 +614,18 @@ public class CASInputHandler {
 		for (int i = 0; i < l.size(); i++) {
 			selectedIndices[i] = l.get(i);
 		}
-
-		boolean oneRowOnly = false;
-		if (selectedIndices.length == 1) {
-			oneRowOnly = true;
+		boolean oneRowOnly = selectedIndices.length == 1;
+		int nrEquations;
+		if (oneRowOnly) {
 			nrEquations = 1;
 		} else {
 			nrEquations = selectedIndices.length;
 		}
-
+		int selRow = consoleTable.getSelectedRow();
+		if (selRow < 0) {
+			selRow = consoleTable.getRowCount() - 1;
+		}
+		int currentRow = selRow;
 		GeoCasCell cellValue;
 		try {
 			cellValue = consoleTable.getGeoCasCell(currentRow);

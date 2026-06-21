@@ -1,19 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * DrawConic.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 16. October 2001, 15:13
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.euclidian.draw;
@@ -21,6 +19,7 @@ package org.geogebra.common.euclidian.draw;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GAffineTransform;
 import org.geogebra.common.awt.GArea;
 import org.geogebra.common.awt.GEllipse2DDouble;
@@ -34,7 +33,6 @@ import org.geogebra.common.euclidian.EuclidianView;
 import org.geogebra.common.euclidian.GeneralPathClipped;
 import org.geogebra.common.euclidian.Previewable;
 import org.geogebra.common.euclidian.clipping.ArcClipper;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.MyPoint;
 import org.geogebra.common.kernel.algos.AlgoCirclePointRadius;
@@ -171,8 +169,7 @@ public class DrawConic extends SetDrawable implements Previewable {
 				: fillShape == null ? AwtFactory.getPrototype().newArea()
 				: AwtFactory.getPrototype().newArea(fillShape);
 		if (conic.isInverseFill()) {
-			GArea complement = AwtFactory.getPrototype()
-					.newArea(view.getBoundingPath());
+			GArea complement = view.getBoundsArea();
 			complement.subtract(area);
 			return complement;
 		}
@@ -433,7 +430,7 @@ public class DrawConic extends SetDrawable implements Previewable {
 		return hypLeftOnScreen || hypRightOnScreen;
 	}
 
-	final private void updateSinglePoint() {
+	private void updateSinglePoint() {
 		// we want to determine the sign of the result but we can't use fixed
 		// point
 		// as it may be equal to the single point. Point (b.x+1,0) differs in
@@ -530,8 +527,7 @@ public class DrawConic extends SetDrawable implements Previewable {
 				}
 
 				if (negativeColored()) {
-					GArea complement = AwtFactory.getPrototype()
-							.newArea(view.getBoundingPath());
+					GArea complement = view.getBoundsArea();
 					complement.subtract((GArea) fillShape);
 					fillShape = complement;
 
@@ -965,8 +961,8 @@ public class DrawConic extends SetDrawable implements Previewable {
 		// both arcs have the same number of points, sufficient to check left is non-empty
 		if (!hypLeft.getPathIterator(null).isDone()) {
 			try {
-				hyperbolicArcs = AwtFactory.getPrototype().newArea(hypLeft);
-				hyperbolicArcs.add(AwtFactory.getPrototype().newArea(hypRight));
+				hyperbolicArcs = AwtFactory.getPrototype().newArea(hypLeft.getGeneralPath());
+				hyperbolicArcs.add(AwtFactory.getPrototype().newArea(hypRight.getGeneralPath()));
 			} catch (Exception e) {
 				Log.error("problem in updateHyperbolaSetShape: " + e.getMessage());
 			}
@@ -1240,20 +1236,20 @@ public class DrawConic extends SetDrawable implements Previewable {
 			g2.setColor(geo.getSelColor());
 
 			if (hypLeftOnScreen) {
-				g2.draw(hypLeft);
+				hypLeft.draw(g2);
 			}
 			if (hypRightOnScreen) {
-				g2.draw(hypRight);
+				hypRight.draw(g2);
 			}
 		}
 		g2.setStroke(objStroke);
 		g2.setColor(getObjectColor());
 		if (geo.getLineThickness() > 0) {
 			if (hypLeftOnScreen) {
-				g2.draw(hypLeft);
+				hypLeft.draw(g2);
 			}
 			if (hypRightOnScreen) {
-				g2.draw(hypRight);
+				hypRight.draw(g2);
 			}
 		}
 
@@ -1266,19 +1262,18 @@ public class DrawConic extends SetDrawable implements Previewable {
 
 	private void fillHyperbola(GGraphics2D g2) {
 		if (conic.isInverseFill()) {
-			GArea a1 = AwtFactory.getPrototype().newArea(hypLeft);
-			GArea a2 = AwtFactory.getPrototype().newArea(hypRight);
-			GArea complement = AwtFactory.getPrototype()
-					.newArea(view.getBoundingPath());
+			GArea a1 = AwtFactory.getPrototype().newArea(hypLeft.getGeneralPath());
+			GArea a2 = AwtFactory.getPrototype().newArea(hypRight.getGeneralPath());
+			GArea complement = view.getBoundsArea();
 			complement.subtract(a1);
 			complement.subtract(a2);
 			fill(g2, complement);
 		} else {
 			if (hypLeftOnScreen) {
-				fill(g2, hypLeft);
+				fill(g2, hypLeft.getGeneralPath());
 			}
 			if (hypRightOnScreen) {
-				fill(g2, hypRight);
+				fill(g2, hypRight.getGeneralPath());
 			}
 		}
 	}
@@ -1374,8 +1369,8 @@ public class DrawConic extends SetDrawable implements Previewable {
 			fillHyperbola(g2);
 			g2.setStroke(objStroke);
 			g2.setColor(getObjectColor());
-			g2.draw(hypLeft);
-			g2.draw(hypRight);
+			g2.draw(hypLeft.getGeneralPath());
+			g2.draw(hypRight.getGeneralPath());
 			break;
 		}
 	}
@@ -1509,8 +1504,8 @@ public class DrawConic extends SetDrawable implements Previewable {
 		if (strokedShape == null) {
 			try {
 				// AND-547, initial buffer size
-				strokedShape = decoStroke.createStrokedShape(hypLeft, 300);
-				strokedShape2 = decoStroke.createStrokedShape(hypRight, 300);
+				strokedShape = decoStroke.createStrokedShape(hypLeft.getGeneralPath(), 300);
+				strokedShape2 = decoStroke.createStrokedShape(hypRight.getGeneralPath(), 300);
 			} catch (Exception e) {
 				Log.error(
 						"problem creating hyperbola shape: " + e.getMessage());

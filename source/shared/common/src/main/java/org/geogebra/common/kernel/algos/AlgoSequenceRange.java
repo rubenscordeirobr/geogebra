@@ -1,22 +1,22 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * AlgoSlope.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 30. August 2001, 21:37
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.algos;
+
+import java.math.BigDecimal;
 
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.Kernel;
@@ -40,12 +40,12 @@ public class AlgoSequenceRange extends AlgoElement {
 		SIMPLE, RANGE, FULL
 	}
 
-	private GeoNumberValue var_from;
-	private GeoNumberValue var_to;
+	private final GeoNumberValue var_from;
+	private final GeoNumberValue var_to;
 	private GeoNumberValue var_step;
-	private GeoList list; // output
+	private final GeoList list; // output
 
-	private SequenceType type;
+	private final SequenceType type;
 
 	private double last_to = Double.MIN_VALUE;
 
@@ -160,41 +160,37 @@ public class AlgoSequenceRange extends AlgoElement {
 		}
 		
 		list.clear();
+		list.setDefined(true);
 		double step = 1;
+		int sign = to >= from ? 1 : -1;
 		if (var_step != null) {
 			step = var_step.evaluateDouble();
-			if (to < from) {
-				step = -step;
-			}
-			if (DoubleUtil.isZero(step) || step < 0) {
+			if (DoubleUtil.isZero(step) || step * sign < 0) {
 				list.setUndefined();
 				return;
 			}
+		} else {
+			step *= sign;
 		}
 		// also see Operation.java case Sequence:
-		if (from < to) {
-
+		if (var_from.toDecimal() == null || var_step == null || var_step.toDecimal() == null
+				|| (to - from) / step > 100) {
 			// Kernel.MIN_PRECISION and isInteger() check for eg
 			// Sequence(1, 2, 0.1)
-
-			// increasing list
-			for (double k = from; k <= to + Kernel.MIN_PRECISION; k += step) {
+			double k = from;
+			for (int steps = 0; k * sign <= to * sign + Kernel.MIN_PRECISION;
+					steps++, k = from + steps * step) {
 				if (DoubleUtil.isInteger(k)) {
 					k = Math.round(k);
 				}
 				list.addNumber(k, null);
 			}
-
 		} else {
-
-			// decreasing list
-			for (double k = from; k >= to - Kernel.MIN_PRECISION; k -= step) {
-				if (DoubleUtil.isInteger(k)) {
-					k = Math.round(k);
-				}
+			for (BigDecimal k = var_from.toDecimal();
+					k.doubleValue() * sign <= to * sign + Kernel.MIN_PRECISION;
+					k = k.add(var_step.toDecimal())) {
 				list.addNumber(k, null);
 			}
-
 		}
 	}
 

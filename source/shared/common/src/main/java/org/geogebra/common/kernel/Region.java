@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel;
 
 import org.geogebra.common.kernel.kernelND.GeoElementND;
@@ -18,7 +34,7 @@ public interface Region extends GeoElementND {
 	 *            point
 	 * 
 	 */
-	public void pointChangedForRegion(GeoPointND P);
+	void pointChangedForRegion(GeoPointND P);
 
 	/**
 	 * Sets coords of P when this region has changed. Afterwards P lies in this
@@ -29,7 +45,7 @@ public interface Region extends GeoElementND {
 	 * 
 	 *
 	 */
-	public void regionChanged(GeoPointND P);
+	void regionChanged(GeoPointND P);
 
 	/**
 	 * Returns true if the given point lies inside this Region.
@@ -38,7 +54,7 @@ public interface Region extends GeoElementND {
 	 *            point
 	 * @return true if the given point lies inside this Region.
 	 */
-	public boolean isInRegion(GeoPointND P);
+	boolean isInRegion(GeoPointND P);
 
 	/**
 	 * Per default, this method will just call {@link #isInRegion(GeoPointND)}
@@ -47,7 +63,7 @@ public interface Region extends GeoElementND {
 	 * @param P Point
 	 * @return True if the given point lies inside this Region
 	 */
-	public default boolean isInRegionInRealCoords(GeoPointND P) {
+	default boolean isInRegionInRealCoords(GeoPointND P) {
 		return isInRegion(P);
 	}
 
@@ -60,6 +76,6 @@ public interface Region extends GeoElementND {
 	 *            y-coord of the point
 	 * @return true if the point (x0,y0) is in the region
 	 */
-	public boolean isInRegion(double x0, double y0);
+	boolean isInRegion(double x0, double y0);
 
 }

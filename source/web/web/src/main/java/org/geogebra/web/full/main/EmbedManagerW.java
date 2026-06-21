@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.main;
 
 import static org.geogebra.common.GeoGebraConstants.SUITE_APPCODE;
@@ -201,7 +217,7 @@ public class EmbedManagerW implements EmbedManager, EventRenderable, ActionExecu
 			app.dispatchEvent(new Event(EventType.EMBED_LOADED, drawEmbed.getGeoEmbed())
 					.setJsonArgument(jsonArgument));
 		});
-		String jsonContent = content.get(drawEmbed.getEmbedID());
+		final String jsonContent = content.get(drawEmbed.getEmbedID());
 		if (SUITE_APPCODE.equals(drawEmbed.getGeoEmbed().getAppName())) {
 			parameters.setAttribute("preventFocus", "true");
 		}
@@ -317,8 +333,18 @@ public class EmbedManagerW implements EmbedManager, EventRenderable, ActionExecu
 
 		Frame frame = new Frame();
 		frame.setUrl(url);
+		setDefaultReferrerPolicy(frame.getElement());
 		frame.getElement().setAttribute("sandbox", Sandbox.embeds());
 		return frame;
+	}
+
+	/**
+	 * Override referrer policy from HTTP header for a frame.
+	 * @param element frame element
+	 */
+	public static void setDefaultReferrerPolicy(Element element) {
+		element.setAttribute("referrerpolicy",
+				"strict-origin-when-cross-origin");
 	}
 
 	private static FlowPanel createContainer(DrawEmbed embed, String idPrefix) {

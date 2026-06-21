@@ -1,19 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * GeoConic.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 10. September 2001, 08:52
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.geos;
@@ -54,6 +52,7 @@ import org.geogebra.common.util.MyMath;
 public class GeoConic extends GeoConicND implements ConicMirrorable,
 		SymbolicParametersBotanaAlgo, EquationValue, GeoEvaluatable,
 		GeoFunctionable, Functional {
+
 	private CoordSys coordSys;
 	private int tableColumn = -1;
 	private boolean pointsVisible = true;
@@ -129,8 +128,7 @@ public class GeoConic extends GeoConicND implements ConicMirrorable,
 
 	/**
 	 * Invert circle or line in circle
-	 * 
-	 * @version 2010-01-21
+	 *
 	 * @author Michael Borcherds
 	 * @param conic Circle used as mirror
 	 */
@@ -144,7 +142,6 @@ public class GeoConic extends GeoConicND implements ConicMirrorable,
 
 		// Mirror point in circle
 		if (conic.isCircle() && (type == CONIC_SINGLE_POINT || type == CONIC_CIRCLE)) {
-			double r1 = conic.getHalfAxes()[0];
 			Coords midpoint1 = conic.getMidpointND();
 			double x1 = midpoint1.getX();
 			double y1 = midpoint1.getY();
@@ -170,7 +167,7 @@ public class GeoConic extends GeoConicND implements ConicMirrorable,
 				update();
 				return;
 			}
-
+			double r1 = conic.getHalfAxes()[0];
 			// does circle being inverted pass through center of the other?
 			if (DoubleUtil.isEqual(dist, r2)) {
 				double dx = x2 - x1;
@@ -227,7 +224,6 @@ public class GeoConic extends GeoConicND implements ConicMirrorable,
 			if (conic.getType() == GeoConicNDConstants.CONIC_CIRCLE) { // Mirror
 				// point in
 				// circle
-				double r = conic.getHalfAxes()[0];
 				GeoVec2D midPoint = conic.getTranslationVector();
 				double mx = midPoint.getX();
 				double my = midPoint.getY();
@@ -249,6 +245,7 @@ public class GeoConic extends GeoConicND implements ConicMirrorable,
 						+ (perpY - my) * (perpY - my);
 				// if line goes through center, we keep it
 				if (!DoubleUtil.isZero(dist2)) {
+					double r = conic.getHalfAxes()[0];
 					double sf = r * r / dist2;
 					// GeoPoint p =new GeoPoint(cons,null,a+sf*(perpX-a),
 					// b+sf*(perpY-b) ,1.0);
@@ -339,7 +336,7 @@ public class GeoConic extends GeoConicND implements ConicMirrorable,
 	/**
 	 * mirror transform with angle phi [ cos sin 0 ] [ sin -cos 0 ] [ 0 0 1 ]
 	 */
-	final private void mirror(double phi) {
+	private void mirror(double phi) {
 		// set rotated matrix
 		double sum = matrix[0] + matrix[1];
 		double diff = matrix[0] - matrix[1];
@@ -420,23 +417,23 @@ public class GeoConic extends GeoConicND implements ConicMirrorable,
 		 * ( A[0] A[3] A[4] ) matrix = ( A[3] A[1] A[5] ) ( A[4] A[5] A[2] )
 		 * P=matrix*B
 		 */
-		double p00 = matrix[0] * adj[0][0] + matrix[3] * adj[0][1]
+		final double p00 = matrix[0] * adj[0][0] + matrix[3] * adj[0][1]
 				+ matrix[4] * adj[0][2];
-		double p01 = matrix[0] * adj[1][0] + matrix[3] * adj[1][1]
+		final double p01 = matrix[0] * adj[1][0] + matrix[3] * adj[1][1]
 				+ matrix[4] * adj[1][2];
-		double p02 = matrix[0] * adj[2][0] + matrix[3] * adj[2][1]
+		final double p02 = matrix[0] * adj[2][0] + matrix[3] * adj[2][1]
 				+ matrix[4] * adj[2][2];
-		double p10 = matrix[3] * adj[0][0] + matrix[1] * adj[0][1]
+		final double p10 = matrix[3] * adj[0][0] + matrix[1] * adj[0][1]
 				+ matrix[5] * adj[0][2];
-		double p11 = matrix[3] * adj[1][0] + matrix[1] * adj[1][1]
+		final double p11 = matrix[3] * adj[1][0] + matrix[1] * adj[1][1]
 				+ matrix[5] * adj[1][2];
-		double p12 = matrix[3] * adj[2][0] + matrix[1] * adj[2][1]
+		final double p12 = matrix[3] * adj[2][0] + matrix[1] * adj[2][1]
 				+ matrix[5] * adj[2][2];
-		double p20 = matrix[4] * adj[0][0] + matrix[5] * adj[0][1]
+		final double p20 = matrix[4] * adj[0][0] + matrix[5] * adj[0][1]
 				+ matrix[2] * adj[0][2];
-		double p21 = matrix[4] * adj[1][0] + matrix[5] * adj[1][1]
+		final double p21 = matrix[4] * adj[1][0] + matrix[5] * adj[1][1]
 				+ matrix[2] * adj[1][2];
-		double p22 = matrix[4] * adj[2][0] + matrix[5] * adj[2][1]
+		final double p22 = matrix[4] * adj[2][0] + matrix[5] * adj[2][1]
 				+ matrix[2] * adj[2][2];
 
 		matrix[0] = adj[0][0] * p00 + adj[0][1] * p10 + adj[0][2] * p20;
@@ -610,7 +607,7 @@ public class GeoConic extends GeoConicND implements ConicMirrorable,
 	 * @param y
 	 *            single point y coord
 	 */
-	static final public void setSinglePoint(GeoConic conic, double x,
+	static public void setSinglePoint(GeoConic conic, double x,
 			double y) {
 		conic.setMidpoint(x, y);
 		conic.singlePoint();
@@ -654,7 +651,7 @@ public class GeoConic extends GeoConicND implements ConicMirrorable,
 
 	@Override
 	public Function getFunction() {
-		Function definitionFn = GeoLine.definitionAsFunction(getDefinition());
+		Function definitionFn = GeoLine.definitionAsFunction(definition);
 		if (definitionFn != null) {
 			return definitionFn;
 		}
@@ -743,6 +740,11 @@ public class GeoConic extends GeoConicND implements ConicMirrorable,
 
 	@Override
 	public boolean isPolynomialFunction(boolean forRoot) {
+		return true;
+	}
+
+	@Override
+	public boolean hasPolynomialNumerator(boolean forRoot) {
 		return true;
 	}
 }

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.util;
 
 import java.util.Collections;
@@ -7,7 +23,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
@@ -47,12 +62,12 @@ public final class AttributedString {
 	 * Retrieves the set of ranges where the specified attribute is applied.
 	 *
 	 * @param attribute The attribute to look for.
-	 * @return A set of {@link Range} objects where the attribute is applied, or {@code null} if
+	 * @return A set of {@link Range} objects where the attribute is applied, it can be empty if
 	* the attribute is not present.
 	 */
-	public @CheckForNull Set<Range> getAttribute(@Nonnull Attribute attribute) {
+	public @Nonnull Set<Range> getAttribute(@Nonnull Attribute attribute) {
         Set<Range> ranges = attributes.get(attribute);
-        return ranges == null ? null : Collections.unmodifiableSet(ranges);
+		return ranges == null ? Set.of() : Collections.unmodifiableSet(ranges);
     }
 
 	public @Nonnull String getRawValue() {

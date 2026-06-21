@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.openGL;
 
 import org.geogebra.common.euclidian.plot.Gap;
@@ -13,8 +29,8 @@ import org.geogebra.common.kernel.matrix.Coords;
  */
 public class PlotterBrushElements extends PlotterBrush {
 
-	private static int SECTION_SIZE_NOT_STARTED = -1;
-	private static int SECTION_SIZE_STARTED = 0;
+	private static final int SECTION_SIZE_NOT_STARTED = -1;
+	private static final int SECTION_SIZE_STARTED = 0;
 	private int sectionSize = SECTION_SIZE_NOT_STARTED;
 
 	/**
@@ -97,8 +113,8 @@ public class PlotterBrushElements extends PlotterBrush {
 		}
 
 		// last tube rule
-		for (int i = 0; i < LATITUDES; i++) {
-			draw(end, SINUS[i], COSINUS[i], 1);
+		for (int i = 0; i < latitudes; i++) {
+			draw(end, sinus[i], cosinus[i], 1);
 		}
 
 		manager.endGeometry(sectionSize, TypeElement.CURVE);
@@ -109,8 +125,8 @@ public class PlotterBrushElements extends PlotterBrush {
 	@Override
 	public void join() {
 		// draw curve part
-		for (int i = 0; i < LATITUDES; i++) {
-			draw(start, SINUS[i], COSINUS[i], 0); // bottom of the tube rule
+		for (int i = 0; i < latitudes; i++) {
+			draw(start, sinus[i], cosinus[i], 0); // bottom of the tube rule
 		}
 		sectionSize++;
 	}

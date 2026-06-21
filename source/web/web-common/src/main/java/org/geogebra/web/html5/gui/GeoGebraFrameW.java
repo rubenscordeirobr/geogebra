@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.html5.gui;
 
 import java.util.ArrayList;
@@ -6,8 +22,10 @@ import javax.annotation.CheckForNull;
 
 import org.geogebra.common.euclidian.SymbolicEditor;
 import org.geogebra.common.main.PreviewFeature;
+import org.geogebra.common.ownership.GlobalScope;
 import org.geogebra.common.util.StringUtil;
 import org.geogebra.common.util.debug.Log;
+import org.geogebra.editor.web.MathFieldW;
 import org.geogebra.gwtutil.JsConsumer;
 import org.geogebra.gwtutil.NavigatorUtil;
 import org.geogebra.web.html5.bridge.AttributeProvider;
@@ -37,8 +55,6 @@ import org.gwtproject.user.client.Event;
 import org.gwtproject.user.client.ui.FlowPanel;
 import org.gwtproject.user.client.ui.RootPanel;
 
-import com.himamis.retex.editor.web.MathFieldW;
-
 import jsinterop.base.Js;
 
 /**
@@ -51,6 +67,7 @@ public abstract class GeoGebraFrameW extends FlowPanel implements
 	private static final String APPLET_UNFOCUSED_CLASSNAME = "applet-unfocused";
 	private static final ArrayList<GeoGebraFrameW> instances = new ArrayList<>();
 	private static final int SMALL_SCREEN_HEADER_HEIGHT = 48;
+	private static final double COMPACT_WIDTH = 600;
 	/** The application */
 	protected AppW app;
 
@@ -148,10 +165,6 @@ public abstract class GeoGebraFrameW extends FlowPanel implements
 	 * The application loading continues in the splashDialog onLoad handler
 	 */
 	public void createSplash() {
-
-		int splashWidth = LOGO_WIDTH;
-		int splashHeight = LOGO_HEIGHT;
-
 		// to not touch the DOM twice when computing width and height
 		preProcessFitToScreen();
 
@@ -162,6 +175,8 @@ public abstract class GeoGebraFrameW extends FlowPanel implements
 		SplashDialog splashPopup = new SplashDialog(showLogo, geoGebraElement,
 				appletParameters, this);
 		this.splash = splashPopup;
+		int splashWidth = LOGO_WIDTH;
+		int splashHeight = LOGO_HEIGHT;
 		if (splashPopup.isPreviewExists()) {
 			splashWidth = width;
 			splashHeight = height;
@@ -296,7 +311,7 @@ public abstract class GeoGebraFrameW extends FlowPanel implements
 	 * @return whether navigation rail should be compact (based on app width)
 	 */
 	public boolean hasCompactNavigationRail() {
-		return app.getWidth() < 600;
+		return app.getWidth() < COMPACT_WIDTH;
 	}
 
 	private void setHeightWithCompactHeader() {
@@ -757,9 +772,10 @@ public abstract class GeoGebraFrameW extends FlowPanel implements
 			km.removeFromDom();
 		}
 		splash = null;
+		getApp().detachFromExamController();
+		GlobalScope.unregisterSuiteScope(GlobalScope.getSuiteScope(app));
 		// this one should be scheduled, so that all scheduled things depending on app execute OK
 		Scheduler.get().scheduleDeferred(() -> app = null);
-		getApp().detachFromExamController();
 	}
 
 	/**

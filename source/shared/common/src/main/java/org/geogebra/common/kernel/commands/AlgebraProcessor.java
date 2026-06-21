@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.commands;
@@ -32,6 +36,7 @@ import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.EquationBehaviour;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.KernelCAS;
+import org.geogebra.common.kernel.LabelingContext;
 import org.geogebra.common.kernel.LinearEquationRepresentable;
 import org.geogebra.common.kernel.QuadraticEquationRepresentable;
 import org.geogebra.common.kernel.StringTemplate;
@@ -143,11 +148,11 @@ import org.geogebra.common.util.MyMath;
 import org.geogebra.common.util.StringUtil;
 import org.geogebra.common.util.debug.Analytics;
 import org.geogebra.common.util.debug.Log;
+import org.geogebra.editor.share.util.Unicode;
 import org.geogebra.regexp.shared.MatchResult;
 import org.geogebra.regexp.shared.RegExp;
 
 import com.google.j2objc.annotations.Weak;
-import com.himamis.retex.editor.share.util.Unicode;
 
 /**
  * Processes algebra input as Strings and valid expressions into GeoElements
@@ -1083,12 +1088,19 @@ public class AlgebraProcessor {
 		}
 		GeoElement symbolic = symbolicProcessor.evalSymbolicNoLabel(extracted, info);
 		String label = extracted.getLabel();
+		if (label != null && ve.any(part -> isCommand(part, label))) {
+			throw new MyError(kernel.getLocalization(), Errors.CircularDefinition);
+		}
 		if (label != null && kernel.lookupLabel(label) != null
 				&& !info.isLabelRedefinitionAllowedFor(label)) {
-			throw new MyError(kernel.getLocalization(), "LabelAlreadyUsed");
+			throw new MyError(kernel.getLocalization(), Errors.LabelAlreadyUsed);
 		}
 		setLabel(symbolic, label);
 		return symbolic;
+	}
+
+	private boolean isCommand(ExpressionValue value, String label) {
+		return value instanceof Command command && label.equals(command.getName());
 	}
 
 	private ExpressionNode replaceFunctionVariables(ValidExpression expression) {
@@ -1166,10 +1178,7 @@ public class AlgebraProcessor {
 			if (!containsRestrictedInputExpression && !containsRestrictedOutputExpressions) {
 				// apply the element setups,
 				if (!geoElementSetups.isEmpty()) {
-					Arrays.stream(geos).forEach(geoElement -> {
-						geoElementSetups.forEach(setup -> setup.applyTo(geoElement));
-						geoElement.updateRepaint();
-					});
+					Arrays.stream(geos).forEach(this::applySetups);
 				}
 			} else {
 				// otherwise remove the elements from the construction.
@@ -1184,6 +1193,18 @@ public class AlgebraProcessor {
 			callback0.callback(filteredGeos);
 		}
 		return filteredGeos;
+	}
+
+	private void applySetups(GeoElementND geoElement) {
+		boolean geoChanged = false;
+		for (GeoElementSetup setup: geoElementSetups) {
+			if (setup.applyTo(geoElement)) {
+				geoChanged = true;
+			}
+		}
+		if (geoChanged) {
+			geoElement.updateRepaint();
+		}
 	}
 
 	private void removeSliders(Set<GeoNumeric> sliders) {
@@ -1409,7 +1430,7 @@ public class AlgebraProcessor {
 			ExpressionNode expressionNode) {
 		expressionNode.resolveVariables(new EvalInfo(false));
 		if (expressionNode.containsFreeFunctionVariable(null)) {
-			throw new MyError(loc, "IncompleteEquation");
+			throw new MyError(loc, Errors.IncompleteEquation);
 		}
 		return (NumberValue) expressionNode
 				.evaluate(StringTemplate.defaultTemplate);
@@ -1466,6 +1487,9 @@ public class AlgebraProcessor {
 
 			if (forGeo != null) {
 				forGeo.setUndefined();
+				if (forGeo.isIndependent()) {
+					forGeo.resetDefinition();
+				}
 			}
 
 			return Double.NaN;
@@ -1483,11 +1507,8 @@ public class AlgebraProcessor {
 	 * @return resulting boolean
 	 */
 	public GeoBoolean evaluateToBoolean(String str, ErrorHandler handler) {
-		boolean oldMacroMode = cons.isSuppressLabelsActive();
-		cons.setSuppressLabelCreation(true);
-
 		GeoBoolean bool = null;
-		try {
+		try (LabelingContext ignored = cons.getSilentContext()) {
 			ValidExpression ve = parser.parseGeoGebraExpression(str);
 			// A=B as comparison, not assignment
 			if (ve.getLabel() != null) {
@@ -1522,7 +1543,6 @@ public class AlgebraProcessor {
 			Log.debug(e);
 			handler.showError(loc.getInvalidInputError());
 		} finally {
-			cons.setSuppressLabelCreation(oldMacroMode);
 			cons.registerFunctionVariable(null);
 		}
 
@@ -1545,11 +1565,8 @@ public class AlgebraProcessor {
 		if ("?".equals(str)) {
 			return null;
 		}
-		boolean oldMacroMode = cons.isSuppressLabelsActive();
-		cons.setSuppressLabelCreation(true);
-
 		GeoList list = null;
-		try {
+		try (LabelingContext ignored = cons.getSilentContext()) {
 			ValidExpression ve = parser.parseGeoGebraExpressionLowPrecision(str);
 			GeoElementND[] temp = processValidExpression(ve);
 			// CAS in GeoGebraWeb dies badly if we don't handle this case
@@ -1569,7 +1586,6 @@ public class AlgebraProcessor {
 			Log.debug(t);
 		} finally {
 			cons.registerFunctionVariable(null);
-			cons.setSuppressLabelCreation(oldMacroMode);
 		}
 
 		return list;
@@ -1603,11 +1619,8 @@ public class AlgebraProcessor {
 	 */
 	public GeoFunction evaluateToFunction(String str, boolean suppressErrors,
 			boolean revertArbconst) {
-		boolean oldMacroMode = cons.isSuppressLabelsActive();
-		cons.setSuppressLabelCreation(true);
-
 		GeoFunction func = null;
-		try {
+		try (LabelingContext ignored = cons.getSilentContext()) {
 			ValidExpression ve = parser.parseGeoGebraExpression(str);
 			String[] varName = kernel.getConstruction()
 					.getRegisteredFunctionVariables();
@@ -1640,7 +1653,6 @@ public class AlgebraProcessor {
 			}
 		} finally {
 			cons.registerFunctionVariable(null);
-			cons.setSuppressLabelCreation(oldMacroMode);
 		}
 
 		return func;
@@ -1707,11 +1719,8 @@ public class AlgebraProcessor {
 	 */
 	public GeoFunctionNVar evaluateToFunctionNVar(String str,
 			boolean suppressErrors, boolean revertArbconst) {
-		boolean oldMacroMode = cons.isSuppressLabelsActive();
-		cons.setSuppressLabelCreation(true);
-
 		GeoFunctionNVar func = null;
-		try {
+		try (LabelingContext ignored = cons.getSilentContext()) {
 			ValidExpression ve = parser.parseGeoGebraExpression(str);
 			if (revertArbconst) {
 				ve = ve.traverse(getArbcostReverse()).wrap();
@@ -1762,7 +1771,6 @@ public class AlgebraProcessor {
 			}
 		} finally {
 			cons.registerFunctionVariable(null);
-			cons.setSuppressLabelCreation(oldMacroMode);
 		}
 
 		return func;
@@ -1815,11 +1823,8 @@ public class AlgebraProcessor {
 			return new GeoNumeric(cons, Double.NaN);
 		}
 
-		boolean oldMacroMode = cons.isSuppressLabelsActive();
-		cons.setSuppressLabelCreation(true);
-
 		GeoNumberValue num = null;
-		try {
+		try (LabelingContext ignored = cons.getSilentContext()) {
 			ValidExpression ve = parser.parseGeoGebraExpression(str);
 			GeoElementND[] temp = processValidExpression(ve, info);
 
@@ -1840,7 +1845,6 @@ public class AlgebraProcessor {
 			ErrorHelper.handleException(new Exception(e), app, handler);
 		} finally {
 			cons.registerFunctionVariable(null);
-			cons.setSuppressLabelCreation(oldMacroMode);
 		}
 
 		return num;
@@ -1861,16 +1865,13 @@ public class AlgebraProcessor {
 	public GeoPointND evaluateToPoint(String str, ErrorHandler handler,
 			boolean suppressLabels) {
 		boolean oldMacroMode = cons.isSuppressLabelsActive();
-		if (suppressLabels) {
-			cons.setSuppressLabelCreation(true);
-		}
+		cons.setSuppressLabelCreation(suppressLabels);
 
 		GeoPointND p = null;
 		GeoElementND[] temp;
 		try {
 			ValidExpression ve = parser.parseGeoGebraExpression(str);
-			if (ve instanceof ExpressionNode) {
-				ExpressionNode en = (ExpressionNode) ve;
+			if (ve instanceof ExpressionNode en) {
 				en.setForcePoint();
 			}
 
@@ -1971,11 +1972,8 @@ public class AlgebraProcessor {
 	 */
 	public GeoElementND evaluateToGeoElement(String str, boolean showErrors, EvalInfo info,
 			GeoElementND template) {
-		boolean oldMacroMode = cons.isSuppressLabelsActive();
-		cons.setSuppressLabelCreation(true);
-
 		GeoElementND geo = null;
-		try {
+		try (LabelingContext ignored = cons.getSilentContext()) {
 			ValidExpression ve = parser.parseGeoGebraExpression(str);
 			if (template != null) {
 				updateTypePreservingFlags(ve, template, info.isPreventingTypeChange());
@@ -1994,7 +1992,6 @@ public class AlgebraProcessor {
 			}
 		} finally {
 			cons.registerFunctionVariable(null);
-			cons.setSuppressLabelCreation(oldMacroMode);
 		}
 
 		return geo;
@@ -2101,12 +2098,8 @@ public class AlgebraProcessor {
 	 */
 	public GeoElement[] processValidExpressionSilent(ValidExpression ve)
 			throws MyError, CircularDefinitionException {
-		boolean oldSuppressLabel = cons.isSuppressLabelsActive();
-		cons.setSuppressLabelCreation(true);
-		try {
+		try (LabelingContext ignored = cons.getSilentContext()) {
 			return processValidExpression(ve, new EvalInfo(false));
-		} finally {
-			cons.setSuppressLabelCreation(oldSuppressLabel);
 		}
 	}
 
@@ -2161,6 +2154,7 @@ public class AlgebraProcessor {
 	 * @throws CircularDefinitionException
 	 *             when circular definition occurs
 	 */
+	@SuppressWarnings("PMD.ExceptionAsFlowControl")
 	void processReplace(GeoElement replaceable, GeoElement[] ret,
 			ValidExpression ve, EvalInfo info)
 			throws CircularDefinitionException {
@@ -2222,7 +2216,7 @@ public class AlgebraProcessor {
 						geoElementSetups.forEach(setup -> setup.applyTo(replaceable));
 						if (replaceable instanceof GeoFunction
 								&& !((GeoFunction) replaceable)
-										.validate(true)) {
+										.validate(!cons.isRegisteredFunctionVariable("z"))) {
 							replaceable.setUndefined();
 						} else {
 							replaceable.setDefinition(ret[0].getDefinition());
@@ -2357,7 +2351,7 @@ public class AlgebraProcessor {
 				if (info.isScripting()) {
 					((GeoScriptAction) ret[0]).perform();
 				}
-				return new GeoElement[] {};
+				return new GeoElement[0];
 			} else if (info.isCopyingPlainVariables() && singleReturnValue) {
 				boolean isPlainVariable = node.isLeaf();
 				boolean returnValueIsInput = node.unwrap() == ret[0];
@@ -2369,7 +2363,7 @@ public class AlgebraProcessor {
 				int actions = ((GeoList) ret[0]).performScriptActions(info);
 				if (actions > 0) {
 					ret[0].remove();
-					return new GeoElement[] {};
+					return new GeoElement[0];
 				}
 			}
 		}
@@ -3013,7 +3007,7 @@ public class AlgebraProcessor {
 	protected GeoElement[] processLine(Equation equ, ExpressionNode def,
 			EvalInfo info) {
 		GeoLine line;
-		String label = equ.getLabel();
+		final String label = equ.getLabel();
 		Polynomial lhs = equ.getNormalForm();
 		boolean isExplicit = equ.isExplicit("y");
 		boolean isIndependent = lhs.isConstant(info) && !def.any(Inspecting::isDynamicGeoElement);
@@ -3112,17 +3106,15 @@ public class AlgebraProcessor {
 	 */
 	public GeoElement[] processConic(Equation equ, ExpressionNode def,
 			EvalInfo info) {
-		double a, b, c, d, e, f;
-		GeoConic conic;
-		String label = equ.getLabel();
 		Polynomial lhs = equ.getNormalForm();
 
 		boolean isExplicit = equ.isExplicit("y");
 		boolean isSpecific = !isExplicit
 				&& (equ.isExplicit("yy") || equ.isExplicit("xx"));
 		boolean isIndependent = lhs.isConstant(info);
-
+		GeoConic conic;
 		if (isIndependent) {
+			double a, b, c, d, e, f;
 			a = lhs.getCoeffValue("xx");
 			b = lhs.getCoeffValue("xy");
 			c = lhs.getCoeffValue("yy");
@@ -3142,6 +3134,7 @@ public class AlgebraProcessor {
 			conic.setToSpecificForm();
 		}
 		conic.setDefinition(def);
+		String label = equ.getLabel();
 		setEquationLabelAndVisualStyle(conic, label, info);
 
 		return array(conic);
@@ -3616,7 +3609,7 @@ public class AlgebraProcessor {
 
 		}
 
-		boolean polar = p.getToStringMode() == Kernel.COORD_POLAR;
+		final boolean polar = p.getToStringMode() == Kernel.COORD_POLAR;
 
 		// we want z = 3 + i to give a (complex) GeoPoint not a GeoVector
 		boolean complex = p.getToStringMode() == Kernel.COORD_COMPLEX;
@@ -3693,9 +3686,11 @@ public class AlgebraProcessor {
 	 */
 	public GeoElement[] processEquationIntersect(ExpressionValue x,
 			ExpressionValue y) {
-
 		GeoElement[] ret = processCommand(intersectCommand(x, y),
 				new EvalInfo(true));
+		if (ret == null || ret.length == 0) {
+			return null;
+		}
 		if (ret[0].getParentAlgorithm() instanceof HasShortSyntax) {
 			((HasShortSyntax) ret[0].getParentAlgorithm()).setShortSyntax(true);
 			ret[0].updateRepaint();

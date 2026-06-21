@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.view.spreadsheet;
 
 import java.awt.Color;
@@ -6,7 +22,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JToolBar;
 
 import org.geogebra.common.awt.GColor;
@@ -24,6 +40,7 @@ import org.geogebra.desktop.gui.util.PopupMenuButtonD;
 import org.geogebra.desktop.gui.util.ToggleButtonD;
 import org.geogebra.desktop.main.AppD;
 import org.geogebra.desktop.main.LocalizationD;
+import org.geogebra.desktop.main.ScaledIcon;
 import org.geogebra.desktop.util.GuiResourcesD;
 
 /**
@@ -111,16 +128,18 @@ public class SpreadsheetStyleBar extends JToolBar implements ActionListener, Set
 				app.getScaledIcon(GuiResourcesD.FORMULA_BAR), iconHeight);
 		btnFormulaBar.addActionListener(this);
 
-		ImageIcon boldIcon = GeoGebraIconD.createStringIcon(
+		ScaledIcon boldIcon = GeoGebraIconD.createStringIcon(
 				loc.getMenu("Bold").substring(0, 1), app.getPlainFont(), true,
-				false, true, iconDimension, Color.black, null);
+				false, true, iconDimension, Color.black, null,
+				app.getImageManager().getPixelRatio());
 		btnBold = new ToggleButtonD(boldIcon, iconHeight);
 		btnBold.addActionListener(this);
 		btnBold.setPreferredSize(iconDimension);
 
-		ImageIcon italicIcon = GeoGebraIconD.createStringIcon(
+		ScaledIcon italicIcon = GeoGebraIconD.createStringIcon(
 				loc.getMenu("Italic").substring(0, 1), app.getPlainFont(),
-				false, true, true, iconDimension, Color.black, null);
+				false, true, true, iconDimension, Color.black, null,
+				app.getImageManager().getPixelRatio());
 		btnItalic = new ToggleButtonD(italicIcon, iconHeight);
 		btnItalic.addActionListener(this);
 
@@ -146,20 +165,22 @@ public class SpreadsheetStyleBar extends JToolBar implements ActionListener, Set
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public ImageIcon getButtonIcon() {
+			public Icon getButtonIcon() {
 				Color c = GColorD.getAwtColor(getSelectedColor());
 				if (c == null) {
 					return GeoGebraIconD.createNullSymbolIcon(
-							bgColorIconSize.width, bgColorIconSize.height);
+							bgColorIconSize.width, bgColorIconSize.height,
+							app.getImageManager().getPixelRatio());
 				}
-				return GeoGebraIconD.createCellGridIcon(Color.DARK_GRAY, c);
+				return GeoGebraIconD.createCellGridIcon(Color.DARK_GRAY, c,
+						app.getImageManager().getPixelRatio());
 			}
 		};
 		btnBgColor.setKeepVisible(false);
 		btnBgColor.setSelectedIndex(7); // Light Purple
 		btnBgColor.addActionListener(this);
 
-		ImageIcon[] borderStyleIcon = {
+		Icon[] borderStyleIcon = {
 				app.getScaledIcon(GuiResourcesD.BORDER_NONE),
 				app.getScaledIcon(GuiResourcesD.BORDER_FRAME),
 				app.getScaledIcon(GuiResourcesD.BORDER_INSIDE),
@@ -190,14 +211,16 @@ public class SpreadsheetStyleBar extends JToolBar implements ActionListener, Set
 		btnRightAlign
 				.setToolTipText(loc.getPlainTooltip("stylebar.AlignRight"));
 
-		ImageIcon boldIcon = GeoGebraIconD.createStringIcon(
+		ScaledIcon boldIcon = GeoGebraIconD.createStringIcon(
 				loc.getMenu("Bold").substring(0, 1), app.getPlainFont(), true,
-				false, true, iconDimension, Color.black, null);
+				false, true, iconDimension, Color.black, null,
+				app.getImageManager().getPixelRatio());
 		btnBold.setIcon(boldIcon);
 
-		ImageIcon italicIcon = GeoGebraIconD.createStringIcon(
+		ScaledIcon italicIcon = GeoGebraIconD.createStringIcon(
 				loc.getMenu("Italic").substring(0, 1), app.getPlainFont(),
-				false, true, true, iconDimension, Color.black, null);
+				false, true, true, iconDimension, Color.black, null,
+				app.getImageManager().getPixelRatio());
 		btnItalic.setIcon(italicIcon);
 
 	}
@@ -265,9 +288,9 @@ public class SpreadsheetStyleBar extends JToolBar implements ActionListener, Set
 			// set color for the actual geos
 			for (int i = 0; i < selectedCells.size(); i++) {
 				TabularRange tr = selectedCells.get(i);
-				ArrayList<GeoElement> ar = CellRangeUtil.toGeoList(tr, app);
-				for (int j = 0; j < ar.size(); j++) {
-					GeoElement geo = ar.get(j);
+				ArrayList<GeoElement> elements = CellRangeUtil.toGeoList(tr,
+						app.getSpreadsheetTableModel());
+				for (GeoElement geo : elements) {
 					geo.setBackgroundColor(bgCol);
 					geo.updateVisualStyleRepaint(GProperty.COLOR);
 				}

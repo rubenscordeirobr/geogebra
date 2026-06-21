@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.resources;
 
 import org.geogebra.gwtutil.DOMParser;
@@ -17,14 +33,8 @@ public class SVGResourcePrototype implements SVGResource {
 
 	public static final SVGResource EMPTY = new SVGResourcePrototype("empty",
 			"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1\" height=\"1\"/>");
-	private static DOMParser parser;
-
-	private static XMLSerializer serializer;
-
-	static {
-		parser = new DOMParser();
-		serializer = new XMLSerializer();
-	}
+	private static final DOMParser parser = new DOMParser();
+	private static final XMLSerializer serializer = new XMLSerializer();
 
 	private String svg;
 	private String name;

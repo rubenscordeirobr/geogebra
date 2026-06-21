@@ -1,19 +1,17 @@
-/* 
- GeoGebra - Dynamic Mathematics for Everyone
- http://www.geogebra.org
-
- This file is part of GeoGebra.
-
- This program is free software; you can redistribute it and/or modify it 
- under the terms of the GNU General Public License as published by 
- the Free Software Foundation.
- 
- */
-
 /*
- * Command.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 05. September 2001, 12:05
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.arithmetic;
@@ -28,6 +26,7 @@ import org.geogebra.common.kernel.algos.AlgoElement;
 import org.geogebra.common.kernel.arithmetic.variable.Variable;
 import org.geogebra.common.kernel.commands.EvalInfo;
 import org.geogebra.common.kernel.geos.GeoElement;
+import org.geogebra.common.main.Localization;
 import org.geogebra.common.main.MyError;
 import org.geogebra.common.plugin.Operation;
 import org.geogebra.common.util.DoubleUtil;
@@ -817,7 +816,7 @@ public class MyList extends ValidExpression
 		StringBuilder sb = new StringBuilder();
 
 		if (printBrackets) {
-			tpl.leftCurlyBracket(sb);
+			tpl.leftCurlyBracket(sb, kernel.getLocalization());
 		}
 		// first (n-1) elements
 		int lastIndex = listElements.size() - 1;
@@ -835,7 +834,7 @@ public class MyList extends ValidExpression
 					: exp.toString(tpl));
 		}
 		if (printBrackets) {
-			tpl.rightCurlyBracket(sb);
+			tpl.rightCurlyBracket(sb, kernel.getLocalization());
 		}
 		return sb.toString();
 	}
@@ -1184,18 +1183,17 @@ public class MyList extends ValidExpression
 			return;
 		}
 
-		ExpressionNode x, y, z;
 		// size 3
-		z = new ExpressionNode(kernel, en, Operation.MINUS, en2);
+		ExpressionNode z = new ExpressionNode(kernel, en, Operation.MINUS, en2);
 		ExpressionValue az = get(2);
 		ExpressionValue bz = list.get(2);
 		en = new ExpressionNode(kernel, ay, Operation.MULTIPLY, bz);
 		en2 = new ExpressionNode(kernel, az, Operation.MULTIPLY, by);
-		x = new ExpressionNode(kernel, en, Operation.MINUS, en2);
+		ExpressionNode x = new ExpressionNode(kernel, en, Operation.MINUS, en2);
 
 		en = new ExpressionNode(kernel, az, Operation.MULTIPLY, bx);
 		en2 = new ExpressionNode(kernel, ax, Operation.MULTIPLY, bz);
-		y = new ExpressionNode(kernel, en, Operation.MINUS, en2);
+		ExpressionNode y = new ExpressionNode(kernel, en, Operation.MINUS, en2);
 
 		listElements.set(0, x);
 		listElements.set(1, y);
@@ -1207,6 +1205,11 @@ public class MyList extends ValidExpression
 	 */
 	public Kernel getKernel() {
 		return kernel;
+	}
+
+	@Override
+	public Localization getLocalization() {
+		return kernel.getLocalization();
 	}
 
 	/**

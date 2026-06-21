@@ -1,22 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * RelationNumerical.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 27 June 2014, 14:17
- * 
- * based on Relation.java by Markus
- * created on 12 December 2001, 12:37
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel;
@@ -49,10 +44,9 @@ import org.geogebra.common.main.Localization;
 import org.geogebra.common.util.DoubleUtil;
 
 /**
- * Markus' original code has been extensively rewritten. On the other hand, the
- * new behavior is backward compatible and the basic design is still the same.
+ * Finds relation between geometric objects using numeric comparison.
  * 
- * @author Zoltan Kovacs
+ * @author Zoltan Kovacs, based on code by Markus
  */
 public class RelationNumerical {
 	private App app;
@@ -159,20 +153,16 @@ public class RelationNumerical {
 	}
 
 	/**
-	 * Sort the relation reports alphabetically
+	 * Sort by result first (positive results on top), then alphabetically.
 	 * 
 	 * @param reports
 	 *            unsorted relation reports
-	 * @return alphabetically sorted relation reports
+	 * @return sorted relation reports
 	 */
-	public static SortedSet<Report> sortAlphabetically(Set<Report> reports) {
-
-		Comparator<Report> myComparator = new Comparator<Report>() {
-			@Override
-			public int compare(Report r1, Report r2) {
-				return r1.stringResult.compareTo(r2.stringResult);
-			}
-		};
+	public static SortedSet<Report> sortByResultAndText(Set<Report> reports) {
+		Comparator<Report> myComparator = Comparator.comparing(
+				r -> r.boolResult == null || !r.boolResult ? 1 : 0);
+		myComparator = myComparator.thenComparing(r -> r.stringResult);
 
 		TreeSet<Report> sortedReports = new TreeSet<>(myComparator);
 		sortedReports.addAll(reports);
@@ -377,7 +367,7 @@ public class RelationNumerical {
 	/**
 	 * description of the relation between two lists a, b (equal, unequal)
 	 */
-	final private Set<Report> relation(GeoList a, GeoList b) {
+	private Set<Report> relation(GeoList a, GeoList b) {
 		Boolean bool = a.isEqual(b);
 		String str = equalityString(a.toGeoElement(), b.toGeoElement(), bool);
 		register(bool, null, str);
@@ -387,7 +377,7 @@ public class RelationNumerical {
 	/**
 	 * description of the relation between two numbers a, b (equal, unequal)
 	 */
-	final private Set<Report> relation(GeoNumberValue a, GeoNumberValue b) {
+	private Set<Report> relation(GeoNumberValue a, GeoNumberValue b) {
 		Boolean bool = DoubleUtil.isEqual(a.getDouble(), b.getDouble());
 		String str = equalityString(a.toGeoElement(), b.toGeoElement(), bool);
 		register(bool, RelationCommand.AreEqual, str);
@@ -398,7 +388,7 @@ public class RelationNumerical {
 	 * description of the relation between segment a and segment b (equal,
 	 * unequal)
 	 */
-	final private Set<Report> relation(GeoSegmentND a, GeoSegmentND b) {
+	private Set<Report> relation(GeoSegmentND a, GeoSegmentND b) {
 		Boolean bool;
 		String str;
 		if (DoubleUtil.isEqual(a.evaluateDouble(), b.evaluateDouble())) {
@@ -442,7 +432,7 @@ public class RelationNumerical {
 	/**
 	 * description of the relation among segments a, b and c (equal, unequal)
 	 */
-	final private Set<Report> relation(GeoSegmentND a, GeoSegmentND b,
+	private Set<Report> relation(GeoSegmentND a, GeoSegmentND b,
 			GeoSegmentND c) {
 		/* Checking if the objects/lengths are equal. */
 		if (DoubleUtil.isEqual(a.getDouble(), b.getDouble())
@@ -466,7 +456,7 @@ public class RelationNumerical {
 	/**
 	 * description of the relation between two points A, B (equal, unequal)
 	 */
-	final private Set<Report> relation(GeoPoint A, GeoPoint B) {
+	private Set<Report> relation(GeoPoint A, GeoPoint B) {
 		Boolean bool = A.isEqual(B);
 		String str = equalityString(A, B, bool);
 		register(bool, RelationCommand.AreEqual, str);
@@ -477,7 +467,7 @@ public class RelationNumerical {
 	 * description of the relation of three points A, B, C (equal, unequal,
 	 * collinear)
 	 */
-	final private Set<Report> relation(GeoPoint A, GeoPoint B, GeoPoint C) {
+	private Set<Report> relation(GeoPoint A, GeoPoint B, GeoPoint C) {
 		if (A.isEqual(B) && A.isEqual(C)) {
 			String str = equalityString(A, B, C, true);
 			// consider implementing Prove[A==B==C]
@@ -496,7 +486,7 @@ public class RelationNumerical {
 	 * description of the relation of three points A, B, C, D (equal, unequal,
 	 * collinear, concyclic)
 	 */
-	final private Set<Report> relation(GeoPoint A, GeoPoint B, GeoPoint C,
+	private Set<Report> relation(GeoPoint A, GeoPoint B, GeoPoint C,
 			GeoPoint D) {
 		if (A.isEqual(B) && A.isEqual(C) && A.isEqual(D)) {
 			String str = equalityString(A, B, C, D, true);
@@ -520,7 +510,7 @@ public class RelationNumerical {
 	 * description of the relation between two vectors a, b (equal, linear
 	 * dependent, linear independent)
 	 */
-	final private Set<Report> relation(GeoVector a, GeoVector b) {
+	private Set<Report> relation(GeoVector a, GeoVector b) {
 		String str;
 		Boolean bool;
 		if (a.isEqual(b)) {
@@ -538,7 +528,7 @@ public class RelationNumerical {
 	 * description of the relation between point A and a polygon ((not) on
 	 * perimeter)
 	 */
-	final private Set<Report> relation(GeoPoint A, GeoPolygon p) {
+	private Set<Report> relation(GeoPoint A, GeoPolygon p) {
 		Boolean bool = p.isOnPath(A, Kernel.STANDARD_PRECISION);
 		String str = incidencePerimeterString(A, p.toGeoElement(), bool);
 		register(bool, null, str);
@@ -550,7 +540,7 @@ public class RelationNumerical {
 	 * description of the relation between point A and a path (incident, not
 	 * incident)
 	 */
-	final private Set<Report> relation(GeoPoint A, Path path) {
+	private Set<Report> relation(GeoPoint A, Path path) {
 		Boolean bool = path.isOnPath(A, Kernel.STANDARD_PRECISION);
 		String str = incidenceString(A, path.toGeoElement(), bool);
 		register(bool, RelationCommand.IsOnPath, str);
@@ -560,7 +550,7 @@ public class RelationNumerical {
 	/**
 	 * description of the relation between polygons a and b
 	 */
-	final private Set<Report> relation(GeoPolygon a, GeoPolygon b) {
+	private Set<Report> relation(GeoPolygon a, GeoPolygon b) {
 		Boolean bool = a.hasSameArea(b);
 		String str = equalAreaString(a, b, bool, loc);
 		register(bool, RelationCommand.AreEqual, str);
@@ -571,7 +561,7 @@ public class RelationNumerical {
 	 * description of the relation between lines g and h (equal, parallel or
 	 * intersecting)
 	 */
-	final private Set<Report> relation(GeoLine g, GeoLine h) {
+	private Set<Report> relation(GeoLine g, GeoLine h) {
 		String str;
 		// check for equality
 		if (g.isEqual(h)) {
@@ -606,7 +596,7 @@ public class RelationNumerical {
 	/**
 	 * description of the relation between lines g, h and i (concurrency)
 	 */
-	final private Set<Report> relation(GeoLine g, GeoLine h, GeoLine i) {
+	private Set<Report> relation(GeoLine g, GeoLine h, GeoLine i) {
 		String str;
 		// check for equality
 		if (g.isEqual(h) && g.isEqual(i)) {
@@ -632,7 +622,7 @@ public class RelationNumerical {
 	 * description of the relation between line g and conic c (intersection
 	 * type: tangent, secant, ...)
 	 */
-	final private Set<Report> relation(GeoLine g, GeoConic c) {
+	private Set<Report> relation(GeoLine g, GeoConic c) {
 		int type;
 		String str;
 
@@ -692,7 +682,7 @@ public class RelationNumerical {
 	 * description of the relation between conic parts a, b (equal, intersecting
 	 * or not intersecting)
 	 */
-	final private Set<Report> relation(GeoConicPart a, GeoConicPart b) {
+	private Set<Report> relation(GeoConicPart a, GeoConicPart b) {
 		Boolean bool = a.isEqual(b);
 		String str = equalityString(a, b, bool);
 		register(bool, null, str);
@@ -718,7 +708,7 @@ public class RelationNumerical {
 	 * description of the relation between conics a, b (equal, intersecting or
 	 * not intersecting)
 	 */
-	final private Set<Report> relation(GeoConic a, GeoConic b) {
+	private Set<Report> relation(GeoConic a, GeoConic b) {
 		String str;
 
 		if (a.isEqual(b)) {
@@ -764,7 +754,7 @@ public class RelationNumerical {
 	/**
 	 * description of the relation between functions
 	 */
-	final private Set<Report> relation(GeoFunction a, GeoFunction b) {
+	private Set<Report> relation(GeoFunction a, GeoFunction b) {
 		Boolean bool = a.isEqual(b);
 		String str = equalityString(a, b, bool); // This was equalityStringExact
 													// originally.
@@ -778,7 +768,7 @@ public class RelationNumerical {
 
 	// "Relation of a and b: equal"
 	// "Relation of a and b: unequal"
-	final private String equalityString(GeoElement a, GeoElement b,
+	private String equalityString(GeoElement a, GeoElement b,
 			boolean equal) {
 		return equalityString(a, b, equal, loc);
 	}
@@ -1012,7 +1002,7 @@ public class RelationNumerical {
 
 	// "Relation of a and b: linear dependent"
 	// "Relation of a and b: linear independent"
-	final private String linDependencyString(GeoElement a, GeoElement b,
+	private String linDependencyString(GeoElement a, GeoElement b,
 			boolean dependent) {
 		if (dependent) {
 			return loc.getPlain("AandBareLinearlyDependent",
@@ -1024,7 +1014,7 @@ public class RelationNumerical {
 
 	// "a lies on b"
 	// "a does not lie on b"
-	final private String incidenceString(GeoPoint a, GeoElement b,
+	private String incidenceString(GeoPoint a, GeoElement b,
 			boolean incident) {
 		if (incident) {
 			return loc.getPlain("AliesOnB", getColoredLabel(a),
@@ -1036,7 +1026,7 @@ public class RelationNumerical {
 
 	// "a lies on the perimeter of b"
 	// "a does not lie on the perimeter of b"
-	final private String incidencePerimeterString(GeoPoint a, GeoElement b,
+	private String incidencePerimeterString(GeoPoint a, GeoElement b,
 			boolean incident) {
 		if (incident) {
 			return loc.getPlain("AliesOnThePerimeterOfB", getColoredLabel(a),
@@ -1047,12 +1037,12 @@ public class RelationNumerical {
 	}
 
 	// "Relation of a and b: parallel"
-	final private String parallelString(GeoLine a, GeoLine b) {
+	private String parallelString(GeoLine a, GeoLine b) {
 		return parallelString(a, b, loc);
 	}
 
 	// "Relation of a and b and c: parallel"
-	final private String parallelString(GeoLine a, GeoLine b, GeoLine c) {
+	private String parallelString(GeoLine a, GeoLine b, GeoLine c) {
 		return parallelString(a, b, c, loc);
 	}
 
@@ -1123,7 +1113,7 @@ public class RelationNumerical {
 				+ getColoredLabel(B) + getColoredLabel(C));
 	}
 
-	final private String perpendicularString(GeoLine a, GeoLine b,
+	private String perpendicularString(GeoLine a, GeoLine b,
 			boolean perp) {
 		return perpendicularString(a, b, perp, loc);
 	}
@@ -1152,7 +1142,7 @@ public class RelationNumerical {
 	}
 
 	// "a intersects with b"
-	final private String intersectString(GeoElement a, GeoElement b,
+	private String intersectString(GeoElement a, GeoElement b,
 			boolean intersects) {
 		return intersectString(a, b, intersects, loc);
 	}
@@ -1186,7 +1176,7 @@ public class RelationNumerical {
 	}
 
 	// "a touches b"
-	final private String touchString(GeoElement a, GeoElement b,
+	private String touchString(GeoElement a, GeoElement b,
 			boolean touches) {
 		return touchString(a, b, touches, loc);
 	}
@@ -1219,7 +1209,7 @@ public class RelationNumerical {
 
 	// e.g "a is tangent of b"
 	// types are defined in AlgoIntersectLineConic
-	final private String lineConicString(GeoLine a, GeoConic b, int type) {
+	private String lineConicString(GeoLine a, GeoConic b, int type) {
 
 		switch (type) {
 		case AlgoIntersectLineConic.INTERSECTION_PRODUCING_LINE:

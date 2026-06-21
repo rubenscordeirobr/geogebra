@@ -1,11 +1,26 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.cas.giac;
 
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.geogebra.common.main.PreviewFeature;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /***
  * # Command translation table from GeoGebra to giac # e.g. Factor[2(x+3)] is
@@ -234,13 +249,14 @@ public class Ggb2giac {
 				// check for constant
 						"when(length(lname(ggbderivarg0))==0,x,"
 						+ "when(count_eq(x,lname(ggbderivarg0))==0,lname(ggbderivarg0)[0],x)))))][1]");
+
 		p("Derivative.2", "[[[ggbderiv2arg0:=%0],[ggbderiv2arg1:=%1]],"
 				+ "when(type(ggbderiv2arg1)==DOM_INT,"
 				+ "regroup(regroup(diff(ggbderiv2arg0,when(count_eq(x,lname(ggbderiv2arg0))==0,lname(%0)[0],x),ggbderiv2arg1)))"
 				+ "," + "regroup(regroup(diff(ggbderiv2arg0,ggbderiv2arg1)))"
 				+ ")][1]");
 
-		p("Derivative.3", "regroup(regroup(diff(%0,%1,%2)))");
+		p("Derivative.3", "regroup(regroup(when(%2==1,diff(%0,%1),diff(%0,%1,%2))))");
 
 		// det_minor for symbolic,see GGB-830
 		p("Determinant.1", "when(size(lname(%0))==0,det(%0),det_minor(%0))");
@@ -1047,9 +1063,9 @@ public class Ggb2giac {
 						// check for unicode0176u so that
 						// Numeric[acos((-11.4^2+5.8^2+7.2^2)/(2 5.8 7.2))]
 						// is better when returning degrees from inverse trig
-						"evalf(ggbnumans)" + "," +
+						"evalf(ggbnumans,13)" + "," +
 						// #4537
-						"normal(evalf(regroup(ggbnumans)))" + ")][2]");
+						"normal(evalf(regroup(ggbnumans),13))" + ")][2]");
 
 		p("Numeric.2",
 				numericInit
@@ -1123,7 +1139,8 @@ public class Ggb2giac {
 		p("Reverse.1", "revlist(%0)");
 
 		p("ReducedRowEchelonForm.1", "rref(%0)");
-		p("Round.2", "round(%0, %1)");
+		// evalf first, to handle computations outside of double range
+		p("Round.2", "round(evalf(%0), %1)");
 		p("Sample.2", "flatten1(seq(rand(1,%0),j,1,%1))");
 		p("Sample.3",
 				"[[[ggbsamarg0:=%0],[ggbsamarg1:=%1]],if %2==true then flatten1(seq(rand(1,ggbsamarg0),j,1,ggbsamarg1)) else rand(ggbsamarg1,ggbsamarg0) fi][1]");
@@ -1516,7 +1533,9 @@ public class Ggb2giac {
 		// have both to avoid problems saving in eg German
 		// <expression value="Midpoint(L(1), L(2))" eval="Center(L(1),L(2))"
 		// evalCmd=""/>
-		String centerMidpoint1 = "coordinates(center(%0))";
+		String centerMidpoint1 = "[[ggbmidarg0:=%0],[ggbcoordarg0:=when(count_eq(z,lname(ggbmidarg0))==0,"
+				+ "center(ggbmidarg0),point(map(coordinates(center(quadric(ggbmidarg0))),t->t[2])))],"
+				+ "when(len(ggbcoordarg0)==4,coordinates(ggbcoordarg0[1]),coordinates(ggbcoordarg0))][2]";
 		// normal: nice form for Midpoint[(1/2,pi),(1,1)]
 		// factor: nice form for Midpoint[(a,b),(c,d)]
 		String centerMidpoint2 = "convert(factor((normal(coordinates(midpoint(%0,%1))))),25)";

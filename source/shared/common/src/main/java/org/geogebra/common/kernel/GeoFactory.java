@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel;
 
 import org.geogebra.common.kernel.algos.AlgoFunctionableToFunction;
@@ -26,6 +42,7 @@ import org.geogebra.common.kernel.geos.GeoLine;
 import org.geogebra.common.kernel.geos.GeoList;
 import org.geogebra.common.kernel.geos.GeoLocus;
 import org.geogebra.common.kernel.geos.GeoLocusND;
+import org.geogebra.common.kernel.geos.GeoLocusStroke;
 import org.geogebra.common.kernel.geos.GeoMindMapNode;
 import org.geogebra.common.kernel.geos.GeoNumeric;
 import org.geogebra.common.kernel.geos.GeoPoint;
@@ -58,11 +75,11 @@ public class GeoFactory {
 	 *            construction
 	 *
 	 * @param type
-	 *            String as produced by GeoElement.getXMLtypeString()
+	 *            String as produced by GeoElement.getXMLTypeString()
 	 * @return created element
 	 */
 	public GeoElement createGeoElement(Construction cons1, String type) {
-		// the type strings are the classnames in lowercase without the
+		// the type strings are the class names in lowercase without the
 		// beginning "geo"
 		// due to a bug in GeoGebra 2.6c the type strings for conics
 		// in XML may be "ellipse", "hyperbola", ...
@@ -124,12 +141,14 @@ public class GeoFactory {
 			return new GeoMindMapNode(cons1, null);
 		case "numeric":
 			return new GeoNumeric(cons1);
+		case "penstroke":
+			return new GeoLocusStroke(cons1);
 		case "point":
 			return new GeoPoint(cons1);
 		case "polygon":
 			return new GeoPolygon(cons1, null);
 		case "polyline":
-			return new GeoPolyLine(cons1, new GeoPointND[]{});
+			return new GeoPolyLine(cons1, new GeoPointND[0]);
 		case "ray":
 			return new GeoRay(cons1, null);
 		case "segment":

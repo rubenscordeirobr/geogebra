@@ -1,7 +1,25 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.util.debug;
 
 import java.util.Arrays;
 import java.util.Locale;
+
+import org.geogebra.common.awt.annotations.HasNativeSubclass;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -10,7 +28,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * 
  * @author Zoltan Kovacs
  */
-
+@HasNativeSubclass
 public abstract class Log {
 
 	/** logger */
@@ -45,7 +63,7 @@ public abstract class Log {
 	 * 
 	 * @return the entire log
 	 */
-	final public static StringBuilder getEntireLog() {
+	public static StringBuilder getEntireLog() {
 		return logger.memoryLog;
 	}
 
@@ -81,7 +99,7 @@ public abstract class Log {
 	 * @param logLevel
 	 *            the logging level to set
 	 */
-	final public static void setLogLevel(String logLevel) {
+	public static void setLogLevel(String logLevel) {
 		logger.setLogLevelImpl(logLevel);
 	}
 
@@ -112,7 +130,7 @@ public abstract class Log {
 	 * @param logDestination
 	 *            the destination
 	 */
-	final public static void setLogDestination(LogDestination logDestination) {
+	public static void setLogDestination(LogDestination logDestination) {
 		logger.setLogDestinationImpl(logDestination);
 	}
 
@@ -125,7 +143,7 @@ public abstract class Log {
 	 * 
 	 * @return the destination
 	 */
-	final public static LogDestination getLogDestination() {
+	public static LogDestination getLogDestination() {
 		return logger.getLogDestinationImpl();
 	}
 

@@ -1,10 +1,26 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.jre.main;
 
 import static org.geogebra.common.main.PreviewFeature.ALL_LANGUAGES;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -13,23 +29,22 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import org.geogebra.common.awt.annotations.HasNativeSubclass;
 import org.geogebra.common.main.App;
 import org.geogebra.common.main.Localization;
 import org.geogebra.common.main.PreviewFeature;
-import org.geogebra.common.util.StringUtil;
 import org.geogebra.common.util.lang.Language;
 
 /**
  * common jre localization
  */
+@HasNativeSubclass
 public abstract class LocalizationJre extends Localization {
 
 	private ResourceBundle rbmenu;
 	private ResourceBundle rbmenuTT;
 	private ResourceBundle rbcommand;
 	private ResourceBundle rbcommandOld;
-	private ResourceBundle rberror;
-	private ResourceBundle rbcolors;
 	private ResourceBundle rbsymbol;
 
 	private Language tooltipLanguage = null;
@@ -101,7 +116,7 @@ public abstract class LocalizationJre extends Localization {
 	}
 
 	@Override
-	final public @Nonnull String getMenu(String key) {
+	final public @Nonnull String getMenuDefault(String key, String fallback) {
 		if (key == null) {
 			return "";
 		}
@@ -117,8 +132,13 @@ public abstract class LocalizationJre extends Localization {
 		try {
 			return rbmenu.getString(key);
 		} catch (Exception e) {
-			return key;
+			reportMissing(key, fallback);
+			return fallback;
 		}
+	}
+
+	protected void reportMissing(String key, String fallback) {
+		// overridden in tests
 	}
 
 	/**
@@ -133,12 +153,6 @@ public abstract class LocalizationJre extends Localization {
 
 	/** @return path of Command bundle */
 	abstract protected String getCommandResourcePath();
-
-	/** @return path of Color bundle */
-	abstract protected String getColorResourcePath();
-
-	/** @return path of Error bundle */
-	abstract protected String getErrorResourcePath();
 
 	/** @return path of Symbol bundle */
 	abstract protected String getSymbolResourcePath();
@@ -157,19 +171,6 @@ public abstract class LocalizationJre extends Localization {
 
 		try {
 			return rbmenuTT.getString(key);
-		} catch (Exception e) {
-			return key;
-		}
-	}
-
-	@Override
-	final public String getError(String key) {
-		if (rberror == null) {
-			rberror = createBundle(getErrorResourcePath(), currentLocale);
-		}
-
-		try {
-			return rberror.getString(key);
 		} catch (Exception e) {
 			return key;
 		}
@@ -237,23 +238,12 @@ public abstract class LocalizationJre extends Localization {
 
 	}
 
-	private void initColorsResourceBundle() {
-		rbcolors = createBundle(getColorResourcePath(), currentLocale);
-	}
-
 	final protected void updateResourceBundles() {
 		if (rbmenu != null) {
 			rbmenu = createBundle(getMenuResourcePath(), currentLocale);
 		}
-		if (rberror != null) {
-			rberror = createBundle(getErrorResourcePath(), currentLocale);
-		}
-
 		if (rbcommand != null) {
 			rbcommand = createBundle(getCommandResourcePath(), getCommandLocale());
-		}
-		if (rbcolors != null) {
-			rbcolors = createBundle(getColorResourcePath(), currentLocale);
 		}
 		if (rbsymbol != null) {
 			rbsymbol = createBundle(getSymbolResourcePath(), currentLocale);
@@ -299,53 +289,6 @@ public abstract class LocalizationJre extends Localization {
 			return null;
 		}
 		return tooltipLanguage.toLanguageTag();
-	}
-
-	@Override
-	final public String getColor(String key) {
-
-		if (key == null) {
-			return "";
-		}
-
-		if ((key.length() == 5)
-				&& StringUtil.toLowerCaseUS(key).startsWith("gray")) {
-			return StringUtil.getGrayString(key.charAt(4), this);
-		}
-
-		if (rbcolors == null) {
-			initColorsResourceBundle();
-		}
-
-		try {
-			return rbcolors.getString(StringUtil.toLowerCaseUS(key));
-		} catch (Exception e) {
-			return key;
-		}
-	}
-
-	@Override
-	final public String reverseGetColor(String locColor) {
-		String str = StringUtil.removeSpaces(StringUtil.toLowerCaseUS(locColor));
-		if (rbcolors == null) {
-			initColorsResourceBundle();
-		}
-
-		try {
-
-			Enumeration<String> keys = rbcolors.getKeys();
-			while (keys.hasMoreElements()) {
-				String key = keys.nextElement();
-				if (str.equals(StringUtil.removeSpaces(
-						StringUtil.toLowerCaseUS(rbcolors.getString(key))))) {
-					return key;
-				}
-			}
-
-			return str;
-		} catch (Exception e) {
-			return str;
-		}
 	}
 
 	private Language[] getSupportedLanguages() {
@@ -515,14 +458,23 @@ public abstract class LocalizationJre extends Localization {
 	 * @return whether translation exists in menu category
 	 */
 	public boolean hasMenu(String key) {
-		if (rbmenu == null) {
-			rbmenu = createBundle(getMenuResourcePath(), currentLocale);
-		}
+		ensureMenuLoaded();
 		try {
 			rbmenu.getString(key);
 			return true;
 		} catch (Exception e) {
 			return false;
 		}
+	}
+
+	private void ensureMenuLoaded() {
+		if (rbmenu == null) {
+			rbmenu = createBundle(getMenuResourcePath(), currentLocale);
+		}
+	}
+
+	List<String> getMenuKeys() {
+		ensureMenuLoaded();
+		return Collections.list(rbmenu.getKeys());
 	}
 }

@@ -1,13 +1,17 @@
-/* 
- GeoGebra - Dynamic Mathematics for Everyone
- http://www.geogebra.org
-
- This file is part of GeoGebra.
-
- This program is free software; you can redistribute it and/or modify it 
- under the terms of the GNU General Public License as published by 
- the Free Software Foundation.
- 
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.geos;
@@ -20,6 +24,8 @@ import org.geogebra.common.euclidian.DrawableND;
 import org.geogebra.common.euclidian.EuclidianConstants;
 import org.geogebra.common.euclidian.EuclidianView;
 import org.geogebra.common.euclidian.EuclidianViewInterfaceCommon;
+import org.geogebra.common.euclidian.EuclidianViewInterfaceSlim;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.ConstructionDefaults;
 import org.geogebra.common.kernel.StringTemplate;
@@ -27,9 +33,9 @@ import org.geogebra.common.kernel.arithmetic.ValueType;
 import org.geogebra.common.kernel.geos.properties.FillType;
 import org.geogebra.common.kernel.kernelND.GeoElementND;
 import org.geogebra.common.kernel.kernelND.GeoPointND;
+import org.geogebra.common.main.GeoGebraColorConstants;
 import org.geogebra.common.main.Localization;
 import org.geogebra.common.plugin.GeoClass;
-import org.geogebra.common.util.StringUtil;
 
 /**
  * 
@@ -468,7 +474,7 @@ public class GeoButton extends GeoElement implements TextProperties,
 	}
 
 	@Override
-	protected void getStyleXML(StringBuilder sb) {
+	protected void getStyleXML(XMLStringBuilder sb) {
 		super.getStyleXML(sb);
 
 		// font settings
@@ -477,9 +483,8 @@ public class GeoButton extends GeoElement implements TextProperties,
 
 		// name of image file
 		if (getFillImage() != null) {
-			sb.append("\t<file name=\"");
-			StringUtil.encodeXML(sb, this.getGraphicsAdapter().getImageFileName());
-			sb.append("\"/>\n");
+			sb.startTag("file")
+					.attr("name", this.getGraphicsAdapter().getImageFileName()).endTag();
 		}
 		if (isFixedSize()) {
 			XMLBuilder.dimension(sb, Integer.toString(getWidth()), Integer.toString(getHeight()));
@@ -535,7 +540,7 @@ public class GeoButton extends GeoElement implements TextProperties,
 		/**
 		 * This method is called when size is changed
 		 */
-		public void notifySizeChanged();
+		void notifySizeChanged();
 	}
 
 	@Override
@@ -554,6 +559,9 @@ public class GeoButton extends GeoElement implements TextProperties,
 
 	@Override
 	public GColor getBackgroundColor() {
+		if (usesDisabledStyle(null)) {
+			return GeoGebraColorConstants.NEUTRAL_300;
+		}
 		if (bgColor == null && colFunction == null) {
 			return null;
 		}
@@ -663,4 +671,9 @@ public class GeoButton extends GeoElement implements TextProperties,
 		pt.setCoords(view.toRealWorldCoordX(x), view.toRealWorldCoordY(y), 1);
 	}
 
+	@Override
+	public boolean usesDisabledStyle(EuclidianViewInterfaceSlim ev) {
+		return !isSelectionAllowed(ev) && bgColor == GeoGebraColorConstants.GEOGEBRA_ACCENT
+				&& objColor == GColor.WHITE;
+	}
 }

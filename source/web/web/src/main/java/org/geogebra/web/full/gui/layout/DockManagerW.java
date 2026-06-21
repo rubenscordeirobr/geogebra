@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.layout;
 
 import java.util.ArrayList;
@@ -39,7 +55,6 @@ import org.geogebra.web.html5.util.keyboard.KeyboardManagerInterface;
 import org.gwtproject.core.client.Scheduler;
 import org.gwtproject.user.client.ui.DockLayoutPanel;
 import org.gwtproject.user.client.ui.Panel;
-import org.gwtproject.user.client.ui.VerticalPanel;
 import org.gwtproject.user.client.ui.Widget;
 
 import elemental2.dom.BaseRenderingContext2D;
@@ -161,27 +176,7 @@ public class DockManagerW extends DockManager {
 
 			// cascade the split panes
 			if (rootPane != null) {
-				Widget rootPaneParent = rootPane.getParent();
-				String styles = rootPane.getStyleName();
-				rootPane.clear();
-				if (rootPaneParent != null) {
-					if (rootPaneParent instanceof VerticalPanel) {
-						rootPane.removeFromParent();
-						setRootPane(splitPanes[0]);
-						((VerticalPanel) rootPaneParent).add(rootPane);
-					} else if (rootPaneParent instanceof DockLayoutPanel) {
-						rootPane.removeFromParent();
-						setRootPane(splitPanes[0]);
-						((DockLayoutPanel) rootPaneParent).add(rootPane);
-					} else {
-						setRootPane(splitPanes[0]);
-					}
-				} else {
-					setRootPane(splitPanes[0]);
-				}
-				if (rootPane != null) {
-					rootPane.setStyleName(styles);
-				}
+				replaceRootPane(rootPane, splitPanes[0]);
 			} else {
 				setRootPane(splitPanes[0]);
 			}
@@ -364,6 +359,26 @@ public class DockManagerW extends DockManager {
 		// update all labels at once
 		setLabels();
 		app.updateVoiceover();
+	}
+
+	private void replaceRootPane(DockSplitPaneW oldRootPane, DockSplitPaneW splitPane) {
+		Widget rootPaneParent = oldRootPane.getParent();
+		String styles = oldRootPane.getStyleName();
+		oldRootPane.clear();
+		if (rootPaneParent != null) {
+			if (rootPaneParent instanceof DockLayoutPanel) {
+				oldRootPane.removeFromParent();
+				setRootPane(splitPane);
+				((DockLayoutPanel) rootPaneParent).add(rootPane);
+			} else {
+				setRootPane(splitPane);
+			}
+		} else {
+			setRootPane(splitPane);
+		}
+		if (rootPane != null) {
+			rootPane.setStyleName(styles);
+		}
 	}
 
 	private void updatePanelsForPerspective(DockPanelData[] dpData) {
@@ -803,7 +818,6 @@ public class DockManagerW extends DockManager {
 			currentPane = (DockSplitPaneW) component;
 		}
 
-		int size = panel.getEmbeddedSize();
 		int lastPos = locations[locations.length - 1];
 
 		DockSplitPaneW newSplitPane = new DockSplitPaneW(app);
@@ -821,6 +835,7 @@ public class DockManagerW extends DockManager {
 
 		// the component opposite to the current component
 		int[] oppositeDim = new int[] { 0, 0 };
+		int size = panel.getEmbeddedSize();
 
 		Widget opposite = prepareRootPaneForInsert(oppositeDim, currentPane,
 					newSplitPane, lastPos, secondLastPos);
@@ -1056,8 +1071,8 @@ public class DockManagerW extends DockManager {
 		}
 
 		DockSplitPaneW parent = panel.getParentSplitPane();
-		int parentOffsetWidth = parent.getOffsetWidth();
-		int parentOffsetHeight = parent.getOffsetHeight();
+		final int parentOffsetWidth = parent.getOffsetWidth();
+		final int parentOffsetHeight = parent.getOffsetHeight();
 		app.persistWidthAndHeight();
 		// Save settings
 		if (parent.getOrientation() == SwingConstants.HORIZONTAL_SPLIT) {
@@ -1702,7 +1717,7 @@ public class DockManagerW extends DockManager {
 	}
 
 	/**
-	 * Replace tabbed algebra panel with plain algebra pael or vice versa
+	 * Replace tabbed algebra panel with plain algebra panel or vice versa
 	 */
 	public void swapAlgebraPanel() {
 		DockPanelW old = this.getPanel(App.VIEW_ALGEBRA);
@@ -1715,7 +1730,7 @@ public class DockManagerW extends DockManager {
 	}
 
 	/**
-	 * Reset stylebar in all panels when changing classic to graphing or vice versa
+	 * Reset style bar in all panels when changing classic to graphing or vice versa
 	 */
 	public void reset() {
 		for (DockPanelW dock : this.dockPanels) {

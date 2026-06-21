@@ -1,19 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * AlgoSlope.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 30. August 2001, 21:37
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.algos;
@@ -137,7 +135,7 @@ public class AlgoSequence extends AlgoElement implements SetRandomValue {
 	protected void setInputOutput() {
 		// make sure that x(Element[list,1]) will work even if the output
 		// list's length is zero
-		list.setTypeStringForXML(expression.getXMLtypeString());
+		list.setTypeStringForXML(expression.getXMLTypeString());
 		int len = var_step == null ? 4 : 5;
 		input = new GeoElement[len];
 		input[0] = expression.toGeoElement();
@@ -425,7 +423,7 @@ public class AlgoSequence extends AlgoElement implements SetRandomValue {
 			// update all dependent algorithms of the local variable var
 			this.setStopUpdateCascade(true);
 
-			// needed for eg Sequence[If[liste1(i) < a
+			// needed for eg Sequence[If[list1(i) < a
 			boolean oldLabelStatus = cons.isSuppressLabelsActive();
 			kernel.getConstruction().setSuppressLabelCreation(true);
 

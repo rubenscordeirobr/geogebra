@@ -7,7 +7,6 @@ plugins {
     alias(libs.plugins.geogebra.pmd)
     alias(libs.plugins.geogebra.checkstyle)
     alias(libs.plugins.geogebra.spotbugs)
-    alias(libs.plugins.geogebra.sourcesets)
     alias(libs.plugins.geogebra.javacc)
 }
 
@@ -19,6 +18,7 @@ dependencies {
     javacc(libs.javacc)
     api(project(":editor-base"))
     api(project(":renderer-base"))
+    api(project(":canvas-base"))
     api(libs.apache.math)
     api(libs.spotbugs.annotations)
     api(libs.findbugs.annotations)
@@ -68,7 +68,7 @@ open class Bump : DefaultTask() {
         var text = constants.readText()
         val dateFormat = DateTimeFormatter.ofPattern("dd MMMM Y", Locale.US)
         text = text.replace("BUILD_DATE.*".toRegex(), "BUILD_DATE = \"${LocalDate.now().format(dateFormat)}\";")
-        text = text.replace("final String VERSION_STRING.*".toRegex(), "final String VERSION_STRING = \"$version\";")
+        text = text.replace("String VERSION_STRING.*".toRegex(), "String VERSION_STRING = \"$version\";")
         constants.writeText(text)
 
         // version.txt for Jenkins build number

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.openGL;
 
 import org.geogebra.common.awt.GColor;
@@ -7,14 +23,14 @@ import org.geogebra.common.awt.GColor;
  */
 class BufferPack extends BufferPackAbstract {
 
-	private GLBufferManager manager;
+	private final GLBufferManager manager;
 	/** buffer for vertices */
-	private GLBuffer vertexBuffer;
+	private final GLBuffer vertexBuffer;
 	/** buffer for normals */
-	private GLBuffer normalBuffer;
-	private GLBuffer textureBuffer;
+	private final GLBuffer normalBuffer;
+	private final GLBuffer textureBuffer;
 	/** buffer for colors */
-	private GLBuffer colorBuffer;
+	private final GLBuffer colorBuffer;
 	/** buffer for indices */
 	protected GLBufferIndices indicesBuffer;
 
@@ -28,7 +44,7 @@ class BufferPack extends BufferPackAbstract {
 	 * @param manager
 	 *            geometries manager
 	 */
-	public BufferPack(GLBufferManager manager) {
+	protected BufferPack(GLBufferManager manager) {
 		this(manager, manager.getElementSizeStart(),
 				manager.getIndicesSizeStart());
 	}
@@ -154,7 +170,7 @@ class BufferPack extends BufferPackAbstract {
 	 *            length to write
 	 */
 	protected void setElementsForBigCurve(int curve, int length) {
-		int arrayOffset = (ELEMENT_SIZE_MAX - PlotterBrush.LATITUDES) * curve;
+		int arrayOffset = (ELEMENT_SIZE_MAX - manager.getCurveLatitudeSplits()) * curve;
 		vertexBuffer.set(manager.vertexArray, arrayOffset * 3, 0, length * 3);
 		normalBuffer.set(manager.normalArray, arrayOffset * 3, 0, length * 3);
 		textureBuffer.set(manager.textureArray, arrayOffset * 2, 0, length * 2);
@@ -251,7 +267,7 @@ class BufferPack extends BufferPackAbstract {
 	 * @see org.geogebra.common.geogebra3D.euclidian3D.openGL.BufferPackInterface#reset()
 	 */
 	@Override
-	public void reset() {
+	protected void reset() {
 		super.reset();
 		elementsLength = 0;
 		indicesLength = 0;

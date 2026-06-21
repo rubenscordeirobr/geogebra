@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.toolbarpanel.tableview.dataimport;
 
 import org.geogebra.common.gui.view.table.TableValuesView;
@@ -19,17 +35,16 @@ import jsinterop.base.Js;
 
 public class CsvImportHandler {
 	protected AppW appW;
-	private FileUpload csvChooser;
 	private DataImportSnackbar progressSnackbar;
-	private Command csvHandler = () -> {
-		csvChooser = getCSVChooser();
+	private final Command csvHandler = () -> {
+		FileUpload csvChooser = getCSVChooser();
 		if (getTable().isEmpty()) {
 			csvChooser.click();
 		} else {
 			DialogData data = new DialogData(null, "Cancel", "Overwrite");
 			OverwriteDataDialog overwriteDataDialog = new OverwriteDataDialog(
 					appW, data);
-			overwriteDataDialog.setOnPositiveAction(() -> csvChooser.click());
+			overwriteDataDialog.setOnPositiveAction(csvChooser::click);
 			overwriteDataDialog.show();
 		}
 	};
@@ -49,8 +64,8 @@ public class CsvImportHandler {
 			progressSnackbar = new DataImportSnackbar(appW, fileToHandle.name);
 			getTable().getTableValuesModel().removeAllColumns();
 			getTable().clearView();
-			getTable().getTableValuesModel().setOnDataImportedRunnable(()
-					-> progressSnackbar.hide());
+			getTable().getTableValuesModel().setOnDataImportedRunnable(
+					progressSnackbar::hide);
 			openCSV(fileToHandle);
 		});
 

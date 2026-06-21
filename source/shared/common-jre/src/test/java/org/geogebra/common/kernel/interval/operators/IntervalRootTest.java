@@ -1,7 +1,25 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.interval.operators;
 
 import static org.geogebra.common.kernel.interval.IntervalConstants.undefined;
 import static org.geogebra.common.kernel.interval.IntervalConstants.zero;
+import static org.geogebra.common.kernel.interval.IntervalSetOps.connected;
+import static org.geogebra.common.kernel.interval.IntervalSetOps.empty;
 import static org.geogebra.common.kernel.interval.IntervalTest.interval;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -80,9 +98,7 @@ public class IntervalRootTest {
 	}
 
 	@Test
-	public void testOddNRootWithInvertedXAroundZero() {
-		Interval x = interval(-2.0539125955565396E-15, 0.19999999999999796);
-		assertEquals(interval(-78669.43188987061, 1.7099759466767028).invert(),
-				evaluator.nthRoot(evaluator.inverse(x), 3));
+	public void testNthRootSetReturnsEmptyForNonSingletonExponent() {
+		assertEquals(empty(), evaluator.nthRootSet(connected(1, 4), connected(2, 3)));
 	}
 }

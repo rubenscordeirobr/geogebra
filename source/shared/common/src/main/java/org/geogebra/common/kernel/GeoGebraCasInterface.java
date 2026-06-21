@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel;
 
 import java.util.ArrayList;
@@ -25,17 +41,17 @@ public interface GeoGebraCasInterface {
 	 * @throws Throwable
 	 *             if there is a timeout or the expression cannot be evaluated
 	 */
-	public String evaluateRaw(String str) throws Throwable;
+	String evaluateRaw(String str) throws Throwable;
 
 	/**
 	 * @return current CAS instance
 	 */
-	public CASGenericInterface getCurrentCAS();
+	CASGenericInterface getCurrentCAS();
 
 	/**
 	 * @return CAS parser
 	 */
-	public CASParserInterface getCASparser();
+	CASParserInterface getCASparser();
 
 	/**
 	 * Returns true if the two input expressions are structurally equal. For
@@ -50,7 +66,7 @@ public interface GeoGebraCasInterface {
 	 *            kernel
 	 * @return whether the two input expressions are structurally equal
 	 */
-	public boolean isStructurallyEqual(ValidExpression inputVE, String input,
+	boolean isStructurallyEqual(ValidExpression inputVE, String input,
 			Kernel kernel);
 
 	/**
@@ -95,7 +111,7 @@ public interface GeoGebraCasInterface {
 	 *             Note: all other throwables are caught inside and converted to
 	 *             CASException
 	 */
-	public String evaluateGeoGebraCAS(String exp, ArbitraryConstantRegistry arbConst,
+	String evaluateGeoGebraCAS(String exp, ArbitraryConstantRegistry arbConst,
 			StringTemplate tpl, Kernel kernel) throws CASException;
 
 	/**
@@ -116,7 +132,7 @@ public interface GeoGebraCasInterface {
 	 * @throws CASException
 	 *             if there is a timeout or the expression cannot be evaluated
 	 */
-	public String evaluateGeoGebraCAS(ValidExpression exp,
+	String evaluateGeoGebraCAS(ValidExpression exp,
 			ArbitraryConstantRegistry arbConst, StringTemplate tpl, GeoCasCell cell,
 			Kernel kernel) throws CASException;
 
@@ -147,24 +163,24 @@ public interface GeoGebraCasInterface {
 	 * 
 	 * @return A Set of all internal CAS commands.
 	 */
-	public Set<String> getAvailableCommandNames();
+	Set<String> getAvailableCommandNames();
 
 	/**
 	 * Clear cache of this CAS (not the local caches in functions etc.)
 	 */
-	public void clearCache();
+	void clearCache();
 
 	/**
 	 * @param string
 	 *            signature, eg Midpoint.2
 	 * @return command for particular CAS
 	 */
-	public String translateCommandSignature(String string);
+	String translateCommandSignature(String string);
 
 	/**
 	 * Make sure CAS is initialized
 	 */
-	public void initCurrentCAS();
+	void initCurrentCAS();
 
 	/**
 	 * @param inValue
@@ -175,7 +191,7 @@ public interface GeoGebraCasInterface {
 	 *            kernel
 	 * @return parsed expression
 	 */
-	public ValidExpression parseOutput(String inValue, GeoSymbolicI geoCasCell,
+	ValidExpression parseOutput(String inValue, GeoSymbolicI geoCasCell,
 			Kernel kernel);
 
 	/**

@@ -1,23 +1,22 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
-*/
-
 /*
- * GeoVec3D.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 31. August 2001, 11:22
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.geos;
 
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.arithmetic.NumberValue;
@@ -157,8 +156,7 @@ public abstract class GeoVec3D extends GeoElement
 	 * @return this vector as coords
 	 */
 	final public Coords getCoords() {
-		Coords coords = new Coords(x, y, z);
-		return coords;
+		return new Coords(x, y, z);
 	}
 
 	/**
@@ -233,7 +231,7 @@ public abstract class GeoVec3D extends GeoElement
 	 * @param w
 	 *            vector to store u x v
 	 */
-	final public static void cross(GeoVec3D u, GeoVec3D v, GeoVec3D w) {
+	public static void cross(GeoVec3D u, GeoVec3D v, GeoVec3D w) {
 		w.setCoords(u.y * v.z - u.z * v.y, u.z * v.x - u.x * v.z,
 				u.x * v.y - u.y * v.x);
 	}
@@ -247,7 +245,7 @@ public abstract class GeoVec3D extends GeoElement
 	 *            vector v
 	 * @return the cross product of vectors u and v.
 	 */
-	final public static Coords cross(GeoVec3D u, GeoVec3D v) {
+	public static Coords cross(GeoVec3D u, GeoVec3D v) {
 		Coords ret = new Coords(3);
 		ret.setX(u.y * v.z - u.z * v.y);
 		ret.setY(u.z * v.x - u.x * v.z);
@@ -268,7 +266,7 @@ public abstract class GeoVec3D extends GeoElement
 	 * @param g
 	 *            line to store the result
 	 */
-	final public static void lineThroughPoints(GeoPoint A, GeoPoint B,
+	public static void lineThroughPoints(GeoPoint A, GeoPoint B,
 			GeoLine g) {
 		// note: this could be done simply using cross(A, B, g)
 		// but we want to avoid large coefficients in the line
@@ -314,7 +312,7 @@ public abstract class GeoVec3D extends GeoElement
 	 * @param g
 	 *            line to store result
 	 */
-	final public static void lineThroughPointsCoords(Coords A, Coords B,
+	public static void lineThroughPointsCoords(Coords A, Coords B,
 			GeoLine g) {
 		// note: this could be done simply using cross(A, B, g)
 		// but we want to avoid large coefficients in the line
@@ -366,7 +364,7 @@ public abstract class GeoVec3D extends GeoElement
 	 * @param g
 	 *            line to store result
 	 */
-	final public static void lineThroughPointVector(GeoPoint A, GeoVec3D v,
+	public static void lineThroughPointVector(GeoPoint A, GeoVec3D v,
 			GeoLine g) {
 		// note: this could be done simply using cross(A, v, g)
 		// but we want to avoid large coefficients in the line
@@ -395,7 +393,7 @@ public abstract class GeoVec3D extends GeoElement
 	 * @param w
 	 *            vector to store u * v
 	 */
-	final public static void cross(GeoVec3D u, double vx, double vy, double vz,
+	public static void cross(GeoVec3D u, double vx, double vy, double vz,
 			GeoVec3D w) {
 
 		double x = u.y * vz - u.z * vy;
@@ -432,7 +430,7 @@ public abstract class GeoVec3D extends GeoElement
 	 * @param w
 	 *            vector to store u*v
 	 */
-	final public static void cross(double ux, double uy, double uz, double vx,
+	public static void cross(double ux, double uy, double uz, double vx,
 			double vy, double vz, GeoVec3D w) {
 		w.setCoords(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx);
 	}
@@ -448,7 +446,7 @@ public abstract class GeoVec3D extends GeoElement
 	 * @param w
 	 *            vector to store u*v
 	 */
-	final public static void cross(double[] u, double[] v, double[] w) {
+	public static void cross(double[] u, double[] v, double[] w) {
 		w[0] = u[1] * v[2] - u[2] * v[1];
 		w[1] = u[2] * v[0] - u[0] * v[2];
 		w[2] = u[0] * v[1] - u[1] * v[0];
@@ -482,7 +480,7 @@ public abstract class GeoVec3D extends GeoElement
 	 * @param c
 	 *            vector to store a+b
 	 **/
-	final public static void add(GeoVec3D a, GeoVec3D b, GeoVec3D c) {
+	public static void add(GeoVec3D a, GeoVec3D b, GeoVec3D c) {
 		c.setCoords(a.x + b.x, a.y + b.y, a.z + b.z);
 	}
 
@@ -496,7 +494,7 @@ public abstract class GeoVec3D extends GeoElement
 	 * @param c
 	 *            vector to store a-b
 	 */
-	final public static void sub(GeoVec3D a, GeoVec3D b, GeoVec3D c) {
+	public static void sub(GeoVec3D a, GeoVec3D b, GeoVec3D c) {
 		c.setCoords(a.x - b.x, a.y - b.y, a.z - b.z);
 	}
 
@@ -517,15 +515,9 @@ public abstract class GeoVec3D extends GeoElement
 	 * returns all class-specific xml tags for saveXML Geogebra File Format
 	 */
 	@Override
-	protected void getXMLtags(StringBuilder sb) {
-		super.getXMLtags(sb);
-		sb.append("\t<coords x=\"");
-		sb.append(x);
-		sb.append("\" y=\"");
-		sb.append(y);
-		sb.append("\" z=\"");
-		sb.append(z);
-		sb.append("\"/>\n");
+	protected void getXMLTags(XMLStringBuilder sb) {
+		super.getXMLTags(sb);
+		sb.startTag("coords").attr("x", x).attr("y", y).attr("z", z).endTag();
 	}
 
 	@Override

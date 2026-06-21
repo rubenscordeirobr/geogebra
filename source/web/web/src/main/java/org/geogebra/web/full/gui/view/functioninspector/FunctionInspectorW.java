@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.view.functioninspector;
 
 import java.util.ArrayList;
@@ -246,7 +262,7 @@ public class FunctionInspectorW extends FunctionInspector {
 	@Override
 	protected void createTabIntervalPanel() {
 		intervalTab = new FlowPanel();
-		InspectorTableW tableInterval = new InspectorTableW(app, 2);
+		InspectorTableW tableInterval = new InspectorTableW(app, 2, () -> {});
 		modelInterval = tableInterval.getModel();
 		intervalTab.add(tableInterval);
 		FlowPanel toolBar = new FlowPanel();
@@ -315,31 +331,16 @@ public class FunctionInspectorW extends FunctionInspector {
 	}
 
 	private void createXYtable() {
-		tableXY = new InspectorTableW(app, 2);
+		tableXY = new InspectorTableW(app, 2, this::changeXYStart);
 		modelXY = tableXY.getModel();
 		modelXY.setHeaders(DEFAULT_XY_HEADERS);
-
-		tableXY.setKeyHandler(e -> {
-			if (e.isEnterKey()) {
-				changeXYStart();
-			}
-		});
-
-		tableXY.setBlurHandler(event -> changeXYStart());
 	}
 
 	private void createStep() {
 		lblStep = new Label();
 		InputPanelW stepPanel = new InputPanelW(app, -1, false);
 		fldStep = stepPanel.getTextComponent();
-
-		fldStep.addKeyHandler(e -> {
-			if (e.isEnterKey()) {
-				doTextFieldActionPerformed(fldStep);
-			}
-		});
-
-		fldStep.addBlurHandler(event -> doTextFieldActionPerformed(fldStep));
+		fldStep.addEnterPressHandler(() -> doTextFieldActionPerformed(fldStep));
 
 		fldStep.setWidthInEm(6);
 	}
@@ -382,26 +383,12 @@ public class FunctionInspectorW extends FunctionInspector {
 		InputPanelW lowPanel = new InputPanelW(app, -1, false);
 		fldLow = lowPanel.getTextComponent();
 		fldLow.setWidthInEm(6);
-
-		fldLow.addKeyHandler(e -> {
-			if (e.isEnterKey()) {
-				doTextFieldActionPerformed(fldLow);
-			}
-		});
-
-		fldLow.addBlurHandler(event -> doTextFieldActionPerformed(fldLow));
+		fldLow.addEnterPressHandler(() -> doTextFieldActionPerformed(fldLow));
 
 		InputPanelW highPanel = new InputPanelW(app, -1, false);
 		fldHigh = highPanel.getTextComponent();
 		fldHigh.setWidthInEm(6);
-
-		fldHigh.addKeyHandler(e -> {
-			if (e.isEnterKey()) {
-				doTextFieldActionPerformed(fldHigh);
-			}
-		});
-
-		fldHigh.addBlurHandler(event -> doTextFieldActionPerformed(fldHigh));
+		fldHigh.addEnterPressHandler(() -> doTextFieldActionPerformed(fldHigh));
 	}
 
 	void doTextFieldActionPerformed(AutoCompleteTextFieldW source) {

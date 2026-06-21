@@ -1,29 +1,47 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.io;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import org.geogebra.common.AppCommonFactory;
 import org.geogebra.common.jre.headless.AppCommon;
 import org.geogebra.common.main.ScreenReader;
 import org.geogebra.common.util.SyntaxAdapterImpl;
+import org.geogebra.editor.share.catalog.TemplateCatalog;
+import org.geogebra.editor.share.controller.CursorController;
+import org.geogebra.editor.share.controller.ExpressionReader;
+import org.geogebra.editor.share.editor.MathFieldInternal;
+import org.geogebra.editor.share.io.latex.ParseException;
+import org.geogebra.editor.share.io.latex.Parser;
+import org.geogebra.editor.share.serializer.GeoGebraSerializer;
+import org.geogebra.editor.share.serializer.ScreenReaderSerializer;
+import org.geogebra.editor.share.tree.ArrayNode;
+import org.geogebra.editor.share.tree.Formula;
+import org.geogebra.editor.share.tree.Node;
+import org.geogebra.editor.share.tree.SequenceNode;
+import org.geogebra.editor.share.util.Unicode;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.himamis.retex.editor.share.controller.CursorController;
-import com.himamis.retex.editor.share.controller.ExpressionReader;
-import com.himamis.retex.editor.share.editor.MathFieldInternal;
-import com.himamis.retex.editor.share.io.latex.ParseException;
-import com.himamis.retex.editor.share.io.latex.Parser;
-import com.himamis.retex.editor.share.meta.MetaModel;
-import com.himamis.retex.editor.share.model.MathArray;
-import com.himamis.retex.editor.share.model.MathComponent;
-import com.himamis.retex.editor.share.model.MathFormula;
-import com.himamis.retex.editor.share.model.MathSequence;
-import com.himamis.retex.editor.share.serializer.GeoGebraSerializer;
-import com.himamis.retex.editor.share.serializer.ScreenReaderSerializer;
-import com.himamis.retex.editor.share.util.Unicode;
 import com.himamis.retex.renderer.share.platform.FactoryProvider;
 
 public class EditorScreenReaderTest {
@@ -40,7 +58,7 @@ public class EditorScreenReaderTest {
 			FactoryProvider.setInstance(new FactoryProviderCommon());
 		}
 		app = AppCommonFactory.create3D();
-		MetaModel m = new MetaModel();
+		TemplateCatalog m = new TemplateCatalog();
 		parser = new Parser(m);
 	}
 
@@ -77,11 +95,11 @@ public class EditorScreenReaderTest {
 	@Test
 	public void testIncompleteFraction() {
 		checkReader("x^3/()",
-				"start of formula start fraction x cubed over end fraction",
+				"start of formula start of fraction x cubed over end of fraction",
 				"start of numerator before x", "after x before superscript",
 				"start of superscript before 3", "end of superscript after 3",
-				"end of numerator after x cubed", "empty denominator",
-				"end of formula start fraction x cubed over end fraction");
+				"end of numerator after x cubed", "denominator blank",
+				"end of formula start of fraction x cubed over end of fraction");
 	}
 
 	@Test
@@ -98,7 +116,7 @@ public class EditorScreenReaderTest {
 		checkReader("sin(x+1)",
 				"start of formula sin open parenthesis x plus 1 close parenthesis",
 				"before sin", "after s before in", "after si before n",
-				"after sin before parenthesis", "start of parentheses before x",
+				"after sin before open parenthesis", "start of parentheses before x",
 				"after x before plus", "after plus before 1",
 				"end of parentheses after 1",
 				"end of formula sin open parenthesis x plus 1 close parenthesis");
@@ -110,7 +128,7 @@ public class EditorScreenReaderTest {
 				"start of formula 3 minus sin open parenthesis x close parenthesis",
 				"after 3 before minus", "after minus before function",
 				"before sin", "after s before in", "after si before n",
-				"after sin before parenthesis", "start of parentheses before x",
+				"after sin before open parenthesis", "start of parentheses before x",
 				"end of parentheses after x",
 				"end of formula 3 minus sin open parenthesis x close parenthesis");
 	}
@@ -121,7 +139,7 @@ public class EditorScreenReaderTest {
 				"start of formula 3 plus sin open parenthesis x close parenthesis",
 				"after 3 before plus", "after plus before function",
 				"before sin", "after s before in", "after si before n",
-				"after sin before parenthesis", "start of parentheses before x",
+				"after sin before open parenthesis", "start of parentheses before x",
 				"end of parentheses after x",
 				"end of formula 3 plus sin open parenthesis x close parenthesis");
 	}
@@ -167,17 +185,17 @@ public class EditorScreenReaderTest {
 	@Test
 	public void testAbs() {
 		checkReader("abs(x+1)",
-				"start of formula start absolute value x plus 1 end absolute value",
+				"start of formula start of absolute value x plus 1 end of absolute value",
 				"start of absolute value before x", "after x before plus",
 				"after plus before 1", "end of absolute value after 1",
-				"end of formula start absolute value x plus 1 end absolute value");
+				"end of formula start of absolute value x plus 1 end of absolute value");
 	}
 
 	@Test
 	public void testReaderSqrt() {
 		checkReader("1+sqrt(x^2+2x+1/x+33)",
 				"start of formula 1 plus start square root x squared plus 2x"
-						+ " plus start fraction 1 over x end fraction plus 33 end root",
+						+ " plus start of fraction 1 over x end of fraction plus 33 end root",
 				"after 1 before plus", "after plus before square root",
 				"start of square root before x( squared)?",
 				"after x before superscript", "start of superscript before 2",
@@ -189,7 +207,7 @@ public class EditorScreenReaderTest {
 				"after fraction before plus", "after plus before 33",
 				"after 3 before 3", "end of square root after 33",
 				"end of formula 1 plus start square root x squared plus 2"
-						+ "x plus start fraction 1 over x end fraction plus 33 end root");
+						+ "x plus start of fraction 1 over x end of fraction plus 33 end root");
 	}
 
 	@Test
@@ -212,18 +230,18 @@ public class EditorScreenReaderTest {
 	public void testBrackets() {
 		checkReader("2*(3+4)-2",
 				"start of formula 2 times open parenthesis 3 plus 4 close parenthesis minus 2",
-				"after 2 before times", "after times before parenthesis",
+				"after 2 before times", "after times before open parenthesis",
 				"start of parentheses before 3", "after 3 before plus",
 				"after plus before 4", "end of parentheses after 4",
-				"after parenthesis before minus", "after minus before 2",
+				"after close parenthesis before minus", "after minus before 2",
 				"end of formula 2 times open parenthesis 3 plus 4 close parenthesis minus 2");
 	}
 
 	@Test
 	public void testBracketsIncomplete() {
 		checkReader("3-()", "start of formula 3 minus empty parentheses",
-				"after 3 before minus", "after minus before parenthesis",
-				"empty parentheses",
+				"after 3 before minus", "after minus before open parenthesis",
+				"parentheses blank",
 				"end of formula 3 minus empty parentheses");
 	}
 
@@ -236,39 +254,77 @@ public class EditorScreenReaderTest {
 	}
 
 	@Test
+	public void testFunction() {
+		checkReader("f(x)=x^2",
+				"start of formula f open parenthesis x close parenthesis =x squared",
+				"before f", "after f before open parenthesis", "start of parentheses before x",
+				"end of parentheses after x");
+	}
+
+	@Test
+	public void testPoint() {
+		checkReader("B=$point(1,2)",
+				"start of formula B= open parenthesis 1 comma 2 close parenthesis",
+				"after B before =", "after = before open parenthesis",
+				"start of coordinate before 1", "end of coordinate after 1");
+	}
+
+	@Test
+	public void testComma() {
+		checkReader("f(1,2)",
+				"start of formula f open parenthesis 1 comma 2 close parenthesis",
+				"before f", "after f before open parenthesis", "start of parentheses before 1",
+				"after 1 before comma", "after comma before 2");
+	}
+
+	@Test
+	public void testEmptyFunction() {
+		checkReader("f()",
+				"start of formula f empty parentheses",
+				"before f", "after f before open parenthesis", "parentheses blank",
+				"end of formula f empty parentheses");
+	}
+
+	@Test
 	public void shouldNotRemoveCommasForPoints() throws ParseException {
-		Parser p = new Parser(new MetaModel());
-		MathFormula mf = p.parse("(1,2)");
-		MathSequence argument = ((MathArray) mf.getRootComponent()
-				.getArgument(0)).getArgument(0);
+		Parser p = new Parser(new TemplateCatalog());
+		Formula mf = p.parse("(1,2)");
+		SequenceNode argument = ((ArrayNode) mf.getRootNode()
+				.getChild(0)).getChild(0);
 		StringBuilder desc = new StringBuilder();
-		for (MathComponent comp: argument) {
+		for (Node comp: argument) {
 			desc.append(ScreenReaderSerializer.fullDescription(comp, null));
 		}
 		assertEquals("1,2", desc.toString());
 		GeoGebraSerializer gs = new GeoGebraSerializer(null);
 		gs.setComma("");
-		assertEquals(gs.serialize(mf), "(1,2)");
+		assertEquals("(1,2)", gs.serialize(mf));
 	}
 
 	private static void checkReader(String input, String... output) {
-		MathFormula mf = LaTeXSerializationTest.checkLaTeXRender(parser, input);
+		Formula mf = LaTeXSerializationTest.checkLaTeXRender(parser, input);
 
 		SyntaxAdapterImpl adapter = new SyntaxAdapterImpl(app.getKernel());
-		final MathFieldCommon mathField = new MathFieldCommon(new MetaModel(), adapter);
+		final MathFieldCommon mathField = new MathFieldCommon(new TemplateCatalog(), adapter);
 		MathFieldInternal mfi = mathField.getInternal();
 		mfi.setFormula(Objects.requireNonNull(mf));
 		CursorController.firstField(mfi.getEditorState());
 		mfi.update();
 		ExpressionReader er = ScreenReader.getExpressionReader(app);
+		List<String> readerOutputs = new ArrayList<>();
+		boolean fuzzyMatch = true;
 		for (String s : output) {
 			String readerOutput = mfi.getEditorState().getDescription(er, null)
 					.replaceAll(" +", " ");
 			if (!readerOutput.matches(s)) {
-				assertEquals(s, readerOutput);
+				fuzzyMatch = false;
 			}
+			readerOutputs.add(readerOutput);
 			CursorController.nextCharacter(mfi.getEditorState());
 			mfi.update();
+		}
+		if (!fuzzyMatch) {
+			assertEquals(String.join("\n", output), String.join("\n", readerOutputs));
 		}
 	}
 }

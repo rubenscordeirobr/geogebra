@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.cas;
@@ -748,8 +752,6 @@ public class AlgoIntegralDefinite extends AlgoUsingTempCASalgo
 		ExpressionValue rt = exp.getRight();
 
 		ListValue keyList = (ListValue) ((MyNumberPair) rt).getX();
-		ListValue valueList = (ListValue) ((MyNumberPair) rt).getY();
-
 		int n = keyList.size();
 
 		if (n < 1) {
@@ -793,7 +795,7 @@ public class AlgoIntegralDefinite extends AlgoUsingTempCASalgo
 			return multiplier * trapeziumArea(x1, x2, y1, y2);
 
 		}
-
+		ListValue valueList = (ListValue) ((MyNumberPair) rt).getY();
 		for (int i = start; i < end - 1; i++) {
 			x1 = keyList.get(i).evaluateDouble();
 			x2 = keyList.get(i + 1).evaluateDouble();
@@ -812,44 +814,19 @@ public class AlgoIntegralDefinite extends AlgoUsingTempCASalgo
 		y1 = valueList.get(start - 1).evaluateDouble();
 		y2 = valueList.get(start).evaluateDouble();
 
-		// if (lowerLimit < x1 || lowerLimit > x2) {
-		// App.error(
-		// "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-		// }
-		//
-		// App.error("start = " + start + " lowerLimit = " + lowerLimit + "x1 =
-		// "
-		// + x1 + " x2 = " + x2 + " y1 = " + y1 + " y2 = " + y2);
-
 		// interpolate
 		y1 = ((lowerLimit - x1) * y2 + y1 * (x2 - lowerLimit)) / (x2 - x1);
 		x1 = lowerLimit;
 		// area of trapezium
 		area += trapeziumArea(x1, x2, y1, y2);
 
-		// App.error("x1 = " + x1 + " x2 = " + x2 + " y1 = " + y1 + " y2 = " +
-		// y2
-		// + " area = " + trapeziumArea(x1, x2, y1, y2));
-
 		x1 = keyList.get(end - 1).evaluateDouble();
 		y1 = valueList.get(end - 1).evaluateDouble();
-
-		// if (upperLimit < x1 || upperLimit > x2) {
-		// App.error(
-		// "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-		// }
-		// App.error("end = " + end + " upperLimit = " + upperLimit + "x1 = " +
-		// x1
-		// + " x2 = " + x2 + " y1 = " + y1 + " y2 = " + y2 + " area = "
-		// + trapeziumArea(x1, x2, y1, y2));
 
 		x2 = upperLimit;
 		y2 = f2.value(x2);
 		// area of trapezium
 		area += trapeziumArea(x1, x2, y1, y2);
-
-		// App.error("x1 = " + x1 + " x2 = " + x2 + " y1 = " + y1 + " y2 = " +
-		// y2);
 
 		return area * multiplier;
 

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui;
 
 import java.util.ArrayList;
@@ -32,7 +48,6 @@ import org.geogebra.common.main.OptionType;
 import org.geogebra.common.main.SelectionManager;
 import org.geogebra.common.main.SpreadsheetTraceManager;
 import org.geogebra.common.main.undo.UpdateStyleActionStore;
-import org.geogebra.common.util.AsyncOperation;
 import org.geogebra.common.util.CopyPaste;
 
 import com.google.j2objc.annotations.Weak;
@@ -56,7 +71,7 @@ public class ContextMenuGeoElement {
 	private String geoLabel;
 	/** application */
 	@Weak
-	public App app;
+	public final App app;
 	/** whether to restrict selection to a single geo */
 	protected boolean justOneGeo = false;
 
@@ -685,7 +700,7 @@ public class ContextMenuGeoElement {
 			return;
 		}
 		CopyPaste.handleCutCopy(app, true);
-		app.getActiveEuclidianView().resetBoundingBoxes();
+		app.getActiveEuclidianView().getEuclidianController().clearSelections();
 	}
 
 	/**
@@ -732,12 +747,7 @@ public class ContextMenuGeoElement {
 	public void pasteCmd() {
 		final HasTextFormat controller = getSelectedTextController();
 		if (controller != null) {
-			app.getCopyPaste().paste(app, new AsyncOperation<String>() {
-				@Override
-				public void callback(String obj) {
-					controller.setSelectionText(obj);
-				}
-			});
+			app.getCopyPaste().paste(app, controller::setSelectionText);
 			return;
 		}
 		app.getCopyPaste().pasteFromXML(app);

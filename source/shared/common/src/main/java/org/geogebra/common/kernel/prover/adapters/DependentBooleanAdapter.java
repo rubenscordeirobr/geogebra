@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.prover.adapters;
 
 import java.math.BigDecimal;
@@ -292,23 +308,6 @@ public class DependentBooleanAdapter extends ProverAdapter {
 		}
 		if (node.getRight() != null && node.getRight().isExpressionNode()) {
 			traverseExpression((ExpressionNode) node.getRight(), kernel);
-		}
-
-		if (node.getLeft() != null && node.getLeft().isExpressionNode()
-				&& node.getRight().isExpressionNode()) {
-			return;
-		}
-		// case number with segment, eg. 2*a^2
-		if (node.getLeft() instanceof MyDouble
-				&& node.getRight().isExpressionNode()
-				&& (node.getOperation() == Operation.DIVIDE
-						|| node.getOperation() == Operation.MULTIPLY)) {
-			return;
-		}
-		// case segment with number, eg. a^2*1,5
-		if (node.getRight() instanceof MyDouble
-				&& node.getLeft().isExpressionNode()) {
-			return;
 		}
 	}
 
@@ -739,7 +738,6 @@ public class DependentBooleanAdapter extends ProverAdapter {
 			if (v != null) {
 				PTerm t = new PTerm(v);
 				polyNode.setPoly(new PPolynomial(coeff, t));
-				return;
 			}
 		}
 	}

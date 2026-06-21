@@ -1,9 +1,25 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.geos;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import org.geogebra.common.awt.GColor;
-import org.geogebra.common.gui.view.spreadsheet.SpreadsheetViewInterface;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.arithmetic.FunctionalNVar;
@@ -98,15 +114,12 @@ public class GeoElementSpreadsheet {
 	 * 
 	 * @param cellName
 	 *            given cell name
-	 * @return coordinates of spreadsheet cell as (column index,row index)
+	 * @return coordinates of spreadsheet cell as (column index,row index) or (-1, -1)
+	 * @see #getSpreadsheetCoordsForLabel(String) for nullable variant
 	 */
-	public static SpreadsheetCoords spreadsheetIndices(String cellName) {
-
-		MatchResult matcher = spreadsheetPattern.exec(cellName);
-
-		// return (-1,-1) if not a spreadsheet cell name
-		return new SpreadsheetCoords(getSpreadsheetRow(matcher),
-				getSpreadsheetColumn(matcher));
+	public static SpreadsheetCoords getSpreadsheetCoordsSafe(String cellName) {
+		SpreadsheetCoords coords = getSpreadsheetCoordsForLabel(cellName);
+		return coords == null ? new SpreadsheetCoords(-1, -1) : coords;
 	}
 
 	/**
@@ -159,7 +172,7 @@ public class GeoElementSpreadsheet {
 
 		String s = matcher.getGroup(MATCH_COLUMN);
 		int column = 0;
-		while (s.length() > 0) {
+		while (!s.isEmpty()) {
 			column *= 26;
 			column += s.charAt(0) - 'A' + 1;
 			s = s.substring(1);
@@ -184,7 +197,7 @@ public class GeoElementSpreadsheet {
 		if (matcher == null) {
 			return -1;
 		}
-		int ret = -1;
+		int ret;
 		try {
 			String s = matcher.getGroup(MATCH_ROW);
 			ret = Integer.parseInt(s) - 1;
@@ -210,12 +223,16 @@ public class GeoElementSpreadsheet {
 	 * @return spreadsheet coordinates as (column index,row index); null for
 	 *         non-spreadsheet names
 	 */
-	public static SpreadsheetCoords getSpreadsheetCoordsForLabel(String inputLabel) {
+	public static @CheckForNull SpreadsheetCoords getSpreadsheetCoordsForLabel(String inputLabel) {
 		// we need to also support wrapped GeoElements like
 		// $A4 that are implemented as dependent geos (using ExpressionNode)
-		SpreadsheetCoords p = spreadsheetIndices(inputLabel);
-		if (p.column >= 0 && p.row >= 0) {
-			return p;
+		MatchResult matcher = spreadsheetPattern.exec(inputLabel);
+
+		// return (-1,-1) if not a spreadsheet cell name
+		int row = getSpreadsheetRow(matcher);
+		int column = getSpreadsheetColumn(matcher);
+		if (column >= 0 && row >= 0) {
+			return new SpreadsheetCoords(row, column);
 		}
 		return null;
 	}
@@ -283,6 +300,7 @@ public class GeoElementSpreadsheet {
 		if (cell != null) {
 			cell.setVisualStyle(cellGeo);
 			cell.setAuxiliaryObject(true);
+			cell.setEmptySpreadsheetCell(false);
 		}
 	}
 
@@ -332,7 +350,9 @@ public class GeoElementSpreadsheet {
 			return;
 		}
 
-		GuiManagerInterface guiManager = geo.getKernel().getApplication()
+		App app = geo.getKernel().getApplication();
+		// TODO avoid hidden dependencies on GuiManager and SpreadsheetModel
+		GuiManagerInterface guiManager = app
 				.getGuiManager();
 
 		if (guiManager == null || !guiManager.hasSpreadsheetView()) {
@@ -343,13 +363,10 @@ public class GeoElementSpreadsheet {
 		String label = geo.getLabelSimple();
 
 		if (GeoElementSpreadsheet.isSpreadsheetLabel(label)) {
-			SpreadsheetCoords coords = GeoElementSpreadsheet.spreadsheetIndices(label);
+			SpreadsheetCoords coords = GeoElementSpreadsheet.getSpreadsheetCoordsSafe(label);
 
-			SpreadsheetViewInterface spreadsheet = guiManager
-					.getSpreadsheetView();
-			CellFormatInterface formatHandler = spreadsheet
-					.getSpreadsheetTable().getCellFormatHandler();
-
+			CellFormatInterface formatHandler = app.getSpreadsheetTableModel()
+					.getCellFormat(null);
 			Object c = formatHandler.getCellFormat(coords.column, coords.row,
 					CellFormat.FORMAT_BGCOLOR);
 

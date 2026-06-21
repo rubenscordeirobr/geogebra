@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian;
 
 import static org.geogebra.test.TestStringUtil.unicode;
@@ -16,16 +32,16 @@ import org.geogebra.common.kernel.geos.GeoConic;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.geos.GeoInlineText;
 import org.geogebra.common.kernel.geos.GeoNumeric;
+import org.geogebra.common.main.UndoRedoMode;
 import org.geogebra.common.plugin.EuclidianStyleConstants;
 import org.geogebra.common.plugin.EventListener;
 import org.geogebra.common.plugin.EventType;
+import org.geogebra.editor.share.util.Unicode;
 import org.geogebra.test.TestEvent;
 import org.geogebra.test.annotation.Issue;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.himamis.retex.editor.share.util.Unicode;
 
 @SuppressWarnings("javadoc")
 public class EuclidianControllerTest extends BaseEuclidianControllerTest {
@@ -38,6 +54,11 @@ public class EuclidianControllerTest extends BaseEuclidianControllerTest {
 		evt.setCommand(s);
 		events.add(evt);
 		add(s);
+	}
+
+	@Before
+	public void setUp() {
+		setUpController();
 	}
 
 	@Before
@@ -587,7 +608,7 @@ public class EuclidianControllerTest extends BaseEuclidianControllerTest {
 
 	@Test
 	public void translateViewTool() {
-		setMode(EuclidianConstants.MODE_TRANSLATEVIEW); // TODO 40
+		setMode(EuclidianConstants.MODE_TRANSLATE_VIEW); // TODO 40
 		t("C:Corner[4]");
 		checkHiddenContent("C = (-0.02, 0.02)");
 		dragStart(100, 100);
@@ -1051,6 +1072,70 @@ public class EuclidianControllerTest extends BaseEuclidianControllerTest {
 		assertEquals(1.1, slider.evaluateDouble(), .001);
 		getApp().getKernel().undo();
 		assertEquals(0, slider.evaluateDouble(), .001);
+	}
+
+	@Test
+	public void testMoveBoxPlot() {
+		setMode(EuclidianConstants.MODE_MOVE);
+		GeoNumeric numeric = add("BoxPlot(0, 1, {1, 2, 3, 4})");
+		numeric.setFixed(false);
+
+		dragStart(50, 50);
+		dragEnd(50, 200);
+
+		assertEquals("BoxPlot(-4, 1, {1, 2, 3, 4})", numeric
+				.getDefinition(StringTemplate.defaultTemplate));
+	}
+
+	@Test
+	public void testFixedBoxPlotDoesNotMove() {
+		setMode(EuclidianConstants.MODE_MOVE);
+		GeoNumeric numeric = add("BoxPlot(0, 1, {1, 2, 3, 4})");
+		numeric.setFixed(true);
+
+		dragStart(50, 50);
+		dragEnd(50, 200);
+
+		assertEquals("BoxPlot(0, 1, {1, 2, 3, 4})", numeric
+				.getDefinition(StringTemplate.defaultTemplate));
+	}
+
+	@Test
+	public void testMoveBoxPlotUndoRedo() {
+		getApp().setUndoRedoMode(UndoRedoMode.GUI);
+		getApp().setUndoActive(true);
+		setMode(EuclidianConstants.MODE_MOVE);
+		GeoNumeric numeric = add("BoxPlot(0, 1, {1, 2, 3, 4})");
+		numeric.setFixed(false);
+
+		dragStart(50, 50);
+		dragEnd(50, 200);
+
+		getApp().getKernel().undo();
+
+		assertEquals("BoxPlot(0, 1, {1, 2, 3, 4})", numeric
+				.getDefinition(StringTemplate.defaultTemplate));
+
+		getApp().getKernel().redo();
+		assertEquals("BoxPlot(-4, 1, {1, 2, 3, 4})", numeric
+				.getDefinition(StringTemplate.defaultTemplate));
+	}
+
+	@Test
+	@Issue({"APPS-7317", "APPS-7429"})
+	public void testDependentListExpressionNotMoveable() {
+		setMode(EuclidianConstants.MODE_MOVE);
+		add("y_1={0,1,2}");
+		add("y_2={0,2,3}");
+		GeoElement element = add("(y_1, y_2)");
+
+		dragStart(0, 0);
+		dragEnd(50, 50);
+
+		assertEquals("(y_1, y_2)",
+				element.getDefinition(StringTemplate.defaultTemplate));
+		assertEquals("{(0, 0), (1, 2), (2, 3)}",
+				element.toValueString(StringTemplate.defaultTemplate));
 	}
 
 	@Override

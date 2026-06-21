@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.geogebra3D.euclidian3D.opengl;
 
 import java.nio.charset.StandardCharsets;
@@ -305,8 +321,8 @@ public class RendererImplShadersD extends RendererImplShaders {
 	}
 
 	@Override
-	protected void glViewPort(int width, int height) {
-		jogl.getGL2ES2().glViewport(0, 0, width, height);
+	protected void glViewPort(int x, int y, int width, int height) {
+		jogl.getGL2ES2().glViewport(x, y, width, height);
 	}
 
 	@Override

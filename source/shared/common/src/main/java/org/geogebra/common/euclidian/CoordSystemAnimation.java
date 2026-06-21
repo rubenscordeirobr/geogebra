@@ -1,11 +1,30 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian;
 
+import org.geogebra.common.awt.annotations.HasNativeSubclass;
+import org.geogebra.common.euclidian.CoordSystemInfo.ScaledAxis;
 import org.geogebra.common.util.DoubleUtil;
 
 /**
  * AbstractZoomer is responsible for animated zooming of Euclidian View
  *
  */
+@HasNativeSubclass
 public abstract class CoordSystemAnimation {
 
 	private enum AnimationMode {
@@ -85,12 +104,10 @@ public abstract class CoordSystemAnimation {
 
 		// check ratioY so that SetAxesRatio(1,1) keeps old behaviour
 		if (ratioY == 1 && ratioX != 1) {
-
 			oldScale = view.getXscale();
 			newScale = view.getYscale() / ratioX; // new xscale
 			mode = AnimationMode.AXES_X;
 		} else {
-
 			oldScale = view.getYscale();
 			newScale = view.getXscale() * ratioX / ratioY; // new yscale
 			mode = AnimationMode.AXES_Y;
@@ -188,20 +205,20 @@ public abstract class CoordSystemAnimation {
 				factor = 1.0 + counter * add / oldScale;
 				view.setCoordSystem(view.getXZero(), view.getYZero(),
 						oldScale * factor, view.getYscale());
-				coordSystemInfo.setXAxisZoom(true);
+				coordSystemInfo.setScaledAxis(ScaledAxis.X_AXIS);
 				break;
 			case AXES_Y:
 				factor = 1.0 + counter * add / oldScale;
 				view.setCoordSystem(view.getXZero(), view.getYZero(),
 						view.getXscale(), oldScale * factor);
-				coordSystemInfo.setXAxisZoom(false);
-			break;
+				coordSystemInfo.setScaledAxis(ScaledAxis.Y_AXIS);
+				break;
 			case ZOOM:
 				factor = 1.0 + counter * add / oldScale;
 				view.setCoordSystem(px + (dx * factor), py + (dy * factor),
 						oldScale * factor,
 						oldScale * factor * view.getScaleRatio());
-				coordSystemInfo.setXAxisZoom(false);
+				coordSystemInfo.cancelScaledAxis();
 				break;
 			case ZOOM_RW:
 				double i = counter;
@@ -210,13 +227,13 @@ public abstract class CoordSystemAnimation {
 						((x1 * i) + (xmaxOld * j)) / steps,
 						((y0 * i) + (yminOld * j)) / steps,
 						((y1 * i) + (ymaxOld * j)) / steps, true);
-				coordSystemInfo.setXAxisZoom(false);
+				coordSystemInfo.cancelScaledAxis();
 				break;
 			case MOVE:
 				factor = 1.0 - (counter * add);
 				view.setCoordSystem(px + (dx * factor), py + (dy * factor),
 						view.getXscale(), view.getYscale());
-				coordSystemInfo.setXAxisZoom(false);
+				coordSystemInfo.cancelScaledAxis();
 			}
 		}
 	}
@@ -266,7 +283,7 @@ public abstract class CoordSystemAnimation {
 	}
 
 	private void onAxisZoomEnd(EuclidianController controller) {
-		coordSystemInfo.setXAxisZoom(false);
+		coordSystemInfo.cancelScaledAxis();
 		controller.notifyZoomerStopped();
 	}
 
@@ -295,9 +312,12 @@ public abstract class CoordSystemAnimation {
 
 		switch (mode) {
 		case AXES_X:
+			add = (newScale - oldScale) / steps;
+			coordSystemInfo.setScaledAxis(ScaledAxis.X_AXIS);
+			break;
 		case AXES_Y:
 			add = (newScale - oldScale) / steps;
-			coordSystemInfo.setXAxisZoom(true);
+			coordSystemInfo.setScaledAxis(ScaledAxis.Y_AXIS);
 			break;
 		case ZOOM:
 			add = (newScale - oldScale) / steps;

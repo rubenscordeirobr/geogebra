@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.statistics;
@@ -164,9 +168,6 @@ public class AlgoZMean2Estimate extends AlgoElement {
 		}
 
 		double n1, n2, mean1, mean2;
-		double sd1 = sd.getDouble();
-		double sd2 = sd_2.getDouble();
-		double cLevel = level.getDouble();
 
 		if (list == null) {
 
@@ -194,10 +195,12 @@ public class AlgoZMean2Estimate extends AlgoElement {
 			mean1 = list.mean();
 			mean2 = list2.mean();
 		}
-
+		double sd1 = sd.getDouble();
+		double sd2 = sd_2.getDouble();
+		double cLevel = level.getDouble();
 		NormalDistribution normalDist = new NormalDistribution(0, 1);
 
-		double critZ = 0;
+		double critZ;
 
 		try {
 			critZ = normalDist.inverseCumulativeProbability((1 - cLevel) / 2);

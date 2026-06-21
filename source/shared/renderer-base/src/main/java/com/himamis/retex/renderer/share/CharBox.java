@@ -46,24 +46,13 @@
 
 package com.himamis.retex.renderer.share;
 
-import com.himamis.retex.renderer.share.platform.FactoryProvider;
-import com.himamis.retex.renderer.share.platform.Graphics;
 import com.himamis.retex.renderer.share.platform.font.Font;
-import com.himamis.retex.renderer.share.platform.font.FontRenderContext;
-import com.himamis.retex.renderer.share.platform.geom.Area;
-import com.himamis.retex.renderer.share.platform.geom.Shape;
 import com.himamis.retex.renderer.share.platform.graphics.Graphics2DInterface;
 
 /**
  * A box representing a single character.
  */
 public class CharBox extends Box {
-
-	private static final FontRenderContext FRC;
-	static {
-		FRC = new Graphics().createImage(1, 1).createGraphics2D()
-				.getFontRenderContext();
-	}
 
 	protected CharFont cf;
 	protected double size;
@@ -96,7 +85,7 @@ public class CharBox extends Box {
 	@Override
 	public void draw(Graphics2DInterface g2, double x, double y) {
 		drawDebug(g2, x, y);
-		g2.saveTransformation();
+		g2.saveTransform();
 		g2.translate(x, y);
 		Font font = cf.fontInfo.getFont();
 
@@ -128,25 +117,7 @@ public class CharBox extends Box {
 		if (!oldFont.isEqual(font)) {
 			g2.setFont(oldFont);
 		}
-		g2.restoreTransformation();
-	}
-
-	@Override
-	public Area getArea() {
-		// final Font font = Configuration.get().getFont(cf.fontId);
-		FontInfo info = cf.fontInfo;
-		Font font = info.getFont();
-
-		// can be null (if font not loaded - HTML5)
-		final Shape s = font.getGlyphOutline(FRC, cf);
-
-		final Area a = geom.createArea(s);
-		final double x = size / FactoryProvider.getInstance().getFontFactory()
-				.getFontScaleFactor();
-		if (x != 1) {
-			a.scale(x);
-		}
-		return a;
+		g2.restoreTransform();
 	}
 
 	@Override

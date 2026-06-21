@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.html5.main;
 
 import static org.geogebra.common.GeoGebraConstants.CAS_APPCODE;
@@ -12,9 +28,11 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 import org.geogebra.common.GeoGebraConstants.Platform;
 import org.geogebra.common.SuiteSubApp;
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GColor;
 import org.geogebra.common.awt.GDimension;
 import org.geogebra.common.awt.GFont;
@@ -24,12 +42,10 @@ import org.geogebra.common.euclidian.EmbedManager;
 import org.geogebra.common.euclidian.EuclidianConstants;
 import org.geogebra.common.euclidian.EuclidianController;
 import org.geogebra.common.euclidian.EuclidianView;
-import org.geogebra.common.exam.ExamController;
 import org.geogebra.common.export.pstricks.GeoGebraExport;
 import org.geogebra.common.export.pstricks.GeoGebraToAsymptote;
 import org.geogebra.common.export.pstricks.GeoGebraToPgf;
 import org.geogebra.common.export.pstricks.GeoGebraToPstricks;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.factories.CASFactory;
 import org.geogebra.common.factories.Factory;
 import org.geogebra.common.factories.FormatFactory;
@@ -40,6 +56,7 @@ import org.geogebra.common.gui.inputfield.HasLastItem;
 import org.geogebra.common.gui.view.algebra.AlgebraView.SortMode;
 import org.geogebra.common.io.MyXMLio;
 import org.geogebra.common.io.XMLParseException;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.io.layout.Perspective;
 import org.geogebra.common.javax.swing.GImageIcon;
 import org.geogebra.common.kernel.Construction;
@@ -75,6 +92,7 @@ import org.geogebra.common.move.ggtapi.models.Pagination;
 import org.geogebra.common.move.ggtapi.requests.MaterialCallbackI;
 import org.geogebra.common.move.operations.NetworkOperation;
 import org.geogebra.common.ownership.GlobalScope;
+import org.geogebra.common.ownership.SuiteScope;
 import org.geogebra.common.plugin.Event;
 import org.geogebra.common.plugin.EventDispatcher;
 import org.geogebra.common.plugin.EventType;
@@ -96,9 +114,11 @@ import org.geogebra.gwtutil.SafeExamBrowser;
 import org.geogebra.gwtutil.SecureBrowser;
 import org.geogebra.regexp.client.NativeRegExpFactory;
 import org.geogebra.regexp.shared.RegExpFactory;
+import org.geogebra.web.awt.AwtFactoryW;
+import org.geogebra.web.awt.GFontW;
+import org.geogebra.web.awt.MyImageW;
 import org.geogebra.web.html5.Browser;
 import org.geogebra.web.html5.GeoGebraGlobal;
-import org.geogebra.web.html5.awt.GFontW;
 import org.geogebra.web.html5.css.GuiResourcesSimple;
 import org.geogebra.web.html5.euclidian.EuclidianControllerW;
 import org.geogebra.web.html5.euclidian.EuclidianPanelWAbstract;
@@ -106,7 +126,6 @@ import org.geogebra.web.html5.euclidian.EuclidianViewW;
 import org.geogebra.web.html5.euclidian.EuclidianViewWInterface;
 import org.geogebra.web.html5.euclidian.profiler.FpsProfilerW;
 import org.geogebra.web.html5.export.ExportGraphicsFactoryW;
-import org.geogebra.web.html5.factories.AwtFactoryW;
 import org.geogebra.web.html5.factories.FactoryW;
 import org.geogebra.web.html5.factories.FormatFactoryW;
 import org.geogebra.web.html5.factories.UtilFactoryW;
@@ -138,9 +157,13 @@ import org.geogebra.web.html5.io.MyXMLioW;
 import org.geogebra.web.html5.kernel.GeoElementGraphicsAdapterW;
 import org.geogebra.web.html5.kernel.UndoManagerW;
 import org.geogebra.web.html5.kernel.commands.CommandDispatcherW;
+import org.geogebra.web.html5.main.general.DefaultGeneralIconProvider;
+import org.geogebra.web.html5.main.general.GeneralIconResource;
+import org.geogebra.web.html5.main.general.MebisGeneralIconProvider;
 import org.geogebra.web.html5.main.settings.DefaultSettingsW;
 import org.geogebra.web.html5.main.settings.SettingsBuilderW;
 import org.geogebra.web.html5.main.toolbox.DefaultToolboxIconProvider;
+import org.geogebra.web.html5.main.toolbox.FaIconSpec;
 import org.geogebra.web.html5.main.toolbox.MebisToolboxIconProvider;
 import org.geogebra.web.html5.main.toolbox.ToolboxIconResource;
 import org.geogebra.web.html5.main.topbar.DefaultTopBarIconProvider;
@@ -200,6 +223,7 @@ public abstract class AppW extends App implements SetLabels, HasLanguage {
 
 	private DrawEquationW drawEquation;
 
+	protected SuiteScope suiteScope;
 	protected GgbAPIW ggbapi;
 	private final LocalizationW loc;
 	private ImageManagerW imageManager;
@@ -265,9 +289,9 @@ public abstract class AppW extends App implements SetLabels, HasLanguage {
 	private Widget lastFocusableWidget;
 	private FullScreenState fullscreenState;
 	private ToolTipManagerW toolTipManager;
-	private final ExamController examController = GlobalScope.examController;
 	private ToolboxIconResource toolboxIconResource;
 	private TopBarIconResource topBarIconResource;
+	private GeneralIconResource generalIconResource;
 
 	/**
 	 * @param geoGebraElement
@@ -283,6 +307,10 @@ public abstract class AppW extends App implements SetLabels, HasLanguage {
 		super(getPlatform(appletParameters, dimension, laf));
 		this.geoGebraElement = geoGebraElement;
 		this.appletParameters = appletParameters;
+
+		suiteScope = GlobalScope.registerNewSuiteScope();
+		suiteScope.registerApp(this);
+
 		// laf = null in webSimple
 		boolean hasUndo = appletParameters.getDataParamEnableUndoRedo()
 				&& (laf == null || laf.undoRedoSupported());
@@ -434,7 +462,8 @@ public abstract class AppW extends App implements SetLabels, HasLanguage {
 	/**
 	 * handler for window resize
 	 */
-	protected final void windowResized() {
+	public final void windowResized() {
+		geoGebraElement.resetScale();
 		for (RequiresResize mtg : this.euclidianHandlers) {
 			mtg.onResize();
 		}
@@ -1032,8 +1061,8 @@ public abstract class AppW extends App implements SetLabels, HasLanguage {
 			pageController.updatePreviewImage();
 		}
 		resetUrl();
-		if (examController.isExamActive()) {
-			setActiveMaterial(examController.getNewTempMaterial());
+		if (suiteScope != null && suiteScope.examController.isExamActive()) {
+			setActiveMaterial(suiteScope.examController.getNewTempMaterial());
 		}
 		reapplyRestrictions();
 		setSaved();
@@ -1639,7 +1668,7 @@ public abstract class AppW extends App implements SetLabels, HasLanguage {
 	 *            application
 	 * @return a kernel
 	 */
-	protected Kernel newKernel(App thisApp) {
+	protected Kernel newKernel(@Nonnull App thisApp) {
 		return new Kernel(thisApp, new GeoFactory());
 	}
 
@@ -1678,27 +1707,33 @@ public abstract class AppW extends App implements SetLabels, HasLanguage {
 
 	@Override
 	public boolean is3DViewEnabled() {
-		return getAppletParameters().getDataParamEnable3D(true) && super.is3DViewEnabled();
+		return getAppletParameters().getParamEnable3D(true) && super.is3DViewEnabled();
 	}
 
 	private void setViewsEnabled() {
 		if (!getConfig().isCASEnabled()) {
 			getSettings().getCasSettings().setEnabled(false);
-		} else if (getAppletParameters().getDataParamEnableCAS(false)
-				|| !getAppletParameters().getDataParamEnableCAS(true)) {
+		} else if (getAppletParameters().getParamEnableCAS(false)
+				|| !getAppletParameters().getParamEnableCAS(true)) {
 			getSettings().getCasSettings().setEnabled(
-					getAppletParameters().getDataParamEnableCAS(false));
+					getAppletParameters().getParamEnableCAS(false));
 		}
 		if (getSettings().getCasSettings().isEnabled()) {
 			getKernel().setSymbolicMode(getConfig().getSymbolicMode());
 		}
 
 		if (getSettings().getEuclidian(-1) != null) {
-			if (getAppletParameters().getDataParamEnable3D(false)
-					|| !getAppletParameters().getDataParamEnable3D(true)) {
+			if (getAppletParameters().getParamEnable3D(false)
+					|| !getAppletParameters().getParamEnable3D(true)) {
 				getSettings().getEuclidian(-1)
-						.setEnabled(getAppletParameters().getDataParamEnable3D(false));
+						.setEnabled(getAppletParameters().getParamEnable3D(false));
 			}
+		}
+
+		if (getAppletParameters().getParamEnableProbability(false)
+				|| !getAppletParameters().getParamEnableProbability(true)) {
+			getSettings().getProbCalcSettings().setEnabled(
+					getAppletParameters().getParamEnableProbability(false));
 		}
 
 		String disableCAS = NavigatorUtil.getUrlParameter("disableCAS");
@@ -2002,13 +2037,6 @@ public abstract class AppW extends App implements SetLabels, HasLanguage {
 		UserPreferredLanguage.translate(this, ".GeoGebraHeader");
 	}
 
-	@Override
-	public boolean letRedefine() {
-		// TODO
-		// Auto-generated
-		return true;
-	}
-
 	// ============================================
 	// IMAGES
 	// ============================================
@@ -2077,13 +2105,11 @@ public abstract class AppW extends App implements SetLabels, HasLanguage {
 	}
 
 	@Override
-	protected void getLayoutXML(StringBuilder sb, boolean asPreference) {
+	protected void getLayoutXML(XMLStringBuilder sb, boolean asPreference) {
 		if (getGuiManager() == null) {
 			initGuiManager();
 		}
-		if (getGuiManager() != null) {
-			getGuiManager().getLayout().getXml(sb, asPreference);
-		}
+		super.getLayoutXML(sb, asPreference);
 	}
 
 	// ============================================
@@ -2208,7 +2234,9 @@ public abstract class AppW extends App implements SetLabels, HasLanguage {
 	 *            popup
 	 */
 	public void registerPopup(HasHide widget) {
-		popups.add(widget);
+		if (!popups.contains(widget)) {
+			popups.add(widget);
+		}
 	}
 
 	/**
@@ -2246,7 +2274,7 @@ public abstract class AppW extends App implements SetLabels, HasLanguage {
 
 	/**
 	 * @param el
-	 *            element that can be cliked without closingpopups
+	 *            element that can be clicked without closingpopups
 	 */
 	public void addAsAutoHidePartnerForPopups(Element el) {
 		for (HasHide popup : popups) {
@@ -2389,10 +2417,12 @@ public abstract class AppW extends App implements SetLabels, HasLanguage {
 	public boolean supportsView(int viewID) {
 		if (viewID == App.VIEW_CAS) {
 			return getSettings().getCasSettings().isEnabled()
-					&& getAppletParameters().getDataParamEnableCAS(true)
+					&& getAppletParameters().getParamEnableCAS(true)
 					&& getCASFactory().isEnabled();
 		}
-
+		if (viewID == App.VIEW_PROBABILITY_CALCULATOR) {
+			return getSettings().getProbCalcSettings().isEnabled();
+		}
 		return viewID != App.VIEW_EUCLIDIAN3D;
 	}
 
@@ -3212,7 +3242,7 @@ public abstract class AppW extends App implements SetLabels, HasLanguage {
 			getFileManager().showExportAsPictureDialog(url, getExportTitle(),
 					extension, "Export", this);
 		} else {
-			getFileManager().exportImage(url,  getExportTitle() + "." + extension,
+			getFileManager().exportImage(url, getExportTitle() + "." + extension,
 					extension);
 			dispatchEvent(new Event(EventType.EXPORT, null,
 					"[\"" + extension + "\"]"));
@@ -3594,7 +3624,10 @@ public abstract class AppW extends App implements SetLabels, HasLanguage {
 	 */
 	public boolean isToolboxCategoryEnabled(String category) {
 		List<String> tools = getAppletParameters().getDataParamCustomToolbox();
-		return tools.contains(category) || tools.isEmpty();
+		if (tools.isEmpty()) {
+			return true;
+		}
+		return tools.stream().anyMatch(tool -> tool.split("\\.")[0].equals(category));
 	}
 
 	/**
@@ -3628,6 +3661,18 @@ public abstract class AppW extends App implements SetLabels, HasLanguage {
 		return topBarIconResource;
 	}
 
+	/**
+	 * @return general icon resource provider
+	 */
+	public GeneralIconResource getGeneralIconResource() {
+		if (generalIconResource == null) {
+			generalIconResource = new GeneralIconResource(isUsingFontAwesome()
+					? new MebisGeneralIconProvider() : new DefaultGeneralIconProvider());
+		}
+
+		return generalIconResource;
+	}
+
 	private void loadCommandsForScripting() {
 		for (GeoElement geo : kernel.getConstruction().getGeoSetConstructionOrder()) {
 			if (geo.hasScripts()) {
@@ -3640,13 +3685,23 @@ public abstract class AppW extends App implements SetLabels, HasLanguage {
 	private void initializeAnalytics() {
 		try {
 			Analytics.setInstance(new AnalyticsW());
+			Analytics.updateDefaultAnalyticsParameters(getConfig());
 		} catch (Throwable e) {
 			Log.debug("Could not initialize analytics object." + e);
 		}
 	}
 
+	/**
+	 * Check whether to use FA and update the theme.
+	 * @return whether to use FA
+	 */
 	public boolean isUsingFontAwesome() {
-		return getAppletParameters().getParamFontAwesome(isByCS());
+		String theme = getAppletParameters().getParamFontAwesome(isByCS() ? "light" : null);
+		if (StringUtil.empty(theme) || "false".equals(theme)) {
+			return false;
+		}
+		FaIconSpec.setTheme(theme);
+		return true;
 	}
 
 	/**
@@ -3657,4 +3712,5 @@ public abstract class AppW extends App implements SetLabels, HasLanguage {
 	public boolean hasPageController() {
 		return isWhiteboardActive() && pageController != null;
 	}
+
 }

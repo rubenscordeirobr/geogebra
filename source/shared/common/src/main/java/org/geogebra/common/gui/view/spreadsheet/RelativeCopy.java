@@ -1,10 +1,26 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.view.spreadsheet;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.TreeSet;
 
-import org.geogebra.common.awt.GPoint;
 import org.geogebra.common.io.XMLParseException;
 import org.geogebra.common.kernel.CircularDefinitionException;
 import org.geogebra.common.kernel.CommandLookupStrategy;
@@ -39,17 +55,18 @@ import org.geogebra.common.spreadsheet.core.TabularRange;
 import org.geogebra.common.util.AsyncOperation;
 import org.geogebra.common.util.StringUtil;
 import org.geogebra.common.util.debug.Log;
+import org.geogebra.editor.share.util.Unicode;
 import org.geogebra.regexp.shared.MatchResult;
 import org.geogebra.regexp.shared.RegExp;
-
-import com.himamis.retex.editor.share.util.Unicode;
 
 public class RelativeCopy {
 
 	protected Kernel kernel;
 	private ErrorHandler errorHandler;
 
-	App app;
+	private final App app;
+	private final SpreadsheetTableModel tableModel;
+
 	// protected MyTable table;
 	protected static final RegExp pattern2 = RegExp
 			.compile("(::|\\$)([A-Z]+)(::|\\$)([0-9]+)");
@@ -58,10 +75,12 @@ public class RelativeCopy {
 	/**
 	 * @param kernel
 	 *            kernel
+	 * @param handler error handler
 	 */
 	public RelativeCopy(Kernel kernel, ErrorHandler handler) {
 		this.kernel = kernel;
 		app = kernel.getApplication();
+		tableModel = app.getSpreadsheetTableModel();
 		errorHandler = handler;
 	}
 
@@ -97,7 +116,8 @@ public class RelativeCopy {
 			cons.startCollectingRedefineCalls();
 
 			boolean patternOK = isPatternSource(
-					new TabularRange(sourceMinRow, sourceMinCol, sourceMaxRow, sourceMaxCol), app);
+					new TabularRange(sourceMinRow, sourceMinCol, sourceMaxRow, sourceMaxCol),
+					tableModel);
 
 			// ==============================================
 			// vertical drag
@@ -179,8 +199,9 @@ public class RelativeCopy {
 					+ "destMinRow = " + destMinRow + "\r\n"
 					+ "destMaxCol = " + destMaxCol + "\r\n"
 					+ "destMaxRow = " + destMaxRow + "\r\n";
-			throw new RuntimeException(
+			Log.debug(
 					"Error from RelativeCopy.doCopy:\r\n" + msg);
+			return false;
 		} catch (XMLParseException | CircularDefinitionException | ParseException
 				| RuntimeException ex) {
 			Log.debug(ex);
@@ -206,8 +227,8 @@ public class RelativeCopy {
 			int sourceMaxCol, int destMinRow, int destMaxRow)
 			throws CircularDefinitionException, ParseException {
 		for (int x = sourceMinCol; x <= sourceMaxCol; ++x) {
-			GeoElement v1 = getValue(app, x, sourceMinRow);
-			GeoElement v2 = getValue(app, x, sourceMaxRow);
+			GeoElement v1 = getValue(tableModel, x, sourceMinRow);
+			GeoElement v2 = getValue(tableModel, x, sourceMaxRow);
 			if ((v1 == null) || (v2 == null)) {
 				continue;
 			}
@@ -215,14 +236,14 @@ public class RelativeCopy {
 
 				// quick solution: stop on fixed cell
 				// this may be improved later
-				GeoElement vOld = getValue(app, x, y);
+				GeoElement vOld = getValue(tableModel, x, y);
 				if (vOld != null
 						&& vOld.isProtected(EventType.UPDATE)) {
 					break;
 				}
 
-				GeoElement v3 = getValue(app, x, y + 2);
-				GeoElement v4 = getValue(app, x, y + 1);
+				GeoElement v3 = getValue(tableModel, x, y + 2);
+				GeoElement v4 = getValue(tableModel, x, y + 1);
 				String vs1 = v3.isGeoFunction() ? "(x)" : "";
 				String vs2 = v4.isGeoFunction() ? "(x)" : "";
 				String d0 = GeoElementSpreadsheet
@@ -251,8 +272,8 @@ public class RelativeCopy {
 			int sourceMaxCol, int destMinRow, int destMaxRow)
 			throws CircularDefinitionException, ParseException {
 		for (int x = sourceMinCol; x <= sourceMaxCol; ++x) {
-			GeoElement v1 = getValue(app, x, sourceMinRow);
-			GeoElement v2 = getValue(app, x, sourceMaxRow);
+			GeoElement v1 = getValue(tableModel, x, sourceMinRow);
+			GeoElement v2 = getValue(tableModel, x, sourceMaxRow);
 			if ((v1 == null) || (v2 == null)) {
 				continue;
 			}
@@ -260,14 +281,14 @@ public class RelativeCopy {
 
 				// quick solution: stop on fixed cell
 				// this may be improved later
-				GeoElement vOld = getValue(app, x, y);
+				GeoElement vOld = getValue(tableModel, x, y);
 				if (vOld != null
 						&& vOld.isProtected(EventType.UPDATE)) {
 					break;
 				}
 
-				GeoElement v3 = getValue(app, x, y - 2);
-				GeoElement v4 = getValue(app, x, y - 1);
+				GeoElement v3 = getValue(tableModel, x, y - 2);
+				GeoElement v4 = getValue(tableModel, x, y - 1);
 				String vs1 = v3.isGeoFunction() ? "(x)" : "";
 				String vs2 = v4.isGeoFunction() ? "(x)" : "";
 				String d0 = GeoElementSpreadsheet
@@ -296,8 +317,8 @@ public class RelativeCopy {
 			int sourceMaxCol, int destMinCol, int destMaxCol)
 			throws CircularDefinitionException, ParseException {
 		for (int y = sourceMinRow; y <= sourceMaxRow; ++y) {
-			GeoElement v1 = getValue(app, sourceMinCol, y);
-			GeoElement v2 = getValue(app, sourceMaxCol, y);
+			GeoElement v1 = getValue(tableModel, sourceMinCol, y);
+			GeoElement v2 = getValue(tableModel, sourceMaxCol, y);
 			if ((v1 == null) || (v2 == null)) {
 				continue;
 			}
@@ -305,14 +326,14 @@ public class RelativeCopy {
 
 				// quick solution: stop on fixed cell
 				// this may be improved later
-				GeoElement vOld = getValue(app, x, y);
+				GeoElement vOld = getValue(tableModel, x, y);
 				if (vOld != null
 						&& vOld.isProtected(EventType.UPDATE)) {
 					break;
 				}
 
-				GeoElement v3 = getValue(app, x + 2, y);
-				GeoElement v4 = getValue(app, x + 1, y);
+				GeoElement v3 = getValue(tableModel, x + 2, y);
+				GeoElement v4 = getValue(tableModel, x + 1, y);
 				String vs1 = v3.isGeoFunction() ? "(x)" : "";
 				String vs2 = v4.isGeoFunction() ? "(x)" : "";
 				String d0 = GeoElementSpreadsheet
@@ -341,8 +362,8 @@ public class RelativeCopy {
 			int sourceMaxCol, int destMinCol, int destMaxCol)
 			throws CircularDefinitionException, ParseException {
 		for (int y = sourceMinRow; y <= sourceMaxRow; ++y) {
-			GeoElement v1 = getValue(app, sourceMinCol, y);
-			GeoElement v2 = getValue(app, sourceMaxCol, y);
+			GeoElement v1 = getValue(tableModel, sourceMinCol, y);
+			GeoElement v2 = getValue(tableModel, sourceMaxCol, y);
 			if ((v1 == null) || (v2 == null)) {
 				continue;
 			}
@@ -350,14 +371,14 @@ public class RelativeCopy {
 
 				// quick solution: stop on fixed cell
 				// this may be improved later
-				GeoElement vOld = getValue(app, x, y);
+				GeoElement vOld = getValue(tableModel, x, y);
 				if (vOld != null
 						&& vOld.isProtected(EventType.UPDATE)) {
 					break;
 				}
 
-				GeoElement v3 = getValue(app, x - 2, y);
-				GeoElement v4 = getValue(app, x - 1, y);
+				GeoElement v3 = getValue(tableModel, x - 2, y);
+				GeoElement v4 = getValue(tableModel, x - 1, y);
 				String vs1 = v3.isGeoFunction() ? "(x)" : "";
 				String vs2 = v4.isGeoFunction() ? "(x)" : "";
 				String d0 = GeoElementSpreadsheet
@@ -374,18 +395,18 @@ public class RelativeCopy {
 	/**
 	 * Tests if a cell range can be used as the source for a pattern drag-copy.
 	 *
-	 * @param range
-	 *            cell range
+	 * @param range cell range
+	 * @param tableModel table model
 	 * @return whether all geos are acceptable
 	 */
-	public static boolean isPatternSource(TabularRange range, App app) {
+	public static boolean isPatternSource(TabularRange range, SpreadsheetTableModel tableModel) {
 		// don't allow empty cells
-		if (CellRangeUtil.hasEmptyCells(range, app)) {
+		if (CellRangeUtil.hasEmptyCells(range, tableModel)) {
 			return false;
 		}
 
 		// test for any unacceptable geos in the range
-		ArrayList<GeoElement> list = CellRangeUtil.toGeoList(range, app);
+		ArrayList<GeoElement> list = CellRangeUtil.toGeoList(range, tableModel);
 		for (GeoElement geo : list) {
 			if (!(geo.isGeoNumeric() || geo.isGeoFunction()
 					|| geo.isGeoPoint())) {
@@ -421,7 +442,7 @@ public class RelativeCopy {
 		// B2 is done last
 		TreeSet<GeoElement> tree = new TreeSet<>();
 		for (int x = x1; x <= x2; ++x) {
-			GeoElement cell = getValue(app, x, sy);
+			GeoElement cell = getValue(tableModel, x, sy);
 			if (cell != null) {
 				tree.add(cell);
 			}
@@ -432,7 +453,7 @@ public class RelativeCopy {
 				if (geo != null) {
 					SpreadsheetCoords p = geo.getSpreadsheetCoords();
 
-					GeoElement vOld = getValue(app, p.column, y);
+					GeoElement vOld = getValue(tableModel, p.column, y);
 					if (vOld != null && vOld.isProtected(EventType.UPDATE)) {
 						continue;
 					}
@@ -469,7 +490,7 @@ public class RelativeCopy {
 		// B2 is done last
 		TreeSet<GeoElement> tree = new TreeSet<>();
 		for (int y = y1; y <= y2; ++y) {
-			GeoElement cell = getValue(app, sx, y);
+			GeoElement cell = getValue(tableModel, sx, y);
 			if (cell != null) {
 				tree.add(cell);
 			}
@@ -483,13 +504,13 @@ public class RelativeCopy {
 				if (geo != null) {
 					SpreadsheetCoords p = geo.getSpreadsheetCoords();
 
-					GeoElement vOld = getValue(app, x, p.row);
+					GeoElement vOld = getValue(tableModel, x, p.row);
 					if (vOld != null && vOld.isProtected(EventType.UPDATE)) {
 						continue;
 					}
 
 					doCopyNoStoringUndoInfo0(geo,
-							getValue(app, x, p.row), x - sx, 0);
+							getValue(tableModel, x, p.row), x - sx, 0);
 				}
 			}
 		}
@@ -820,7 +841,7 @@ public class RelativeCopy {
 	public void doCopyNoStoringUndoInfo1(
 			String text, GeoElement geoForStyle, int column, int row)
 			throws ParseException, CircularDefinitionException {
-		GeoElement oldValue = getValue(app, column, row);
+		GeoElement oldValue = getValue(tableModel, column, row);
 
 		if (text == null) {
 			if (oldValue != null) {
@@ -858,8 +879,8 @@ public class RelativeCopy {
 	 * in the cell range with upper left corner (column1, row1) and lower right
 	 * corner (column2, row2).
 	 *
-	 * @param app
-	 *            application
+	 * @param tableModel
+	 *            spreadsheet table model
 	 * @param column1
 	 *            start column
 	 * @param row1
@@ -870,12 +891,12 @@ public class RelativeCopy {
 	 *            end row
 	 * @return array of geos in given range
 	 */
-	public static GeoElement[][] getValues(App app, int column1, int row1,
+	public static GeoElement[][] getValues(SpreadsheetTableModel tableModel, int column1, int row1,
 			int column2, int row2) {
 		GeoElement[][] values = new GeoElement[column2 - column1 + 1][row2 - row1 + 1];
 		for (int r = row1; r <= row2; ++r) {
 			for (int c = column1; c <= column2; ++c) {
-				values[c - column1][r - row1] = getValue(app, c, r);
+				values[c - column1][r - row1] = getValue(tableModel, c, r);
 			}
 		}
 		return values;
@@ -884,29 +905,15 @@ public class RelativeCopy {
 	/**
 	 * Returns the GeoElement for the cell with the given column and row values.
 	 *
-	 * @param app
-	 *            application
-	 * @param point
-	 *            coordinates
-	 * @return spreadsheet cell
-	 */
-	public static GeoElement getValue(App app, GPoint point) {
-		return getValue(app, point.getX(), point.getY());
-	}
-
-	/**
-	 * Returns the GeoElement for the cell with the given column and row values.
-	 *
-	 * @param app
-	 *            application
+	 * @param tableModel
+	 *            spreadsheet table model
 	 * @param column
 	 *            column number
 	 * @param row
 	 *            row number
 	 * @return spreadsheet cell
 	 */
-	public static GeoElement getValue(App app, int column, int row) {
-		SpreadsheetTableModel tableModel = app.getSpreadsheetTableModel();
+	public static GeoElement getValue(SpreadsheetTableModel tableModel, int column, int row) {
 		if ((row < 0) || (row >= tableModel.getRowCount())) {
 			return null;
 		}
@@ -928,7 +935,7 @@ public class RelativeCopy {
 		}
 
 		// remove leading equal sign, e.g. "= A1 + A2"
-		if (text.length() > 0 && text.charAt(0) == '=') {
+		if (!text.isEmpty() && text.charAt(0) == '=') {
 			text = text.substring(1);
 		}
 		text = text.trim();
@@ -939,7 +946,8 @@ public class RelativeCopy {
 			// check if input is same as name: circular definition
 			if (text.equals(name)) {
 				// circular definition
-				throw new CircularDefinitionException();
+				kernel.getApplication().showError(Errors.CircularDefinition);
+				return null;
 			}
 
 			// evaluate input text without an error dialog in case of unquoted
@@ -950,9 +958,7 @@ public class RelativeCopy {
 			// check if text was the label of an existing geo
 			// toUpperCase() added to fix bug A1=1, enter just 'a1' or 'A1' into
 			// cell B1 -> A1 disappears
-			if (StringUtil.toLowerCaseUS(text)
-					.equals(newValues[0]
-							.getLabelSimple())
+			if (text.toLowerCase(Locale.ROOT).equals(newValues[0].getLabelSimple())
 					// also need eg =a to work
 					|| text.equals(newValues[0]
 							.getLabelSimple())) {
@@ -984,7 +990,8 @@ public class RelativeCopy {
 					newValues[0].remove();
 
 					// circular definition
-					throw new CircularDefinitionException();
+					kernel.getApplication().showError(Errors.CircularDefinition);
+					return null;
 				}
 			}
 
@@ -996,10 +1003,6 @@ public class RelativeCopy {
 													// E1,
 			// F1, etc for multiple
 			// objects
-		} catch (CircularDefinitionException ce) {
-			// circular definition
-			kernel.getApplication().showError(Errors.CircularDefinition);
-			return null;
 		} catch (Exception e) {
 			// create text if something went wrong
 			if (text.startsWith("\"")) {
@@ -1039,25 +1042,21 @@ public class RelativeCopy {
 				.withSymbolicMode(kernel.getSymbolicMode());
 		kernel.getAlgebraProcessor().changeGeoElementNoExceptionHandling(
 				oldValue, text, info, false,
-				new AsyncOperation<GeoElementND>() {
-
-					@Override
-					public void callback(GeoElementND newValue) {
-						Log.debug("REDEFINED" + newValue);
-						// newValue.setConstructionDefaults();
-						newValue.setAllVisualProperties(oldValue.toGeoElement(),
-								true);
-						if (oldValue.isAuxiliaryObject()) {
-							newValue.setAuxiliaryObject(true);
-						}
-						if (newValue.getGeoClassType() == oldValue
-								.getGeoClassType()) {
-							// newValue.setVisualStyle(oldValue);
-						} else {
-							kernel.getApplication().refreshViews();
-						}
-						callback.callback(newValue);
+				newValue -> {
+					Log.debug("REDEFINED" + newValue);
+					// newValue.setConstructionDefaults();
+					newValue.setAllVisualProperties(oldValue.toGeoElement(),
+							true);
+					if (oldValue.isAuxiliaryObject()) {
+						newValue.setAuxiliaryObject(true);
 					}
+					if (newValue.getGeoClassType() == oldValue
+							.getGeoClassType()) {
+						// newValue.setVisualStyle(oldValue);
+					} else {
+						kernel.getApplication().refreshViews();
+					}
+					callback.callback(newValue);
 				}, getErrorHandler(kernel, oldValue, name, text0, callback));
 
 	}
@@ -1085,7 +1084,7 @@ public class RelativeCopy {
 				showError(null);
 			}
 
-			public void handleThrowable() {
+			private void handleThrowable() {
 
 				// if exception is thrown treat the input as text and try to
 				// update the cell as a GeoText
@@ -1115,12 +1114,6 @@ public class RelativeCopy {
 					newValue.setEuclidianVisible(false);
 					newValue.update();
 					callback.callback(newValue);
-				}
-
-				// otherwise throw an exception and let the cell revert to the
-				// old value
-				else {
-					// throw new Exception(e);
 				}
 			}
 
@@ -1172,7 +1165,7 @@ public class RelativeCopy {
 		// trim the text
 		if (text != null) {
 			text = text.trim();
-			if (text.length() == 0) {
+			if (text.isEmpty()) {
 				text = null;
 			}
 		}

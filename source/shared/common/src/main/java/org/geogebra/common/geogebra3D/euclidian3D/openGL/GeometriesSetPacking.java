@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.euclidian3D.openGL;
 
 import org.geogebra.common.awt.GColor;
@@ -29,7 +45,7 @@ class GeometriesSetPacking extends GeometriesSet {
 	 * @param layer
 	 *            layer
 	 */
-	public GeometriesSetPacking(
+	GeometriesSetPacking(
 			ManagerShaders manager,
 			GLBufferManager bufferManager, GColor color, int layer) {
 		super(manager);
@@ -55,7 +71,7 @@ class GeometriesSetPacking extends GeometriesSet {
 	 * 
 	 * @return geometry set index
 	 */
-	public int getIndex() {
+	int getIndex() {
 		return index;
 	}
 
@@ -78,7 +94,7 @@ class GeometriesSetPacking extends GeometriesSet {
 	 * @param newLayer
 	 *            layer
 	 */
-	public void updateColorAndLayer(GColor newColor, int newLayer) {
+	void updateColorAndLayer(GColor newColor, int newLayer) {
 		this.color = newColor;
 		this.layer = newLayer;
 		bufferManager.updateColorAndLayer(index, getGeometriesLength(),
@@ -95,7 +111,7 @@ class GeometriesSetPacking extends GeometriesSet {
 	 * @param objLayer
 	 *            object layer
 	 */
-	public void updateVisibility(boolean visible, int alpha, int objLayer) {
+	void updateVisibility(boolean visible, int alpha, int objLayer) {
 		bufferManager.updateVisibility(index, 0, getGeometriesLength(),
 				visible, alpha, objLayer);
 	}
@@ -109,14 +125,14 @@ class GeometriesSetPacking extends GeometriesSet {
 	/**
 	 * @return current color
 	 */
-	public GColor getColor() {
+	GColor getColor() {
 		return color;
 	}
 
 	/**
 	 * @return current layer
 	 */
-	public int getLayer() {
+	int getLayer() {
 		return layer;
 	}
 
@@ -124,7 +140,7 @@ class GeometriesSetPacking extends GeometriesSet {
 	 * 
 	 * @return gl buffer manager
 	 */
-	public GLBufferManager getBufferManager() {
+	GLBufferManager getBufferManager() {
 		return bufferManager;
 	}
 

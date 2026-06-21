@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.commands;
 
 import org.geogebra.common.kernel.Kernel;
@@ -61,7 +77,7 @@ public class CmdShear extends CommandProcessor {
 	/**
 	 * shear
 	 */
-	final private GeoElement[] shear(String label, GeoElement Q, GeoVec3D l,
+	private GeoElement[] shear(String label, GeoElement Q, GeoVec3D l,
 			GeoNumeric num) {
 		Transform t = new TransformShearOrStretch(cons, l, num, true);
 		return t.transform(Q, label);

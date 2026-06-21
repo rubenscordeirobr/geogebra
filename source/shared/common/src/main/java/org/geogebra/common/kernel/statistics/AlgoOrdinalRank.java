@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.statistics;
@@ -134,11 +138,11 @@ public class AlgoOrdinalRank extends AlgoElement {
 
 	}
 
-	private static class OrderedPair {
-		public double x;
-		public int y;
+	private static final class OrderedPair {
+		private final double x;
+		private final int y;
 
-		public OrderedPair(double x, int y) {
+		private OrderedPair(double x, int y) {
 			this.x = x;
 			this.y = y;
 		}
@@ -147,17 +151,12 @@ public class AlgoOrdinalRank extends AlgoElement {
 	/**
 	 * @return comparator
 	 */
-	public static Comparator<OrderedPair> getComparator() {
+	private static Comparator<OrderedPair> getComparator() {
 		if (comparator == null) {
-			comparator = new Comparator<OrderedPair>() {
-				@Override
-				public int compare(OrderedPair a, OrderedPair b) {
-					OrderedPair itemA = a;
-					OrderedPair itemB = b;
+			comparator = (a, b) -> {
 
-					double compX = itemA.x - itemB.x;
-					return compX < 0 ? -1 : +1;
-				}
+				double compX = a.x - b.x;
+				return compX < 0 ? -1 : +1;
 			};
 
 		}

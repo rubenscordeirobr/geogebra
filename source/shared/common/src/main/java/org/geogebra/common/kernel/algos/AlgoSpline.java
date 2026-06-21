@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.algos;
 
 import java.util.ArrayList;
@@ -281,7 +297,6 @@ public class AlgoSpline extends AlgoElement {
 
 	private double[] getSystemSolution(double[][] matrix) {
 		length = matrix.length;
-		double[] solution = new double[length];
 		double[] temp = new double[matrix[0].length];
 		int column;
 		int row;
@@ -330,6 +345,7 @@ public class AlgoSpline extends AlgoElement {
 			spline.setUndefined();
 			return null;
 		}
+		double[] solution = new double[length];
 		solution[solution.length - 1] = matrix[length - 1][length]
 				/ matrix[length - 1][length - 1];
 		double buffer;
@@ -345,16 +361,13 @@ public class AlgoSpline extends AlgoElement {
 	}
 
 	private double[][] getLinearSystemParametric(int c) {
-		int row = 0;
-		int col = 0;
-		int pointIndex;
-		double currentValueFromZeroToOne;
+
 		length = doublePoints.length;
 		cumulativeValueOfParameter = new double[length];
 		int i;
-		for (col = 1; col < length; col++) {
+		for (int col = 1; col < length; col++) {
 			if (weight != null) {
-				for (row = 1; row <= col; row++) {
+				for (int row = 1; row <= col; row++) {
 					double[] value = new double[dimension];
 					for (i = 0; i < dimension; i++) {
 						value[i] = doublePoints[row][i]
@@ -364,7 +377,7 @@ public class AlgoSpline extends AlgoElement {
 							+ weight.evaluate(value);
 				}
 			} else {
-				for (row = 1; row <= col; row++) {
+				for (int row = 1; row <= col; row++) {
 					float value = 0;
 					for (i = 0; i < dimension; i++) {
 						value += (doublePoints[row][i]
@@ -379,8 +392,10 @@ public class AlgoSpline extends AlgoElement {
 		}
 		double[][] matrix = new double[(length - 1)
 				* degreeValue][(length - 1) * degreeValue + 1];
-		row = 0;
-		col = 0;
+		int row = 0;
+		int col = 0;
+		int pointIndex;
+		double currentValueFromZeroToOne;
 		for (pointIndex = 0; pointIndex < length - 1; pointIndex++) {
 			currentValueFromZeroToOne = cumulativeValueOfParameter[pointIndex]
 					/ cumulativeValueOfParameter[length - 1];
@@ -398,7 +413,6 @@ public class AlgoSpline extends AlgoElement {
 			matrix[row][matrix.length] = doublePoints[pointIndex][c];
 			row++;
 			col += degreeValue;
-
 		}
 
 		for (int currentDerivative = degreeValue
@@ -421,10 +435,8 @@ public class AlgoSpline extends AlgoElement {
 		if (first.isEqual(last)) {
 			for (int currentDerivative = degreeValue
 					- 2; currentDerivative > 0; currentDerivative--) {
-				col = 0;
-				calcExtremesDerivative(matrix[row], col, currentDerivative);
+				calcExtremesDerivative(matrix[row], 0, currentDerivative);
 				row++;
-				col += degreeValue;
 			}
 		} else {
 			matrix[row][0] = 0;

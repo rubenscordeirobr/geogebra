@@ -1,12 +1,28 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.javax.swing;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.geogebra.common.gui.AccessibilityManagerInterface;
-import org.geogebra.common.gui.MayHaveFocus;
+import org.geogebra.common.gui.FocusableComponent;
 import org.geogebra.common.util.DoubleUtil;
-import org.geogebra.web.full.css.MaterialDesignResources;
+import org.geogebra.editor.share.util.JavaKeyCodes;
 import org.geogebra.web.full.gui.menubar.GMenuBar;
 import org.geogebra.web.full.html5.AttachedToDOM;
 import org.geogebra.web.html5.gui.GPopupPanel;
@@ -15,8 +31,9 @@ import org.geogebra.web.html5.gui.menu.AriaMenuBar;
 import org.geogebra.web.html5.gui.menu.AriaMenuItem;
 import org.geogebra.web.html5.gui.menu.MenuHoverListener;
 import org.geogebra.web.html5.gui.util.Dom;
+import org.geogebra.web.html5.gui.view.IconSpec;
 import org.geogebra.web.html5.main.AppW;
-import org.geogebra.web.resources.SVGResource;
+import org.geogebra.web.html5.main.general.GeneralIcon;
 import org.gwtproject.core.client.Scheduler;
 import org.gwtproject.core.client.Scheduler.ScheduledCommand;
 import org.gwtproject.dom.client.Element;
@@ -26,8 +43,6 @@ import org.gwtproject.user.client.DOM;
 import org.gwtproject.user.client.Event;
 import org.gwtproject.user.client.ui.FlowPanel;
 import org.gwtproject.user.client.ui.Widget;
-
-import com.himamis.retex.editor.share.util.JavaKeyCodes;
 
 /**
  * Popup menu for web.
@@ -54,6 +69,7 @@ public class GPopupMenuW implements AttachedToDOM, MenuHoverListener {
 
 	private boolean horizontal;
 	protected AriaMenuItem openItem = null;
+	private Element focusAnchor;
 
 	/**
 	 * @param app
@@ -213,9 +229,7 @@ public class GPopupMenuW implements AttachedToDOM, MenuHoverListener {
 	 * add separator to menu
 	 */
 	public void addSeparator() {
-		if (!app.isUnbundled()) {
-			popupMenu.addSeparator();
-		}
+		popupMenu.addSeparator();
 	}
 
 	/**
@@ -246,12 +260,14 @@ public class GPopupMenuW implements AttachedToDOM, MenuHoverListener {
 	 */
 	public void hideMenu() {
 		popupPanel.hide();
-		hide();
+		if (!hide() && focusAnchor != null) {
+			focusAnchor.focus();
+		}
 	}
 
-	private static SVGResource getSubMenuIcon(boolean isRTL) {
-		return isRTL ? MaterialDesignResources.INSTANCE.arrow_drop_left_black()
-				: MaterialDesignResources.INSTANCE.arrow_drop_right_black();
+	private IconSpec getSubMenuIcon(boolean isRTL) {
+		return app.getGeneralIconResource().getImageResource(isRTL
+			? GeneralIcon.LOCK : GeneralIcon.ARROW_RIGHT);
 	}
 
 	/**
@@ -268,6 +284,14 @@ public class GPopupMenuW implements AttachedToDOM, MenuHoverListener {
 	 */
 	public void addItem(GCheckmarkMenuItem item) {
 		addItem(item.getMenuItem());
+	}
+
+	/**
+	 * Adds widget to the popup panel
+	 * @param widget ui element
+	 */
+	public void addWidget(Widget widget) {
+		popupPanel.add(widget);
 	}
 
 	/**
@@ -300,9 +324,8 @@ public class GPopupMenuW implements AttachedToDOM, MenuHoverListener {
 
 			popupMenu.setSelectionListener(this);
 			if (!horizontal) {
-				SVGResource imgRes = getSubMenuIcon(
-						app.getLocalization().isRightToLeftReadingOrder());
-				popupMenu.appendSubmenu(item, imgRes);
+				IconSpec icon = getSubMenuIcon(app.getLocalization().isRightToLeftReadingOrder());
+				popupMenu.appendSubmenu(item, icon);
 			}
 		}
 	}
@@ -505,28 +528,35 @@ public class GPopupMenuW implements AttachedToDOM, MenuHoverListener {
 	}
 
 	/**
-	 * hide popup menu
+	 * Hide popup menu.
+	 * @return whether it was hidden by this call
 	 */
-	public final void hide() {
+	public final boolean hide() {
 		if (!popupPanel.isShowing()) {
-			return;
+			return false;
 		}
 
 		AccessibilityManagerInterface am = getApp()
 				.getAccessibilityManager();
-		MayHaveFocus anchor = am.getAnchor();
+		FocusableComponent anchor = am.getAnchor();
 		if (subPopup != null && subPopup.isMenuShown()) {
 			removeSubPopup();
 		} else {
 			popupPanel.hide();
 		}
-		returnFocus(anchor);
+
+		if (focusAnchor != null) {
+			focusAnchor.focus();
+		} else {
+			returnFocus(anchor);
+		}
+		return true;
 	}
 
 	/**
 	 * @param anchor global focus anchor
 	 */
-	protected void returnFocus(MayHaveFocus anchor) {
+	protected void returnFocus(FocusableComponent anchor) {
 		if (anchor != null) {
 			anchor.focusIfVisible(true);
 		}
@@ -616,17 +646,21 @@ public class GPopupMenuW implements AttachedToDOM, MenuHoverListener {
 		Scheduler.get().scheduleDeferred(popupMenu::focus);
 	}
 
+	public void setAnchor(Element inputElement) {
+		this.focusAnchor = inputElement;
+	}
+
 	private class PopupMenuBar extends GMenuBar {
 
 		private final Map<AriaMenuItem, GCollapseMenuItem> expandItems = new HashMap<>();
 		private GCollapseMenuItem activeCollapseItem = null;
 
-		public PopupMenuBar(AppW app1) {
+		PopupMenuBar(AppW app1) {
 			super("", app1);
 			setHandleArrows(true);
 		}
 
-		public void addItem(GCollapseMenuItem ci) {
+		void addItem(GCollapseMenuItem ci) {
 			expandItems.put(ci.getMenuItem(), ci);
 		}
 
@@ -657,20 +691,24 @@ public class GPopupMenuW implements AttachedToDOM, MenuHoverListener {
 					hide();
 					event.stopPropagation();
 				} else if (keyCode == KeyCodes.KEY_TAB) {
-					if (event.getShiftKey()) {
-						if (!moveSelectionUp()) {
-							hide();
-						}
-					} else {
-						if (!moveSelectionDown()) {
-							hide();
-						}
-					}
+					handleTab(event.getShiftKey());
 					AriaMenuBar.eatEvent(event);
 					return;
 				}
 			}
 			super.onBrowserEvent(event);
+		}
+
+		private void handleTab(boolean shiftKey) {
+			if (shiftKey) {
+				if (!moveSelectionUp()) {
+					hide();
+				}
+			} else {
+				if (!moveSelectionDown()) {
+					hide();
+				}
+			}
 		}
 
 		@Override

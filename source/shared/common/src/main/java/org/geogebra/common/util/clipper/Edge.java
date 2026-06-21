@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.util.clipper;
 
 import org.geogebra.common.kernel.arithmetic.MyDouble;
@@ -46,7 +62,7 @@ class Edge {
 
 	protected final static double HORIZONTAL = -3.4E+38;
 
-	static enum Side {
+	enum Side {
 		LEFT, RIGHT
 	}
 
@@ -92,14 +108,14 @@ class Edge {
 	/**
 	 * modified to be compatible with double
 	 */
-	public Edge() {
+	Edge() {
 		delta = new DoublePoint();
 		top = new DoublePoint();
 		bot = new DoublePoint();
 		current = new DoublePoint();
 	}
 
-	public Edge findNextLocMin() {
+	Edge findNextLocMin() {
 		Edge e = this;
 		Edge e2;
 		boolean go = true;
@@ -132,32 +148,32 @@ class Edge {
 	/**
 	 * modified to be compatible with double
 	 */
-	public DoublePoint getBot() {
+	DoublePoint getBot() {
 		return bot;
 	}
 
 	/**
 	 * modified to be compatible with double
 	 */
-	public DoublePoint getCurrent() {
+	DoublePoint getCurrent() {
 		return current;
 	}
 
 	/**
 	 * modified to be compatible with double
 	 */
-	public DoublePoint getDelta() {
+	DoublePoint getDelta() {
 		return delta;
 	}
 
 	/**
 	 * modified to be compatible with double
 	 */
-	public DoublePoint getTop() {
+	DoublePoint getTop() {
 		return top;
 	}
 
-	public Edge getMaximaPair() {
+	Edge getMaximaPair() {
 		Edge result = null;
 		if (next.top.equals(top) && next.nextInLML == null) {
 			result = next;
@@ -172,11 +188,11 @@ class Edge {
 		return result;
 	}
 
-	public Edge getNextInAEL(Direction direction) {
+	Edge getNextInAEL(Direction direction) {
 		return direction == Direction.LEFT_TO_RIGHT ? nextInAEL : prevInAEL;
 	}
 
-	public boolean isContributing(PolyFillType clipFillType,
+	boolean isContributing(PolyFillType clipFillType,
 			PolyFillType subjFillType, ClipType clipType) {
 
 		PolyFillType pft, pft2;
@@ -272,7 +288,7 @@ class Edge {
 		return true;
 	}
 
-	public boolean isEvenOddAltFillType(PolyFillType clipFillType,
+	boolean isEvenOddAltFillType(PolyFillType clipFillType,
 			PolyFillType subjFillType) {
 		if (polyType == PolyType.SUBJECT) {
 			return clipFillType == PolyFillType.EVEN_ODD;
@@ -280,7 +296,7 @@ class Edge {
 		return subjFillType == PolyFillType.EVEN_ODD;
 	}
 
-	public boolean isEvenOddFillType(PolyFillType clipFillType,
+	boolean isEvenOddFillType(PolyFillType clipFillType,
 			PolyFillType subjFillType) {
 		if (polyType == PolyType.SUBJECT) {
 			return subjFillType == PolyFillType.EVEN_ODD;
@@ -288,19 +304,19 @@ class Edge {
 		return clipFillType == PolyFillType.EVEN_ODD;
 	}
 
-	public boolean isHorizontal() {
+	boolean isHorizontal() {
 		return delta.getY() == 0;
 	}
 
-	public boolean isIntermediate(double y) {
+	boolean isIntermediate(double y) {
 		return top.getY() == y && nextInLML != null;
 	}
 
-	public boolean isMaxima(double Y) {
+	boolean isMaxima(double Y) {
 		return top.getY() == Y && nextInLML == null;
 	}
 
-	public void reverseHorizontal() {
+	void reverseHorizontal() {
 		// swap horizontal edges' top and bottom x's so they follow the natural
 		// progression of the bounds - ie so their xbots will align with the
 		// adjoining lower edge. [Helpful in the ProcessHorizontal() method.]
@@ -318,21 +334,21 @@ class Edge {
 	/**
 	 * modified to be compatible with double
 	 */
-	public void setBot(DoublePoint bot) {
+	void setBot(DoublePoint bot) {
 		this.bot.set(bot);
 	}
 
 	/**
 	 * modified to be compatible with double
 	 */
-	public void setCurrent(DoublePoint current) {
+	void setCurrent(DoublePoint current) {
 		this.current.set(current);
 	}
 
 	/**
 	 * modified to be compatible with double
 	 */
-	public void setTop(DoublePoint top) {
+	void setTop(DoublePoint top) {
 		this.top.set(top);
 	}
 
@@ -348,7 +364,7 @@ class Edge {
 				+ prevInSEL + "]";
 	}
 
-	public void updateDeltaX() {
+	void updateDeltaX() {
 
 		delta.setX(top.getX() - bot.getX());
 		delta.setY(top.getY() - bot.getY());

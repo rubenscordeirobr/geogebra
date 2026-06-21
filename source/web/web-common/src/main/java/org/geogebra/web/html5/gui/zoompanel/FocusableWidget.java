@@ -1,19 +1,44 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.html5.gui.zoompanel;
+
+import java.util.List;
 
 import javax.annotation.CheckForNull;
 
 import org.geogebra.common.euclidian.event.PointerEventType;
 import org.geogebra.common.gui.AccessibilityGroup;
-import org.geogebra.common.gui.MayHaveFocus;
+import org.geogebra.common.gui.FocusableComponent;
 import org.geogebra.gwtutil.NavigatorUtil;
+import org.geogebra.web.html5.gui.accessibility.HasFocus;
 import org.geogebra.web.html5.gui.util.ClickStartHandler;
 import org.geogebra.web.html5.gui.util.Dom;
 import org.geogebra.web.html5.main.AppW;
+import org.gwtproject.dom.client.Element;
 import org.gwtproject.user.client.ui.Widget;
 
-public class FocusableWidget implements MayHaveFocus {
+import elemental2.dom.CSSStyleDeclaration;
+import elemental2.dom.DomGlobal;
+import elemental2.dom.ViewCSS;
+import jsinterop.base.Js;
 
-	private final Widget[] btns;
+public class FocusableWidget implements FocusableComponent {
+
+	private final List<Widget> btns;
 	private final AccessibilityGroup accessibilityGroup;
 	private final @CheckForNull AccessibilityGroup.ViewControlId subgroup;
 
@@ -24,6 +49,16 @@ public class FocusableWidget implements MayHaveFocus {
 	 */
 	public FocusableWidget(AccessibilityGroup accessibilityGroup,
 			@CheckForNull AccessibilityGroup.ViewControlId subgroup, Widget... btns) {
+		this(accessibilityGroup, subgroup, List.of(btns));
+	}
+
+	/**
+	 * @param btns button
+	 * @param accessibilityGroup accessibility group
+	 * @param subgroup subgroup
+	 */
+	public FocusableWidget(AccessibilityGroup accessibilityGroup,
+			@CheckForNull AccessibilityGroup.ViewControlId subgroup, List<Widget> btns) {
 		this.btns = btns;
 		this.accessibilityGroup = accessibilityGroup;
 		this.subgroup = subgroup;
@@ -39,43 +74,74 @@ public class FocusableWidget implements MayHaveFocus {
 
 	@Override
 	public boolean focusIfVisible(boolean reverse) {
-		Widget btn = btns[0];
-		if (Dom.isAttachedAndVisible(btn)
-				&& notAriaHidderOrAriaDisabled(btn)
-				&& isButtonNotHidden(btn)
-				&& isParentVisible(btn)) {
-			if (reverse) {
-				focus(btns[btns.length - 1]);
-			} else {
-				focus(btn);
-			}
+		Widget btn;
+		if (reverse) {
+			btn = getLastFocusableWidget();
+		} else {
+			btn = getFirstFocusableWidget();
+		}
+		if (btn != null) {
+			focus(btn);
 			return true;
 		}
-
 		return false;
 	}
 
-	private boolean notAriaHidderOrAriaDisabled(Widget btn) {
+	private CSSStyleDeclaration getComputedStyle(Element element) {
+		ViewCSS view = Js.cast(DomGlobal.window);
+		return view.getComputedStyle(Js.uncheckedCast(element));
+	}
+
+	private boolean notAriaHiddenOrAriaDisabled(Widget btn) {
 		return !"true".equals(btn.getElement().getAttribute("aria-hidden"))
 				&& !"true".equals(btn.getElement().getAttribute("aria-disabled"));
 	}
 
 	private boolean isButtonNotHidden(Widget btn) {
 		return !btn.getElement().hasClassName("hideButton")
-				&& !btn.getElement().getStyle().getVisibility().equals("hidden");
+				&& !btn.getElement().getStyle().getVisibility().equals("hidden")
+				&& !getComputedStyle(btn.getElement()).visibility.equals("hidden")
+				&& !btn.getElement().getStyle().getDisplay().equals("none")
+				&& !getComputedStyle(btn.getElement()).display.equals("none");
 	}
 
 	private boolean isParentVisible(Widget btn) {
-		if (btn.getParent() == null) {
-			return true;
-		} else {
-			return !btn.getParent().getElement().getStyle().getVisibility().equals("hidden")
-					&& !btn.getParent().getElement().getStyle().getDisplay().equals("none");
+		return btn.getParent() == null || isButtonNotHidden(btn.getParent());
+	}
+
+	private boolean isVisibleAndFocusable(Widget btn) {
+		return Dom.isAttachedAndVisible(btn)
+				&& notAriaHiddenOrAriaDisabled(btn)
+				&& isButtonNotHidden(btn)
+				&& isParentVisible(btn)
+				&& isFocusable(btn);
+	}
+
+	private @CheckForNull Widget getFirstFocusableWidget() {
+		for (Widget w : btns) {
+			if (isVisibleAndFocusable(w)) {
+				return w;
+			}
 		}
+		return null;
+	}
+
+	private @CheckForNull Widget getLastFocusableWidget() {
+		for (int i = btns.size() - 1; i >= 0; i--) {
+			Widget widget = btns.get(i);
+			if (isVisibleAndFocusable(widget)) {
+				return widget;
+			}
+		}
+		return null;
 	}
 
 	protected void focus(Widget btn) {
-		btn.getElement().focus();
+		if (btn instanceof HasFocus focusable) {
+			focusable.focus();
+		} else {
+			btn.getElement().focus();
+		}
 		btn.addStyleName("keyboardFocus");
 	}
 
@@ -91,15 +157,19 @@ public class FocusableWidget implements MayHaveFocus {
 
 	private boolean moveFocus(int offset) {
 		int index = findFocus() + offset;
-		if (index >= 0 && index < btns.length) {
-			if (btns[index].getElement().getTabIndex() == -1) {
-				return false;
+		while (index >= 0 && index < btns.size()) {
+			if (isVisibleAndFocusable(btns.get(index))) {
+				focus(btns.get(index));
+				return true;
 			}
-
-			focus(btns[index]);
-			return true;
+			index += offset;
 		}
 		return false;
+	}
+
+	private boolean isFocusable(Widget btn) {
+		return btn.getElement().getTabIndex() >= 0
+				|| (btn instanceof HasFocus);
 	}
 
 	private int findFocus() {

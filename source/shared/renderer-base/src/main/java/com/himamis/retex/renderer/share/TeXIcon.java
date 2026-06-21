@@ -48,15 +48,16 @@
 
 package com.himamis.retex.renderer.share;
 
+import org.geogebra.common.awt.GColor;
+import org.geogebra.common.awt.GRectangle2D;
+import org.geogebra.common.awt.RenderingHints;
+
 import com.himamis.retex.renderer.share.TeXConstants.Align;
 import com.himamis.retex.renderer.share.platform.FactoryProvider;
-import com.himamis.retex.renderer.share.platform.geom.Rectangle2D;
-import com.himamis.retex.renderer.share.platform.graphics.Color;
 import com.himamis.retex.renderer.share.platform.graphics.Graphics2DInterface;
 import com.himamis.retex.renderer.share.platform.graphics.HasForegroundColor;
 import com.himamis.retex.renderer.share.platform.graphics.Icon;
 import com.himamis.retex.renderer.share.platform.graphics.Insets;
-import com.himamis.retex.renderer.share.platform.graphics.RenderingHints;
 
 /**
  * An {@link Icon} implementation that will paint the TeXFormula that created
@@ -69,7 +70,7 @@ import com.himamis.retex.renderer.share.platform.graphics.RenderingHints;
  */
 public class TeXIcon implements Icon {
 
-	private static final Color defaultColor = Colors.BLACK;
+	private static final GColor defaultColor = GColor.BLACK;
 
 	public static double defaultSize = -1;
 	public static double magFactor = 0;
@@ -80,12 +81,12 @@ public class TeXIcon implements Icon {
 
 	private Insets insets = new Insets(0, 0, 0, 0);
 
-	private Color fg = null;
+	private GColor fg = null;
 
 	public boolean isColored = false;
 
-	public Rectangle2D cursorPosition;
-	public Rectangle2D selectionPosition;
+	public GRectangle2D cursorPosition;
+	public GRectangle2D selectionPosition;
 
 	/**
 	 * Creates a new icon that will paint the given formula box in the given
@@ -122,7 +123,7 @@ public class TeXIcon implements Icon {
 		}
 	}
 
-	public void setForeground(Color fg) {
+	public void setForeground(GColor fg) {
 		this.fg = fg;
 	}
 
@@ -133,6 +134,15 @@ public class TeXIcon implements Icon {
 	 */
 	public Insets getInsets() {
 		return insets;
+	}
+
+	/**
+	 * Get the point size (scale) of the TeXIcon.
+	 * 
+	 * @return point size
+	 */
+	public double getPointSize() {
+		return size;
 	}
 
 	/**
@@ -211,7 +221,9 @@ public class TeXIcon implements Icon {
 	}
 
 	/**
-	 * Get the total height of the TeXIcon. This also includes the insets.
+	 * Get the depth of the TeXIcon. This also includes the insets.
+	 *
+	 * @return icon depth
 	 */
 	public int getIconDepth() {
 		return (int) (box.getDepth() * size + 0.99 + insets.bottom);
@@ -232,24 +244,27 @@ public class TeXIcon implements Icon {
 	}
 
 	/**
-	 * Get the total height of the TeXIcon. This also includes the insets.
+	 * Gets the actual depth of the icon.
+	 *
+	 * @return the depth of the TeXIcon, excluding the insets.
 	 */
 	public double getTrueIconDepth() {
 		return box.getDepth() * size;
 	}
 
 	/**
-	 * Get the total width of the TeXIcon. This also includes the insets.
+	 * Gets the actual width of the icon.
+	 *
+	 * @return the total width of the TeXIcon. This excludes the insets.
 	 */
-
 	public double getTrueIconWidth() {
 		return box.getWidth() * size;
 	}
 
 	public double getBaseLine() {
-		return ((box.getHeight() * size + 0.99 + insets.top)
+		return (box.getHeight() * size + 0.99 + insets.top)
 				/ ((box.getHeight() + box.getDepth()) * size + 0.99 + insets.top
-						+ insets.bottom));
+						+ insets.bottom);
 	}
 
 	public Box getBox() {
@@ -265,8 +280,8 @@ public class TeXIcon implements Icon {
 		// copy graphics settings
 		// TODO implement getRenderingHints
 		// RenderingHints oldHints = g2.getRenderingHints();
-		g2.saveTransformation();
-		Color oldColor = g2.getColor();
+		g2.saveTransform();
+		GColor oldColor = g2.getColor();
 
 		// new settings
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
@@ -294,7 +309,7 @@ public class TeXIcon implements Icon {
 
 		// restore graphics settings
 		// g2.setRenderingHints(oldHints);
-		g2.restoreTransformation();
+		g2.restoreTransform();
 		g2.setColor(oldColor);
 	}
 

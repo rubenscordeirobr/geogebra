@@ -1,8 +1,26 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.spreadsheet.rendering;
 
+import javax.annotation.Nonnull;
+
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GFont;
 import org.geogebra.common.awt.GGraphics2D;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.spreadsheet.core.CellRenderer;
 import org.geogebra.common.util.shape.Rectangle;
 
@@ -21,24 +39,25 @@ public class StringRenderer implements CellRenderer {
 	private static final int LINE_HEIGHT = 16;
 
 	@Override
-	public void draw(Object data, int fontStyle, double offsetX, GGraphics2D graphics,
-			Rectangle cellBorder) {
-		GFont font = baseFont.deriveFont(fontStyle);
+	public void draw(Object data, double fontSize, int fontStyle, double offsetX,
+			GGraphics2D graphics, Rectangle cellBorder) {
+		GFont font = baseFont.deriveFont(fontStyle, fontSize);
 		graphics.setFont(font);
+		double lineHeight = LINE_HEIGHT * fontSize / FONT_SIZE;
 		graphics.drawString(data.toString(), cellBorder.getMinX() + offsetX,
-				cellBorder.getMaxY() - (cellBorder.getHeight() - LINE_HEIGHT) / 2
+				cellBorder.getMaxY() - (cellBorder.getHeight() - lineHeight) / 2
 						- font.getSize() / 4.0);
 	}
 
 	@Override
-	public boolean match(Object renderable) {
+	public boolean match(@Nonnull Object renderable) {
 		return renderable instanceof String;
 	}
 
 	@Override
-	public double measure(Object data, int fontStyle) {
-		GFont font = baseFont.deriveFont(fontStyle);
-		return (int) AwtFactory.getPrototype().newTextLayout(data.toString(),
+	public double measureWidth(Object data, int fontStyle, double fontSize) {
+		GFont font = baseFont.deriveFont(fontStyle, fontSize);
+		return AwtFactory.getPrototype().newTextLayout(data.toString(),
 				font, measuringGraphics.getFontRenderContext()).getAdvance();
 	}
 }

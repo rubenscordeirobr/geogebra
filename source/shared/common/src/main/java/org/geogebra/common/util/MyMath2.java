@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.util;
 
 import org.apache.commons.math3.complex.Complex;
@@ -240,14 +256,10 @@ public class MyMath2 {
 	}
 
 	private static Complex cisi(double a2) {
-
-		int i, k;
-		boolean odd;
-		double a, err, fact, sign, sum, sumc, sums, t, term;
 		Complex h, b, c, d, del, one, two;
 		one = new Complex(1, 0);
 		two = new Complex(2, 0);
-		t = Math.abs(a2);
+		double t = Math.abs(a2);
 		if (t == 0.0) {
 			return new Complex(Double.NEGATIVE_INFINITY, 0);
 
@@ -259,8 +271,8 @@ public class MyMath2 {
 			d = one.divide(b);
 			h = one.divide(b);
 
-			for (i = 2; i <= MAXIT; i++) {
-				a = -(i - 1) * (i - 1);
+			for (int i = 2; i <= MAXIT; i++) {
+				double a = -(i - 1) * (i - 1);
 				b = b.add(two);
 				// dinv = a*d+b
 				// d=1/dinv; Denominators cannot be zero.
@@ -284,13 +296,15 @@ public class MyMath2 {
 			return new Complex(-h.getReal(),
 					Math.signum(a2) * (Kernel.PI_HALF + h.getImaginary()));
 		}
+		double err, fact, sign, sum, sumc, sums, term;
 		if (t < Math.sqrt(Kernel.STANDARD_PRECISION)) {
 			sumc = 0.0;
 			sums = t;
 		} else {
 			sum = sums = sumc = 0.0;
 			sign = fact = 1.0;
-			odd = true;
+			boolean odd = true;
+			int k;
 			for (k = 1; k <= MAXIT; k++) {
 				fact *= t / k;
 				term = fact / k;
@@ -316,7 +330,6 @@ public class MyMath2 {
 
 		return new Complex(sumc + Math.log(t) + MyDouble.EULER_GAMMA,
 				Math.signum(a2) * sums);
-
 	}
 
 	/**

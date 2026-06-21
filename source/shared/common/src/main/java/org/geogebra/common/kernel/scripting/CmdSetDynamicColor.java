@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.scripting;
 
 import java.util.ArrayList;
@@ -39,8 +55,6 @@ public class CmdSetDynamicColor extends CmdScripting {
 			if ((ok[1] = arg2[1] instanceof GeoNumberValue)
 					&& (ok[2] = arg2[2] instanceof GeoNumberValue)
 					&& (ok[3] = arg2[3] instanceof GeoNumberValue)) {
-				GeoElement geo = arg2[0];
-
 				ArrayList<GeoElement> listItems = new ArrayList<>();
 				listItems.add(arg2[1]);
 				listItems.add(arg2[2]);
@@ -50,7 +64,7 @@ public class CmdSetDynamicColor extends CmdScripting {
 						false);
 				kernel.getConstruction().removeFromConstructionList(algo);
 				GeoList list = algo.getGeoList();
-
+				GeoElement geo = arg2[0];
 				geo.setColorFunction(list);
 				geo.updateVisualStyleRepaint(GProperty.COLOR);
 
@@ -71,8 +85,6 @@ public class CmdSetDynamicColor extends CmdScripting {
 					&& (ok[3] = arg2[3] instanceof GeoNumberValue)
 					&& (ok[4] = arg2[4] instanceof GeoNumberValue)) {
 
-				GeoElement geo = arg2[0];
-
 				ArrayList<GeoElement> listItems = new ArrayList<>();
 				listItems.add(arg2[1]);
 				listItems.add(arg2[2]);
@@ -82,7 +94,7 @@ public class CmdSetDynamicColor extends CmdScripting {
 						false);
 				kernel.getConstruction().removeFromConstructionList(algo);
 				GeoList list = algo.getGeoList();
-
+				GeoElement geo = arg2[0];
 				geo.setColorFunction(list);
 				geo.updateVisualStyleRepaint(GProperty.COLOR);
 

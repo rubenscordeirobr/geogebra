@@ -1,13 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel;
@@ -157,7 +161,7 @@ public class EquationSolver implements EquationSolverInterface {
 	 * @return the number of roots, or <code>-1</code> if the equation is a
 	 *         constant
 	 */
-	final public static int solveQuadratic(double[] eqn) {
+	public static int solveQuadratic(double[] eqn) {
 		return solveQuadraticS(eqn, eqn, Kernel.STANDARD_PRECISION);
 	}
 
@@ -172,7 +176,7 @@ public class EquationSolver implements EquationSolverInterface {
 	 *            precision
 	 * @return number of roots
 	 */
-	final public static int solveQuadraticS(double[] eqn, double[] res,
+	public static int solveQuadraticS(double[] eqn, double[] res,
 			double eps) {
 		double a = eqn[2];
 		double b = eqn[1];
@@ -234,7 +238,7 @@ public class EquationSolver implements EquationSolverInterface {
 	 *            imaginary parts on output
 	 * @return number of roots
 	 */
-	final public static int solveQuadraticComplex(double[] real,
+	public static int solveQuadraticComplex(double[] real,
 			double[] complex) {
 		double a = real[2];
 		double b = real[1];
@@ -308,7 +312,6 @@ public class EquationSolver implements EquationSolverInterface {
 	 */
 	static public int solveCubicS(double[] eqn, double[] res,
 			double eps) {
-		int roots = 0;
 		double d = eqn[3];
 		if (Math.abs(d) < eps) {
 			// The cubic has degenerated to quadratic (or line or ...).
@@ -344,6 +347,7 @@ public class EquationSolver implements EquationSolverInterface {
 		// changed back to original GGB-1725
 		// if (Math.abs(R) < Kernel.STANDARD_PRECISION
 		// && Math.abs(Q) < Kernel.STANDARD_PRECISION)
+		int roots = 0;
 		if (R == 0 && Q == 0) {
 			res[roots++] = -a / 3;
 			res[roots++] = -a / 3;
@@ -494,8 +498,8 @@ public class EquationSolver implements EquationSolverInterface {
 					return t;
 				}
 			} else {
-				return delta > 0 ? (target + java.lang.Double.MIN_VALUE)
-						: (target - java.lang.Double.MIN_VALUE);
+				return delta > 0 ? (target + Double.MIN_VALUE)
+						: (target - Double.MIN_VALUE);
 			}
 			double newt = t + delta;
 			if (MyDouble.exactEqual(t, newt)) {
@@ -546,8 +550,6 @@ public class EquationSolver implements EquationSolverInterface {
 		// for fast evaluation of polynomial (used for root polishing)
 		double[] coeff = (validCoeff == eqn.length) ? eqn : Arrays.copyOf(eqn, validCoeff);
 		PolyFunction polyFunc = new PolyFunction(coeff, coeff.length);
-		PolyFunction derivFunc = polyFunc.getDerivative();
-
 		Complex[] complexRoots = null;
 		try {
 			if (laguerreSolver == null) {
@@ -628,6 +630,7 @@ public class EquationSolver implements EquationSolverInterface {
 						rootFinderBrent = new BrentSolver();
 					}
 					if (left < right) {
+						PolyFunction derivFunc = polyFunc.getDerivative();
 						double brentRoot = rootFinderBrent.solve(
 								AlgoRootNewton.MAX_ITERATIONS, derivFunc,
 								left, right);
@@ -727,24 +730,17 @@ public class EquationSolver implements EquationSolverInterface {
 			return solveCubicS(eqn, res, Kernel.STANDARD_PRECISION);
 		}
 
-		double a = eqn[3] / eqn[4], b = eqn[2] / eqn[4], c = eqn[1] / eqn[4],
+		final double a = eqn[3] / eqn[4], b = eqn[2] / eqn[4], c = eqn[1] / eqn[4],
 				d = eqn[0] / eqn[4];
 
 		/*
 		 * This code is based on a simplification of the algorithm from
 		 * zsolve_quartic.c for real roots
 		 */
-		double[] u = new double[3];
-		double[] v = new double[3];
-		double[] zarr = new double[4];
 		double aa, pp, qq, rr, rc, sc, tc, mt;
 		double w1r, w1i, w2r, w2i, w3r;
 		double v1, v2, arg, theta;
 		double disc, h;
-		int k1 = 0, k2 = 0;
-
-		int roots = 0;
-
 		/*
 		 * Deal easily with the cases where the quartic is degenerate. The
 		 * ordering of solutions is done explicitly.
@@ -752,15 +748,15 @@ public class EquationSolver implements EquationSolverInterface {
 		if (0 == b && 0 == c) {
 			if (0 == d) {
 				if (a > 0) {
-					res[roots++] = -a;
-					res[roots++] = 0.0;
-					res[roots++] = 0.0;
-					res[roots++] = 0.0;
+					res[0] = -a;
+					res[1] = 0.0;
+					res[2] = 0.0;
+					res[3] = 0.0;
 				} else {
-					res[roots++] = 0.0;
-					res[roots++] = 0.0;
-					res[roots++] = 0.0;
-					res[roots++] = -a;
+					res[0] = 0.0;
+					res[1] = 0.0;
+					res[2] = 0.0;
+					res[3] = -a;
 				}
 				return 4;
 			} else if (0 == a) {
@@ -768,13 +764,12 @@ public class EquationSolver implements EquationSolverInterface {
 					return 0;
 				}
 
-				res[roots++] = Math.sqrt(Math.sqrt(-d));
-				res[roots] = -res[roots - 1];
-				roots++;
+				res[0] = Math.sqrt(Math.sqrt(-d));
+				res[1] = -res[0];
 				return 2;
 			}
 		}
-
+		int roots = 0;
 		if (0.0 == c && 0.0 == d) {
 			res[roots++] = 0.0;
 			res[roots++] = 0.0;
@@ -814,6 +809,7 @@ public class EquationSolver implements EquationSolverInterface {
 			 * u[2], respectively. Additionally, this calculates the
 			 * discriminant of the cubic and puts it into the variable disc.
 			 */
+			double[] u = new double[3];
 			{
 				double qcub = rc * rc - 3 * sc;
 				double rcub = 2 * rc * rc * rc - 9 * rc * sc + 27 * tc;
@@ -885,7 +881,8 @@ public class EquationSolver implements EquationSolverInterface {
 			if (0.0 == disc) {
 				u[2] = u[1];
 			}
-
+			int k1 = 0;
+			int k2 = 0;
 			if (0 >= disc) {
 				mt = 2;
 
@@ -895,14 +892,14 @@ public class EquationSolver implements EquationSolverInterface {
 				 * mt=1 under certain conditions below.
 				 */
 
+				double[] v = new double[3];
 				v[0] = Math.abs(u[0]);
 				v[1] = Math.abs(u[1]);
 				v[2] = Math.abs(u[2]);
 
 				v1 = Math.max(Math.max(v[0], v[1]), v[2]);
 				/* Work out which two roots have the largest moduli */
-				k1 = 0;
-				k2 = 0;
+
 				if (v1 == v[0]) {
 					k1 = 0;
 					v2 = Math.max(v[1], v[2]);
@@ -957,6 +954,7 @@ public class EquationSolver implements EquationSolverInterface {
 					/ (w2i * w2i + w2r * w2r);
 			h = a / 4.0;
 
+			double[] zarr = new double[4];
 			zarr[0] = w1r + w2r + w3r - h;
 			zarr[1] = -w1r - w2r + w3r - h;
 			zarr[2] = -w1r + w2r - w3r - h;
@@ -1006,26 +1004,23 @@ public class EquationSolver implements EquationSolverInterface {
 	 */
 	public static Comparator<Complex> getComparatorReal() {
 		if (comparatorReal == null) {
-			comparatorReal = new Comparator<Complex>() {
-				@Override
-				public int compare(Complex itemA, Complex itemB) {
+			comparatorReal = (itemA, itemB) -> {
 
-					double compReal = itemA.getReal() - itemB.getReal();
+				double compReal = itemA.getReal() - itemB.getReal();
 
-					if (DoubleUtil.isZero(compReal)) {
-						double compImaginary = itemA.getImaginary()
-								- itemB.getImaginary();
+				if (DoubleUtil.isZero(compReal)) {
+					double compImaginary = itemA.getImaginary()
+							- itemB.getImaginary();
 
-						// if real parts equal, sort on imaginary
-						if (!DoubleUtil.isZero(compImaginary)) {
-							return compImaginary < 0 ? -1 : +1;
-						}
-
-						// return 0 -> remove duplicates!
-						return 0;
+					// if real parts equal, sort on imaginary
+					if (!DoubleUtil.isZero(compImaginary)) {
+						return compImaginary < 0 ? -1 : +1;
 					}
-					return compReal < 0 ? -1 : +1;
+
+					// return 0 -> remove duplicates!
+					return 0;
 				}
+				return compReal < 0 ? -1 : +1;
 			};
 
 		}

@@ -1,21 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * ExpressionNode.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * binary tree node for ExpressionValues (NumberValues, VectorValues)
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * Created on 03. October 2001, 09:37
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.arithmetic;
@@ -58,7 +54,8 @@ import org.geogebra.common.util.debug.Log;
 import com.google.j2objc.annotations.Weak;
 
 /**
- * Tree node for expressions like "3*a - b/5"
+ * Binary tree node for expressions like "3*a - b/5" or "sin(5)".
+ * Right node may be null or NaN for unary expressions.
  * 
  * @author Markus
  */
@@ -377,7 +374,7 @@ public class ExpressionNode extends ValidExpression
 	 * Replaces all Command objects in tree by their evaluated GeoElement
 	 * objects.
 	 */
-	final private void simplifyAndEvalCommands(EvalInfo info) {
+	private void simplifyAndEvalCommands(EvalInfo info) {
 		// don't evaluate any commands for the CAS here
 		if (info.getSymbolicMode() != SymbolicMode.NONE) {
 			return;
@@ -1340,7 +1337,7 @@ public class ExpressionNode extends ValidExpression
 	 *            left or right side of the expression
 	 * @return if expansion is required
 	 */
-	final private boolean expandForOGP(ExpressionValue ev) {
+	private boolean expandForOGP(ExpressionValue ev) {
 		// The following types of operations and GeoElements are supported.
 		// See also the OGP code for the available (parsable) expressions.
 		if (operation.equals(Operation.EQUAL_BOOLEAN)
@@ -1645,7 +1642,7 @@ public class ExpressionNode extends ValidExpression
 	 *            expression value to compare with val
 	 * @return true iff output of ev and val are the same
 	 */
-	final public static boolean isEqualString(ExpressionValue ev, double val,
+	public static boolean isEqualString(ExpressionValue ev, double val,
 			boolean symbolic) {
 		if (ev.isLeaf() && (ev instanceof NumberValue)) {
 			// function variables need to be kept
@@ -3776,5 +3773,33 @@ public class ExpressionNode extends ValidExpression
 		ExpressionValue def = value.unwrap();
 		return !(def instanceof MyDouble && def.isConstant()
 				&& Double.isNaN(def.evaluateDouble()));
+	}
+
+	@Override
+	public Integer getAngleDimension() {
+		Integer leftDimension = left == null ? null : left.getAngleDimension();
+		if (operation == Operation.NO_OPERATION) {
+			return leftDimension;
+		}
+		Integer rightDimension = right == null ? null : right.getAngleDimension();
+		if (leftDimension == null) {
+			return null;
+		}
+		return switch (operation) {
+			case PLUS, MINUS -> leftDimension.equals(rightDimension) ? leftDimension : null;
+			case MULTIPLY -> rightDimension == null ? null : leftDimension + rightDimension;
+			case DIVIDE -> rightDimension == null ? null : leftDimension - rightDimension;
+			default -> {
+				if (operation.hasDegreeInput()) { // sin, cos
+					yield 0;
+				}
+				yield null;
+			}
+		};
+	}
+
+	@Override
+	public Localization getLocalization() {
+		return loc;
 	}
 }

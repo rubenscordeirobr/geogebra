@@ -1,4 +1,22 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.components;
+
+import static org.geogebra.common.properties.PropertyView.*;
 
 import org.geogebra.common.euclidian.event.PointerEventType;
 import org.geogebra.common.gui.SetLabels;
@@ -8,6 +26,8 @@ import org.geogebra.common.util.StringUtil;
 import org.geogebra.web.full.gui.dialog.ProcessInput;
 import org.geogebra.web.full.gui.view.algebra.InputPanelW;
 import org.geogebra.web.html5.gui.BaseWidgetFactory;
+import org.geogebra.web.html5.gui.accessibility.HasFocus;
+import org.geogebra.web.html5.gui.util.AriaHelper;
 import org.geogebra.web.html5.gui.util.ClickStartHandler;
 import org.geogebra.web.html5.gui.util.Dom;
 import org.geogebra.web.html5.main.AppW;
@@ -18,10 +38,11 @@ import org.gwtproject.user.client.ui.Label;
 /**
  * input field material design component
  */
-public class ComponentInputField extends FlowPanel implements SetLabels, Input, HasDisabledState {
+public class ComponentInputField extends FlowPanel implements SetLabels, Input,
+		ConfigurationUpdateDelegate, VisibilityUpdateDelegate, HasFocus {
 	private final Localization loc;
 	private String errorTextKey;
-	private final String labelTextKey;
+	private String labelTextKey;
 	private final String placeholderTextKey;
 	private final String suffixTextKey;
 	private FlowPanel contentPanel;
@@ -29,6 +50,7 @@ public class ComponentInputField extends FlowPanel implements SetLabels, Input, 
 	private InputPanelW inputTextField;
 	private Label errorLabel;
 	private Label suffixLabel;
+	private TextField textFieldProperty;
 
 	/**
 	 * @param app see {@link AppW}
@@ -81,11 +103,25 @@ public class ComponentInputField extends FlowPanel implements SetLabels, Input, 
 		this(app, placeholder, labelTxt, errorTxt, defaultValue, null);
 	}
 
+	/**
+	 * @param app see {@link AppW}
+	 * @param placeholder placeholder text (can be null)
+	 * @param errorTxt error label of input field
+	 * @param property {@link TextField}
+	 */
+	public ComponentInputField(AppW app, String placeholder, String errorTxt, TextField property) {
+		this(app, placeholder, property.getLabel(), errorTxt, property.getValue(), null);
+		textFieldProperty = property;
+		textFieldProperty.setConfigurationUpdateDelegate(this);
+		textFieldProperty.setVisibilityUpdateDelegate(this);
+	}
+
 	// BUILD UI
 
 	private void buildGui(AppW app, boolean hasKeyboardBtn) {
 		contentPanel = new FlowPanel();
 		contentPanel.setStyleName("inputTextField");
+		contentPanel.addStyleName("validation");
 		FlowPanel optionHolder = new FlowPanel();
 		optionHolder.addStyleName("optionLabelHolder");
 		// input text field
@@ -94,8 +130,10 @@ public class ComponentInputField extends FlowPanel implements SetLabels, Input, 
 		inputTextField.getTextComponent().prepareShowSymbolButton(false);
 		// label of text field
 		if (labelTextKey != null && !labelTextKey.isBlank()) {
+			String localizedLabel = app.getLocalization().getMenu(labelTextKey);
 			labelText = BaseWidgetFactory.INSTANCE.newSecondaryText(
-					app.getLocalization().getMenu(labelTextKey), "label");
+					localizedLabel, "label");
+			AriaHelper.setTitle(inputTextField.getTextComponent().getTextField(), localizedLabel);
 		}
 		// placeholder if there is any
 		if (placeholderTextKey != null && !placeholderTextKey.isEmpty()) {
@@ -257,7 +295,10 @@ public class ComponentInputField extends FlowPanel implements SetLabels, Input, 
 		return !StringUtil.empty(errorTextKey);
 	}
 
-	@Override
+	/**
+	 * Enable/disable input text field
+	 * @param disabled whether it should be disabled or not
+	 */
 	public void setDisabled(boolean disabled) {
 		Dom.toggleClass(getContentPanel(), "disabled", disabled);
 		inputTextField.setEnabled(!disabled);
@@ -290,5 +331,29 @@ public class ComponentInputField extends FlowPanel implements SetLabels, Input, 
 					.setAttribute("placeholder",
 							loc.getMenu(placeholderTextKey));
 		}
+	}
+
+	@Override
+	public void configurationUpdated() {
+		labelTextKey = textFieldProperty.getLabel();
+		String localizedLabel = loc.getMenu(labelTextKey);
+		if (labelText != null) {
+			labelText.setText(localizedLabel);
+		}
+		setInputText(textFieldProperty.getValue());
+		AriaHelper.setTitle(inputTextField.getTextComponent().getTextField(), localizedLabel);
+		setDisabled(!textFieldProperty.isEnabled());
+		String error = textFieldProperty.getErrorMessage();
+		setError(error);
+	}
+
+	@Override
+	public void visibilityUpdated() {
+		setVisible(textFieldProperty.isVisible());
+	}
+
+	@Override
+	public void focus() {
+		focusDeferred();
 	}
 }

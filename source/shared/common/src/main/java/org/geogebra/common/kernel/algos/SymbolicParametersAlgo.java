@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.algos;
 
 import java.math.BigInteger;
@@ -22,7 +38,7 @@ public interface SymbolicParametersAlgo {
 	 * 
 	 * @return the SymbolicParameters
 	 */
-	public SymbolicParameters getSymbolicParameters();
+	 SymbolicParameters getSymbolicParameters();
 
 	/**
 	 * Calculates the set of free variables.
@@ -33,7 +49,7 @@ public interface SymbolicParametersAlgo {
 	 *             thrown if no symbolic parameters are available.
 	 * 
 	 */
-	public void getFreeVariables(HashSet<PVariable> variables)
+	void getFreeVariables(HashSet<PVariable> variables)
 			throws NoSymbolicParametersException;
 
 	/**
@@ -46,7 +62,7 @@ public interface SymbolicParametersAlgo {
 	 * @throws NoSymbolicParametersException
 	 *             thrown if no symbolic parameters are available.
 	 */
-	public int[] getDegrees(AbstractProverReciosMethod a)
+	int[] getDegrees(AbstractProverReciosMethod a)
 			throws NoSymbolicParametersException;
 
 	/**
@@ -71,10 +87,10 @@ public interface SymbolicParametersAlgo {
 	 * @throws NoSymbolicParametersException
 	 *             if it is not possible to obtain an algebraic description
 	 */
-	public PPolynomial[] getPolynomials() throws NoSymbolicParametersException;
+	PPolynomial[] getPolynomials() throws NoSymbolicParametersException;
 
 	/**
 	 * See AlgoElement.remove()
 	 */
-	public void remove();
+	void remove();
 }

@@ -1,9 +1,32 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.util;
 
 import java.io.StringReader;
 import java.util.ArrayList;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
+import org.geogebra.common.awt.MyImage;
+import org.geogebra.common.awt.annotations.HasNativeSubclass;
 import org.geogebra.common.euclidian.EuclidianView;
+import org.geogebra.common.exam.ExamListener;
+import org.geogebra.common.exam.ExamState;
 import org.geogebra.common.gui.EdgeInsets;
 import org.geogebra.common.io.QDParser;
 import org.geogebra.common.kernel.Kernel;
@@ -15,7 +38,9 @@ import org.geogebra.common.kernel.kernelND.GeoPointND;
 import org.geogebra.common.main.App;
 import org.geogebra.common.util.debug.Log;
 
-abstract public class ImageManager {
+@HasNativeSubclass
+abstract public class ImageManager implements ExamListener {
+	private boolean enabled = true;
 
 	/**
 	 * Set image corners; use selected points if any.
@@ -120,7 +145,6 @@ abstract public class ImageManager {
 	private void ensureImageHeightFitsInScreen(double x1, GeoPointND point,
 			App app, GeoImage image) {
 		EuclidianView ev = app.getActiveEuclidianView();
-		EdgeInsets safeArea = ev.getSafeAreaInsets();
 
 		double xScale = ev.getKernel().getXscale();
 		double yScale = ev.getKernel().getYscale();
@@ -129,6 +153,7 @@ abstract public class ImageManager {
 		double factor = imageHeight / imageWidth;
 		double realWorldWidth = image.getRealWorldX(1) - image.getRealWorldX(0);
 		double realWorldHeight = realWorldWidth * factor;
+		EdgeInsets safeArea = ev.getSafeAreaInsets();
 		double yMax = ev.toRealWorldCoordY(safeArea.getTop());
 		if (point.getInhomY() + realWorldHeight > yMax) {
 			double expectedHeight = (yMax - point.getInhomY()) * 0.9;
@@ -251,5 +276,32 @@ abstract public class ImageManager {
 	 */
 	public void setImageForFillable(Kernel kernel, GeoText geo, GeoElement fillable) {
 		// only works on platforms with SVG support (web, desktop)
+	}
+
+	/**
+	 * Adds an external image to be stored.
+	 * @param image image
+	 * @param path path
+	 */
+	public void addExternalImage(@Nonnull MyImage image, @Nonnull String path) {
+		//
+	}
+
+	/**
+	 * Get an external image, that was stored previously.
+	 * @param path path to image
+	 * @return image or {@code null}
+	 */
+	public @CheckForNull MyImage getExternalImage(@Nonnull String path) {
+		return null;
+	}
+
+	@Override
+	public void examStateChanged(ExamState newState) {
+		this.enabled = newState == ExamState.IDLE;
+	}
+
+	public boolean isEnabled() {
+		return enabled;
 	}
 }

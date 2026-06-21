@@ -1,19 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * AlgoAngleLines.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 30. August 2001, 21:37
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.geogebra3D.kernel3D.algos;
@@ -63,7 +61,6 @@ public class AlgoAnglePlanes extends AlgoAngle implements DrawInformationAlgo {
 
 		// compute angle
 		compute();
-
 	}
 
 	@Override
@@ -77,6 +74,9 @@ public class AlgoAnglePlanes extends AlgoAngle implements DrawInformationAlgo {
 		super(p.getConstruction(), false);
 		this.p = p;
 		this.q = q;
+
+		initCoords();
+		computeAngleAndUpdateCoordinates();
 	}
 
 	@Override
@@ -120,20 +120,19 @@ public class AlgoAnglePlanes extends AlgoAngle implements DrawInformationAlgo {
 
 	@Override
 	public final void compute() {
+		getAngle().setValue(computeAngleAndUpdateCoordinates());
+	}
 
+	private double computeAngleAndUpdateCoordinates() {
 		Coords vn1 = p.getDirectionInD3();
 		Coords vn2 = q.getDirectionInD3();
-
 		vn = vn1.crossProduct4(vn2).normalize();
 
 		// compute origin
 		if (vn.isZero()) { // parallel planes
-			getAngle().setValue(0);
 			o = Coords.UNDEFINED;
-			return;
+			return 0;
 		}
-
-		getAngle().setValue(AlgoAnglePoints3D.acos(vn1.dotproduct(vn2)));
 
 		v2 = vn1.crossProduct4(vn);
 		v1 = vn2.crossProduct4(vn);
@@ -142,12 +141,11 @@ public class AlgoAnglePlanes extends AlgoAngle implements DrawInformationAlgo {
 		// direction orthogonal to v and collinear to first plane
 		p.getCoordSys().getMatrixOrthonormal().getOrigin().projectPlaneThruV(
 				q.getCoordSys().getMatrixOrthonormal(), v2, o);
-
+		return AlgoAnglePoints3D.acos(vn1.dotproduct(vn2));
 	}
 
 	@Override
-	public boolean updateDrawInfo(double[] m, double[] firstVec,
-			DrawAngle drawable) {
+	public boolean updateDrawInfo(double[] m, double[] firstVec, DrawAngle drawable) {
 		return false;
 	}
 
@@ -158,7 +156,6 @@ public class AlgoAnglePlanes extends AlgoAngle implements DrawInformationAlgo {
 
 	@Override
 	public boolean getCoordsInD3(Coords[] drawCoords) {
-
 		if (!o.isDefined()) {
 			return false;
 		}

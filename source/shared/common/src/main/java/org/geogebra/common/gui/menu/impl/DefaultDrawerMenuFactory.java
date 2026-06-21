@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.menu.impl;
 
 import org.geogebra.common.GeoGebraConstants;
@@ -7,6 +23,7 @@ import org.geogebra.common.gui.menu.DrawerMenu;
 import org.geogebra.common.gui.menu.Icon;
 import org.geogebra.common.gui.menu.MenuItem;
 import org.geogebra.common.gui.menu.MenuItemGroup;
+import org.geogebra.common.main.App;
 import org.geogebra.common.move.ggtapi.models.GeoGebraTubeUser;
 import org.geogebra.common.move.ggtapi.operations.LogInOperation;
 
@@ -98,9 +115,9 @@ public class DefaultDrawerMenuFactory extends AbstractDrawerMenuFactory {
 	}
 
 	@Override
-	public DrawerMenu createDrawerMenu() {
+	public DrawerMenu createDrawerMenu(App app) {
 		MenuItemGroup main = createMainMenuItemGroup();
-		MenuItemGroup secondary = createSecondaryMenuItemGroup();
+		MenuItemGroup secondary = createSecondaryMenuItemGroup(app);
 		MenuItemGroup userGroup = createUserGroup();
 		String title = getMenuTitle();
 		return new DrawerMenuImpl(title, removeNulls(main, secondary, userGroup));
@@ -137,8 +154,8 @@ public class DefaultDrawerMenuFactory extends AbstractDrawerMenuFactory {
 		return isWeb() && version != GeoGebraConstants.Version.PROBABILITY;
 	}
 
-	private MenuItemGroup createSecondaryMenuItemGroup() {
-		MenuItem switchCalcItem = createSwitchCalcEntry ? showSwitchCalculator() : null;
+	private MenuItemGroup createSecondaryMenuItemGroup(App app) {
+		MenuItem switchCalcItem = createSwitchCalcEntry ? showSwitchCalculator(app) : null;
 		return new MenuItemGroupImpl(removeNulls(switchCalcItem,
 				showSettings(), showHelpAndFeedback()));
 	}

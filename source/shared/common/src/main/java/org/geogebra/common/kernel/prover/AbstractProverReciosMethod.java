@@ -1,7 +1,22 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.prover;
 
 import java.math.BigInteger;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -119,31 +134,28 @@ public abstract class AbstractProverReciosMethod {
 		Iterator<PVariable> it = variables.iterator();
 		HashMap<PVariable, BigInteger> values = new HashMap<>();
 		TreeSet<PVariable> fixedVariables = new TreeSet<>(
-				new Comparator<PVariable>() {
-					@Override
-					public int compare(PVariable v1, PVariable v2) {
-						String nameV1, nameV2;
-						if (v1.getParent() == null
-								|| (nameV1 = v1.getParent().getLabel(
-										StringTemplate.defaultTemplate)) == null) {
-							if (v2.getParent() == null
-									|| v1.getParent().getLabel(
-											StringTemplate.defaultTemplate) == null) {
-								return v1.compareTo(v2);
-							}
-							return -1;
-						}
+				(v1, v2) -> {
+					String nameV1, nameV2;
+					if (v1.getParent() == null
+							|| (nameV1 = v1.getParent().getLabel(
+							StringTemplate.defaultTemplate)) == null) {
 						if (v2.getParent() == null
-								|| (nameV2 = v2.getParent().getLabel(
-										StringTemplate.defaultTemplate)) == null) {
-							return 1;
-						}
-						int compareNames = nameV1.compareTo(nameV2);
-						if (compareNames == 0) {
+								|| v1.getParent().getLabel(
+								StringTemplate.defaultTemplate) == null) {
 							return v1.compareTo(v2);
 						}
-						return compareNames;
+						return -1;
 					}
+					if (v2.getParent() == null
+							|| (nameV2 = v2.getParent().getLabel(
+							StringTemplate.defaultTemplate)) == null) {
+						return 1;
+					}
+					int compareNames = nameV1.compareTo(nameV2);
+					if (compareNames == 0) {
+						return v1.compareTo(v2);
+					}
+					return compareNames;
 				});
 		HashSet<PVariable> freeVariables = new HashSet<>();
 		while (it.hasNext()) {

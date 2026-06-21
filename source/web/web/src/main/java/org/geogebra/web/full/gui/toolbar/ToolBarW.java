@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.toolbar;
 
 import java.util.ArrayList;
@@ -201,7 +217,7 @@ public class ToolBarW extends FlowPanel
 			ToolbarItem ob = toolbarVec.get(i);
 			Vector<Integer> menu = ob.getMenu();
 
-			if (app.isModeValid(menu.get(0).intValue())) {
+			if (app.isModeValid(menu.get(0))) {
 				ModeToggleMenuW mtm = createModeToggleMenu(app, menu, i);
 				mtm.setButtonTabIndex(-1);
 				modeToggleMenus.add(mtm);
@@ -368,10 +384,6 @@ public class ToolBarW extends FlowPanel
 			closeAllSubmenu();
 			buildGui();
 
-		} else {
-			if (Math.min(max, this.getToolbarVec().size()) == this.getGroupCount()) {
-				return;
-			}
 		}
 	}
 

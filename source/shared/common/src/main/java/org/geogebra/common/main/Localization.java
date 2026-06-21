@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.main;
 
 import java.util.ArrayList;
@@ -8,6 +24,7 @@ import java.util.Locale;
 import javax.annotation.Nonnull;
 
 import org.geogebra.common.GeoGebraConstants;
+import org.geogebra.common.awt.annotations.HasNativeSubclass;
 import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.commands.Commands;
 import org.geogebra.common.main.MyError.Errors;
@@ -16,9 +33,9 @@ import org.geogebra.common.main.syntax.LocalizedCommandSyntax;
 import org.geogebra.common.util.StringUtil;
 import org.geogebra.common.util.debug.Log;
 import org.geogebra.common.util.lang.Language;
+import org.geogebra.editor.share.util.Unicode;
 
-import com.himamis.retex.editor.share.util.Unicode;
-
+@HasNativeSubclass
 public abstract class Localization extends LocalizationI {
 
 	/** CAS syntax suffix for keys in command bundle */
@@ -57,6 +74,7 @@ public abstract class Localization extends LocalizationI {
 	private char unicodeComma = ','; // \u060c for Arabic comma
 
 	private int[] decimalPlacesOptions = { 0, 1, 2, 3, 4, 5, 10, 13, 15 };
+	private int[] inputBoxDecimalPlacesOptions = { -1, 0, 1, 2, 3, 4, 5, 10, 13, 15 };
 	private int[] significantFiguresOptions = {3, 5, 10, 15};
 
 	// TODO this doesn't really belong here; find a better owner (CommandProcessor?)
@@ -133,6 +151,13 @@ public abstract class Localization extends LocalizationI {
 	 */
 	public void setDecimalPlaces(int[] decimalPlaces) {
 		this.decimalPlacesOptions = decimalPlaces;
+	}
+
+	/**
+	 * @return the decimal places for input box in this localization
+	 */
+	public int[] getInputBoxDecimalPlaces() {
+		return inputBoxDecimalPlacesOptions;
 	}
 
 	/**
@@ -436,13 +461,15 @@ public abstract class Localization extends LocalizationI {
 
 	/**
 	 * Returns translation of given key from the "error" bundle
-	 * 
-	 * @param key
-	 *            key
+	 * @param key key
 	 * @return translation for key
 	 */
-
-	public abstract String getError(String key);
+	public final String getError(String key) {
+		if (key == null) {
+			return "";
+		}
+		return getMenuDefault("Error." + key, key);
+	}
 
 	/**
 	 * Returns translation of given key from the "symbol" bundle
@@ -455,20 +482,35 @@ public abstract class Localization extends LocalizationI {
 	public abstract String getSymbol(int key);
 
 	/**
-	 * @param colorName
-	 *            localized color name
+	 * @param colorName localized color name
 	 * @return internal color name
 	 */
-	public abstract String reverseGetColor(String colorName);
+	public final String reverseGetColor(String colorName) {
+		String str = StringUtil.removeSpaces(StringUtil.toLowerCaseUS(colorName));
+		for (String key : GeoGebraColorConstants.getGeoGebraColors().keySet()) {
+			if (str.equals(StringUtil.removeSpaces(StringUtil.toLowerCaseUS(getColor(key))))) {
+				return key;
+			}
+		}
+		return str;
+	}
 
 	/**
 	 * Returns translation of a key in colors bundle
-	 * 
-	 * @param key
-	 *            key (color name)
+	 * @param key key (color name)
 	 * @return localized color name
 	 */
-	public abstract String getColor(String key);
+	public String getColor(String key) {
+		if (key == null) {
+			return "";
+		}
+
+		if (key.length() == 5 && StringUtil.toLowerCaseUS(key).startsWith("gray")) {
+			return StringUtil.getGrayString(key.charAt(4), this);
+		}
+
+		return getMenuDefault("Color." + StringUtil.toLowerCaseUS(key), key);
+	}
 
 	/**
 	 * Translates the key and replaces "%0" by args[0], "%1" by args[1], etc
@@ -481,53 +523,37 @@ public abstract class Localization extends LocalizationI {
 	 *            arguments for replacement
 	 * @return translated key with replaced %*s
 	 */
-	final public String getPlainArray(String key, String defaultPattern,
-			String[] args) {
-		String str = getMenu(key);
-
-		if (defaultPattern != null && key.equals(str)) {
-			// lookup failed, use default
-			str = defaultPattern;
-		}
-
-		StringBuilder sbPlain = new StringBuilder();
-		sbPlain.setLength(0);
-		boolean found = false;
-		for (int i = 0; i < str.length(); i++) {
-			char ch = str.charAt(i);
-			if (ch == '%') {
-				// get number after %
-				i++;
-				int pos = str.charAt(i) - '0';
-				if ((pos >= 0) && (pos < args.length)) {
-					// success
-					sbPlain.append(args[pos]);
-					found = true;
+	final public @Nonnull String getPlainDefault(String key, String defaultPattern,
+			String... args) {
+		String str = getMenuDefault(key, defaultPattern);
+		if (!str.isEmpty()) {
+			StringBuilder sbPlain = new StringBuilder();
+			sbPlain.setLength(0);
+			for (int i = 0; i < str.length(); i++) {
+				char ch = str.charAt(i);
+				if (ch == '%') {
+					// get number after %
+					i++;
+					int pos = str.charAt(i) - '0';
+					if ((pos >= 0) && (pos < args.length)) {
+						// success
+						sbPlain.append(args[pos]);
+					} else {
+						// failed
+						sbPlain.append(ch);
+					}
 				} else {
-					// failed
 					sbPlain.append(ch);
 				}
-			} else {
-				sbPlain.append(ch);
 			}
+			// In some languages we may need some final fixes:
+			return translationFix(sbPlain.toString());
+		} else {
+			 // The key was not exported from the translation database yet.
+			 // In this case all parameters are appended to the displayed string to
+			 // help the developers.
+			return key + " " + String.join(" ", args);
 		}
-
-		if (!found) {
-
-			/*
-			 * If no parameters were found in key, this key is missing for some
-			 * reason (maybe it is not added to the ggbtrans database yet). In
-			 * this case all parameters are appended to the displayed string to
-			 * help the developers.
-			 */
-			for (String arg : args) {
-				sbPlain.append(" ");
-				sbPlain.append(arg);
-			}
-		}
-
-		// In some languages we may need some final fixes:
-		return translationFix(sbPlain.toString());
 	}
 
 	/**
@@ -541,9 +567,9 @@ public abstract class Localization extends LocalizationI {
 	 * @return "poly" (the suffix is added later)
 	 */
 	final public String getPlainLabel(String key, String fallback) {
-		String ret = getMenu("Name." + key);
+		String ret = getMenuDefault("Name." + key, "");
 
-		if (ret == null || ret.startsWith("Name.")) {
+		if (ret.isEmpty()) {
 			return fallback;
 		}
 
@@ -568,23 +594,7 @@ public abstract class Localization extends LocalizationI {
 	 * @return string with replacements
 	 */
 	final public String getPlain(String key, String... arg0) {
-		return getPlainArray(key, null, arg0);
-	}
-
-	/**
-	 * replace "%0" by arg0 etc.
-	 * 
-	 * @param key
-	 *            pattern key
-	 * @param default0
-	 *            pattern for default locale
-	 * @param arg0
-	 *            replace args
-	 * @return string with replacements
-	 */
-	final public String getPlainDefault(String key, String default0,
-			String... arg0) {
-		return getPlainArray(key, default0, arg0);
+		return getPlainDefault(key, "", arg0);
 	}
 
 	/**
@@ -629,12 +639,7 @@ public abstract class Localization extends LocalizationI {
 	public String[] getRoundingMenu() {
 		List<String> list = new ArrayList<>();
 		for (int decimalPlaces : decimalPlacesOptions) {
-			String key = "ADecimalPlaces";
-			// zero is singular in eg French
-			if (decimalPlaces == 0 && !isZeroPlural()) {
-				key = "ADecimalPlace";
-			}
-			list.add(getPlain(key, String.valueOf(decimalPlaces)));
+			list.add(localizeDecimalPlaces(decimalPlaces));
 		}
 		list.add(ROUNDING_MENU_SEPARATOR);
 		for (int significantFigures : significantFiguresOptions) {
@@ -648,11 +653,28 @@ public abstract class Localization extends LocalizationI {
 	}
 
 	/**
-	 * in French, zero is singular, eg 0 dcimale rather than 0 decimal places
-	 * 
-	 * @return whether 0 is plural
+	 * Localize "X decimal places"; uses a different key for plural and singular.
+	 * @param decimalPlaces number of decimal places
+	 * @return localized option
 	 */
-	public boolean isZeroPlural() {
+	public String localizeDecimalPlaces(int decimalPlaces) {
+		if (decimalPlaces < 0) {
+			return "";
+		}
+		String key = "ADecimalPlaces";
+		// zero is singular in eg French
+		if (decimalPlaces == 1 || decimalPlaces == 0 && isZeroSingular()) {
+			key = "ADecimalPlace";
+		}
+		return getPlain(key, String.valueOf(decimalPlaces));
+	}
+
+	/**
+	 * in French, zero is singular, eg 0 decimale rather than 0 decimal places
+	 * 
+	 * @return whether 0 is singular
+	 */
+	private boolean isZeroSingular() {
 		return languageIs("fr");
 	}
 
@@ -1143,5 +1165,13 @@ public abstract class Localization extends LocalizationI {
 	 */
 	public String getLanguageTagForLogin() {
 		return getLanguageTag().replace("-", "_");
+	}
+
+	/**
+	 * @return whether digits outside the ASCII range are used
+	 * (checks both the user preference and the current language)
+	 */
+	public boolean usesNonAsciiDigits() {
+		return !isUsingLocalizedDigits() || getZero() != '0';
 	}
 }

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.gui.util;
 
 import java.util.ArrayList;
@@ -8,8 +24,7 @@ import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.kernel.parser.function.ParserFunctions;
 import org.geogebra.common.main.App;
 import org.geogebra.common.main.Localization;
-
-import com.himamis.retex.editor.share.util.Unicode;
+import org.geogebra.editor.share.util.Unicode;
 
 /**
  * Arrays of special strings and unicode symbols used when building tables and
@@ -502,11 +517,10 @@ public class TableSymbols {
 				{ String.valueOf(Unicode.SUPERSCRIPT_3),
 						app.getMenu("Symbol.Cube") }, // exponents^3
 				{ Unicode.DEGREE_STRING, app.getMenu("Symbol.Degree") }, // degree
-				{ " " + Unicode.IMAGINARY + " ", String.valueOf(Unicode.IMAGINARY) }, // sqrt(-1)
-				{ " " + Unicode.PI_STRING + " ", Unicode.PI_STRING }, // pi
-				{ " " + Unicode.EULER_STRING + " ", Unicode.EULER_STRING }, // e
-				{ String.valueOf(Unicode.NBSP), app.getMenu("Symbol.NBSP") }, // non-breaking
-																	// space
+				{ Unicode.IMAGINARY_STRING, Unicode.IMAGINARY_STRING }, // sqrt(-1)
+				{ Unicode.PI_STRING, Unicode.PI_STRING }, // pi
+				{ Unicode.EULER_STRING, Unicode.EULER_STRING }, // e
+				{ String.valueOf(Unicode.NBSP), app.getMenu("Symbol.NBSP") }, // non-breaking space
 		};
 	}
 
@@ -596,13 +610,13 @@ public class TableSymbols {
 			String[] strs = function.split("\\(", 2);
 			String functionName = strs[0].trim();
 			if (parserFunctions.isReserved(functionName)) {
-				String translatedFunctionName = loc
-						.getMenu(Localization.FUNCTION_PREFIX + functionName);
-				if (translatedFunctionName
-						.startsWith(Localization.FUNCTION_PREFIX)) {
+				String key = Localization.FUNCTION_PREFIX + functionName;
+				if (!parserFunctions.isTranslatableFunction(key)) {
 					// translation not supported for this function
 					functions.add(function);
 				} else {
+					String translatedFunctionName = loc
+							.getFunction(key);
 					String translated = " " + translatedFunctionName + "(" + strs[1];
 					functions.add(translated);
 				}

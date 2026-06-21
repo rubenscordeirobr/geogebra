@@ -1,6 +1,31 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.contextmenu;
 
-import static org.geogebra.common.contextmenu.TableValuesContextMenuItem.Item.*;
+import static org.geogebra.common.contextmenu.TableValuesContextMenuItem.Item.ClearColumn;
+import static org.geogebra.common.contextmenu.TableValuesContextMenuItem.Item.Edit;
+import static org.geogebra.common.contextmenu.TableValuesContextMenuItem.Item.HidePoints;
+import static org.geogebra.common.contextmenu.TableValuesContextMenuItem.Item.ImportData;
+import static org.geogebra.common.contextmenu.TableValuesContextMenuItem.Item.Regression;
+import static org.geogebra.common.contextmenu.TableValuesContextMenuItem.Item.RemoveColumn;
+import static org.geogebra.common.contextmenu.TableValuesContextMenuItem.Item.Separator;
+import static org.geogebra.common.contextmenu.TableValuesContextMenuItem.Item.ShowPoints;
+import static org.geogebra.common.contextmenu.TableValuesContextMenuItem.Item.Statistics1;
+import static org.geogebra.common.contextmenu.TableValuesContextMenuItem.Item.Statistics2;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
@@ -21,7 +46,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TableValuesContextMenuTests extends BaseUnitTest {
-	private final ContextMenuFactory contextMenuFactory = new ContextMenuFactory();
 
 	private TableValuesView tableValuesView;
 	private TableValuesModel tableValuesModel;
@@ -42,8 +66,8 @@ public class TableValuesContextMenuTests extends BaseUnitTest {
 		assertEquals(
 				List.of(Edit.toContextMenuItem(),
 						ClearColumn.toContextMenuItem()),
-				contextMenuFactory.makeTableValuesContextMenu(
-						geoEvaluatable, 0, tableValuesModel, true, false)
+				ContextMenuFactory.makeTableValuesContextMenu(
+						geoEvaluatable, 0, tableValuesModel, true, false, Set.of())
 		);
 	}
 
@@ -57,8 +81,8 @@ public class TableValuesContextMenuTests extends BaseUnitTest {
 						ImportData.toContextMenuItem(),
 						Separator.toContextMenuItem(),
 						Statistics1.toContextMenuItem(new String[]{ "x" })),
-				contextMenuFactory.makeTableValuesContextMenu(
-						geoEvaluatable, 0, tableValuesModel, false, false)
+				ContextMenuFactory.makeTableValuesContextMenu(
+						geoEvaluatable, 0, tableValuesModel, false, false, Set.of())
 		);
 	}
 
@@ -71,8 +95,8 @@ public class TableValuesContextMenuTests extends BaseUnitTest {
 						ClearColumn.toContextMenuItem(),
 						Separator.toContextMenuItem(),
 						Statistics1.toContextMenuItem(new String[]{ "x" })),
-				contextMenuFactory.makeTableValuesContextMenu(
-						geoEvaluatable, 0, tableValuesModel, false, true)
+				ContextMenuFactory.makeTableValuesContextMenu(
+						geoEvaluatable, 0, tableValuesModel, false, true, Set.of())
 		);
 	}
 
@@ -80,15 +104,15 @@ public class TableValuesContextMenuTests extends BaseUnitTest {
 	public void testFirstColumnInExamModeWithRestrictedStatisticsItem() {
 		GeoEvaluatable geoEvaluatable = new GeoLine(getConstruction());
 
-		contextMenuFactory.addFilter(contextMenuItem ->
+		Set<ContextMenuItemFilter> filters = Set.of(contextMenuItem ->
 				!contextMenuItem.equals(Statistics1.toContextMenuItem(new String[]{ "x" })));
 
 		assertEquals(
 				List.of(Edit.toContextMenuItem(),
 						ClearColumn.toContextMenuItem(),
 						ImportData.toContextMenuItem()),
-				contextMenuFactory.makeTableValuesContextMenu(
-						geoEvaluatable, 0, tableValuesModel, false, false)
+				ContextMenuFactory.makeTableValuesContextMenu(
+						geoEvaluatable, 0, tableValuesModel, false, false, filters)
 		);
 	}
 
@@ -101,17 +125,18 @@ public class TableValuesContextMenuTests extends BaseUnitTest {
 		geoList.add(new GeoNumeric(getConstruction(), 2.0));
 		tableValuesView.addAndShow(geoList);
 
-		contextMenuFactory.addFilter(contextMenuItem -> !List.of(
-			Statistics1.toContextMenuItem(new String[]{ "y_{1}" }),
-			Statistics2.toContextMenuItem(new String[]{ "x y_{1}" }),
-			Regression.toContextMenuItem()
-		).contains(contextMenuItem));
+		Set<ContextMenuItemFilter> filters = Set.of(
+				contextMenuItem -> !List.of(
+						Statistics1.toContextMenuItem(new String[]{"y_{1}"}),
+						Statistics2.toContextMenuItem(new String[]{"x y_{1}"}),
+						Regression.toContextMenuItem()
+				).contains(contextMenuItem));
 
 		assertEquals(
 				List.of(HidePoints.toContextMenuItem(),
 						RemoveColumn.toContextMenuItem()),
-				contextMenuFactory.makeTableValuesContextMenu(
-						geoList, 1, tableValuesModel, false, false)
+				ContextMenuFactory.makeTableValuesContextMenu(
+						geoList, 1, tableValuesModel, false, false, filters)
 		);
 	}
 
@@ -125,8 +150,8 @@ public class TableValuesContextMenuTests extends BaseUnitTest {
 				List.of(HidePoints.toContextMenuItem(),
 						Edit.toContextMenuItem(),
 						RemoveColumn.toContextMenuItem()),
-				contextMenuFactory.makeTableValuesContextMenu(
-						geoFunction, 1, tableValuesModel, false, false)
+				ContextMenuFactory.makeTableValuesContextMenu(
+						geoFunction, 1, tableValuesModel, false, false, Set.of())
 		);
 	}
 
@@ -145,8 +170,8 @@ public class TableValuesContextMenuTests extends BaseUnitTest {
 						Statistics1.toContextMenuItem(new String[]{ "y_{1}" }),
 						Statistics2.toContextMenuItem(new String[] { "x y_{1}" }),
 						Regression.toContextMenuItem()),
-				contextMenuFactory.makeTableValuesContextMenu(
-						geoList, 1, tableValuesModel, false, false)
+				ContextMenuFactory.makeTableValuesContextMenu(
+						geoList, 1, tableValuesModel, false, false, Set.of())
 		);
 	}
 
@@ -166,8 +191,8 @@ public class TableValuesContextMenuTests extends BaseUnitTest {
 						Statistics1.toContextMenuItem(new String[]{ "y_{1}" }),
 						Statistics2.toContextMenuItem(new String[]{ "x y_{1}" }),
 						Regression.toContextMenuItem()),
-				contextMenuFactory.makeTableValuesContextMenu(
-						geoList, 1, tableValuesModel, false, false)
+				ContextMenuFactory.makeTableValuesContextMenu(
+						geoList, 1, tableValuesModel, false, false, Set.of())
 		);
 	}
 

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.geogebra3D.kernel3D.geos;
 
 import java.util.ArrayList;
@@ -13,6 +29,7 @@ import org.geogebra.common.geogebra3D.kernel3D.algos.AlgoJoinPoints3D;
 import org.geogebra.common.geogebra3D.kernel3D.algos.AlgoPolygon3D;
 import org.geogebra.common.geogebra3D.kernel3D.algos.AlgoPolyhedronPoints;
 import org.geogebra.common.geogebra3D.kernel3D.transform.MirrorableAtPlane;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.CircularDefinitionException;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.ConstructionElementCycle;
@@ -192,7 +209,7 @@ public class GeoPolyhedron extends GeoElement3D
 
 	}
 
-	static private class PointChangedHelper {
+	static private final class PointChangedHelper {
 		private Coords coordsOld;
 		private GeoPoint3D point;
 		private boolean useLine;
@@ -206,7 +223,7 @@ public class GeoPolyhedron extends GeoElement3D
 		private int resultIndex;
 		private GeoPolygon resultPolygon;
 
-		public PointChangedHelper(GeoPoint3D point) {
+		private PointChangedHelper(GeoPoint3D point) {
 			this.point = point;
 			coordsOld = Coords.createInhomCoorsInD3();
 			coordsOld.set3(point.getInhomCoordsInD3());
@@ -216,7 +233,7 @@ public class GeoPolyhedron extends GeoElement3D
 			index = 0;
 		}
 
-		public void update(GeoPolygon polygon) {
+		private void update(GeoPolygon polygon) {
 			point.setRegion(polygon);
 			point.setCoords(coordsOld, false);
 			polygon.pointChangedForRegion(point);
@@ -257,7 +274,7 @@ public class GeoPolyhedron extends GeoElement3D
 			resultPolygon = polygon;
 		}
 
-		public void setResult() {
+		private void setResult() {
 			point.setCoords(result, false);
 			RegionParameters rp = point.getRegionParameters();
 			rp.setT1(getNormalized(t1) + resultIndex);
@@ -266,11 +283,11 @@ public class GeoPolyhedron extends GeoElement3D
 			rp.setIsOnPath(isOnPath);
 		}
 
-		static public double getNormalized(double t) {
+		static private double getNormalized(double t) {
 			return (PathNormalizer.inverseInfFunction(t) + 1) / 2;
 		}
 
-		static public double getUnNormalized(double t) {
+		static private double getUnNormalized(double t) {
 			return PathNormalizer.infFunction(2 * t - 1);
 		}
 	}
@@ -391,7 +408,7 @@ public class GeoPolyhedron extends GeoElement3D
 		currentFace.setDirection();
 
 		// add to index
-		polygonsIndex.put(currentFace, Integer.valueOf(polygonsIndexMax));
+		polygonsIndex.put(currentFace, polygonsIndexMax);
 		polygonsDescriptions.add(currentFace);
 		polygonsIndexMax++;
 
@@ -640,7 +657,7 @@ public class GeoPolyhedron extends GeoElement3D
 	 */
 	protected void storeSegment(GeoSegment3D segment,
 			ConstructionElementCycle key) {
-		Long index = Long.valueOf(segmentsIndexMax);
+		Long index = segmentsIndexMax;
 		segmentsIndex.put(key, index);
 		segments.put(index, segment);
 		segmentsIndexMax++;
@@ -1605,7 +1622,7 @@ public class GeoPolyhedron extends GeoElement3D
 	}
 
 	@Override
-	protected void getStyleXML(StringBuilder sbXml) {
+	protected void getStyleXML(XMLStringBuilder sbXml) {
 		getLineStyleXML(sbXml);
 		super.getStyleXML(sbXml);
 	}
@@ -1973,11 +1990,11 @@ public class GeoPolyhedron extends GeoElement3D
 		// find the segment where the point lies
 		int index = (int) pp.getT();
 		GeoSegmentND seg;
-		GeoSegmentND[] segmentArray = segmentsLinked.values().toArray(new GeoSegmentND[0]);
 		if (index < segmentsLinked.size()) {
-			seg = segmentArray[index];
+			seg = segmentsLinked.values().toArray(new GeoSegmentND[0])[index];
 		} else {
-			seg = segmentArray[index - segmentsLinked.size()];
+			seg = segments.values().toArray(new GeoSegmentND[0])[index
+					- segmentsLinked.size()];
 		}
 
 		// sets the path parameter for the segment, calc the new position of the
@@ -2003,7 +2020,7 @@ public class GeoPolyhedron extends GeoElement3D
 		Coords coordsOld = P.getInhomCoords().copyVector();
 
 		// prevent from region bad coords calculations
-		Region region = P.getRegion();
+		final Region region = P.getRegion();
 		P.setRegion(null);
 
 		double minDist = Double.POSITIVE_INFINITY;
@@ -2215,7 +2232,7 @@ public class GeoPolyhedron extends GeoElement3D
 		coords.mulInside(0.5 / n);
 	}
 
-	final private static void pseudoCentroidAdd(Coords coords,
+	private static void pseudoCentroidAdd(Coords coords,
 			GeoSegmentND segment) {
 		coords.setAdd3(coords, segment.getStartInhomCoords());
 		coords.setAdd3(coords, segment.getEndInhomCoords());

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.util.clipper;
 
 import java.util.Comparator;
@@ -50,7 +66,7 @@ public class Point<T extends Number & Comparable<T>> {
 		}
 	}
 
-	private static class NumberComparator<T extends Number & Comparable<T>>
+	private static final class NumberComparator<T extends Number & Comparable<T>>
 			implements Comparator<T> {
 
 		@Override
@@ -106,7 +122,7 @@ public class Point<T extends Number & Comparable<T>> {
 			DoublePoint pt2, DoublePoint pt3) {
 		if (pt1.equals(pt3) || pt1.equals(pt2) || pt3.equals(pt2)) {
 			return false;
-		} else if (pt1.x.doubleValue() != pt3.x.doubleValue()) {
+		} else if (pt1.getX() != pt3.getX()) {
 			return pt2.x > pt1.x == pt2.x < pt3.x;
 		} else {
 			return pt2.y > pt1.y == pt2.y < pt3.y;

@@ -1,13 +1,17 @@
 /*
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.commands;
@@ -170,10 +174,7 @@ public abstract class CommandDispatcher {
 	 * @return whether the given command name is supported in GeoGebra.
 	 */
 	public boolean isCommandAvailable(String cmd) {
-		if (cmdTable == null) {
-			initCmdTable();
-		}
-		return cmdTable.containsKey(cmd);
+		return Commands.stringToCommand(cmd) != null || kernel.getMacro(cmd) != null;
 	}
 
 	/**
@@ -340,7 +341,6 @@ public abstract class CommandDispatcher {
 			switch (command) {
 
 			// scripting
-			case RigidPolygon:
 			case Relation:
 			case CopyFreeObject:
 			case DataFunction:
@@ -563,6 +563,7 @@ public abstract class CommandDispatcher {
 			case PolyLine:
 			case Polyline:
 			case PenStroke:
+			case PenStrokeBezier:
 			case PointIn:
 			case Line:
 			case Ray:
@@ -593,6 +594,7 @@ public abstract class CommandDispatcher {
 			case CircumcircularArc:
 
 			case Polygon:
+			case RigidPolygon:
 			case Area:
 			case Circumference:
 			case Perimeter:
@@ -600,6 +602,7 @@ public abstract class CommandDispatcher {
 			case Vertex:
 			case If:
 			case Root:
+			case InflectionPoint:
 			case TurningPoint:
 			case Polynomial:
 			case Spline:
@@ -876,6 +879,7 @@ public abstract class CommandDispatcher {
 			case ConvexHull:
 			case MinimumSpanningTree:
 			case DelauneyTriangulation:
+			case DelaunayTriangulation:
 			case TravelingSalesman:
 			case ShortestDistance:
 				return getDiscreteCommandProcessorFactory().getProcessor(command, kernel);

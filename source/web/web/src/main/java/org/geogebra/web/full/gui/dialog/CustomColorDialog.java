@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.dialog;
 
 import org.geogebra.common.awt.GColor;
@@ -42,11 +58,11 @@ public class CustomColorDialog extends ComponentDialog {
 		void onCustomColor(GColor color);
 	}
 
-	private class ColorComponent extends FlowPanel {
+	private final class ColorComponent extends FlowPanel {
 		private Slider slider;
 		private GSpinnerW spinner;
 
-		public ColorComponent() {
+		private ColorComponent() {
 			setStyleName("colorComponent");
 
 			FlowPanel sp = new FlowPanel();
@@ -78,29 +94,28 @@ public class CustomColorDialog extends ComponentDialog {
 			});
 		}
 		
-		public void setValue(Integer value) {
+		void setValue(Integer value) {
 			slider.setValue(value);
 			spinner.setValue(value.toString());
 		}
 
-		public int getValue() {
+		int getValue() {
 			return slider.getValue();
 		}
 	}
 	
-	private class PreviewPanel extends FlowPanel {
-		private Label title;
-		private Canvas canvas;
-		private CanvasRenderingContext2D ctx;
+	private final class PreviewPanel extends FlowPanel {
+		private final Label title;
+		private final CanvasRenderingContext2D ctx;
 
-		public PreviewPanel(GColor oColor) {
+		private PreviewPanel(GColor oColor) {
 			setStyleName("CustomColorPreview");
 			title = new Label();
 			if (getApplication().isWhiteboardActive()) {
 				title.addStyleName("previewLbl");
 			}
 			add(title);
-			canvas = Canvas.createIfSupported();
+			Canvas canvas = Canvas.createIfSupported();
 			canvas.setSize(PREVIEW_WIDTH + "px", PREVIEW_HEIGHT + "px");
 			canvas.setCoordinateSpaceHeight(PREVIEW_HEIGHT);
 			canvas.setCoordinateSpaceWidth(PREVIEW_WIDTH * 2);
@@ -115,16 +130,16 @@ public class CustomColorDialog extends ComponentDialog {
 		 * @param oColor
 		 *            color for both rectangles
 		 */
-		public void reset(GColor oColor) {
+		void reset(GColor oColor) {
 			drawRect(0, oColor);
 			drawRect(PREVIEW_WIDTH, oColor);
 		}
 
-		public void update() {
+		void update() {
 			drawRect(PREVIEW_WIDTH, getColor());
 		}
-		
-		protected void drawRect(int x, GColor color) {
+
+		void drawRect(int x, GColor color) {
 			String htmlColor = StringUtil.toHtmlColor(color);
 			ctx.fillStyle = BaseRenderingContext2D.FillStyleUnionType.of(htmlColor);
 			ctx.globalAlpha = 1.0;

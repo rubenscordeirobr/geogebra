@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.html5.gui.util;
 
 import org.gwtproject.user.client.ui.FlowPanel;
@@ -24,21 +40,6 @@ public class LayoutUtilW {
 	}
 
 	/**
-	 * @param widgets
-	 *            widgets
-	 * @return widgets merged in a column
-	 */
-	public static FlowPanel panelRowVertical(IsWidget... widgets) {
-		FlowPanel p = new FlowPanel();
-		for (IsWidget widget : widgets) {
-			p.add(widget);
-		}
-		p.setStyleName("panelRow rows");
-
-		return p;
-	}
-
-	/**
 	 * Add widgets ito one row and add indentation CSS.
 	 * 
 	 * @param widgets
@@ -53,24 +54,24 @@ public class LayoutUtilW {
 	}
 
 	/**
-	 * Replaces widget old with w in p.
+	 * Replaces oldWidget with newWidget in parent.
 	 *
-	 * @param p
+	 * @param parent
 	 *            The FlowPanel replace within.
-	 * @param w
+	 * @param newWidget
 	 *            The new widget.
-	 * @param old
+	 * @param oldWidget
 	 *            The widget to be replaced.
-	 * @return true if the replace was successful.
+	 * @return true if the replacement was successful.
 	 */
-	public static boolean replace(FlowPanel p, IsWidget w, IsWidget old) {
-		int idx = p.getWidgetIndex(old);
-		if (w == null || idx == -1) {
+	public static boolean replace(FlowPanel parent, IsWidget newWidget, IsWidget oldWidget) {
+		int idx = parent.getWidgetIndex(oldWidget);
+		if (newWidget == null || idx == -1) {
 			return false;
 		}
 
-		p.remove(idx);
-		p.insert(w, idx);
+		parent.remove(idx);
+		parent.insert(newWidget, idx);
 
 		return true;
 	}

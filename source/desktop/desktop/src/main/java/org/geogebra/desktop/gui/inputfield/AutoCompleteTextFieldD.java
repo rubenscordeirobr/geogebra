@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.inputfield;
 
 import java.awt.Component;
@@ -53,6 +69,7 @@ import org.geogebra.desktop.gui.autocompletion.CommandCompletionListCellRenderer
 import org.geogebra.desktop.gui.autocompletion.CompletionsPopup;
 import org.geogebra.desktop.gui.util.GeoGebraIconD;
 import org.geogebra.desktop.main.AppD;
+import org.geogebra.desktop.main.ScaledIcon;
 
 public class AutoCompleteTextFieldD extends MathTextField
 		implements AutoComplete, AutoCompleteTextField {
@@ -194,8 +211,9 @@ public class AutoCompleteTextFieldD extends MathTextField
 				historyPopup.showPopup();
 			}
 		};
-		setBorderButton(1, GeoGebraIconD.createUpDownTriangleIcon(false, true),
-				al);
+		ScaledIcon upDownTriangleIcon = GeoGebraIconD.createUpDownTriangleIcon(false, true,
+				app.getImageManager().getPixelRatio());
+		setBorderButton(1, upDownTriangleIcon, al);
 		this.setBorderButtonVisible(1, false);
 	}
 
@@ -1090,14 +1108,13 @@ public class AutoCompleteTextFieldD extends MathTextField
 	}
 
 	private static GColor getBorderColor(GColor backgroundColor, DrawInputBox drawInputBox) {
-		GColor borderColor;
-		if (backgroundColor == GColor.WHITE) {
-			borderColor = drawInputBox.isEditing() ? GeoGebraColorConstants.PURPLE_600
+		if (drawInputBox.usesDisabledStyle()) {
+			return GeoGebraColorConstants.NEUTRAL_300;
+		} else if (backgroundColor == GColor.WHITE) {
+			return drawInputBox.isEditing() ? GeoGebraColorConstants.PURPLE_600
 					: GeoGebraColorConstants.NEUTRAL_500;
-		} else {
-			borderColor = GColor.getBorderColorFrom(backgroundColor);
 		}
-		return borderColor;
+		return GColor.getBorderColorFrom(backgroundColor);
 	}
 
 	/**

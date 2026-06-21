@@ -1,19 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * GeoVec2D.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 31. August 2001, 11:34
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.geogebra3D.kernel3D.geos;
@@ -40,6 +38,7 @@ import org.geogebra.common.kernel.kernelND.Geo3DVecInterface;
 import org.geogebra.common.kernel.kernelND.GeoPointND;
 import org.geogebra.common.kernel.kernelND.GeoVecInterface;
 import org.geogebra.common.kernel.matrix.Coords;
+import org.geogebra.common.main.Localization;
 import org.geogebra.common.util.DoubleUtil;
 
 import com.google.j2objc.annotations.Weak;
@@ -495,9 +494,9 @@ final public class Geo3DVec extends ValidExpression
 	 */
 	public void multiplyMatrix3x3(MyList list, VectorNDValue rt) {
 		GeoVecInterface v = rt.getVector();
-		double xx = v.getX();
-		double yy = v.getY();
-		double zz = v.getZ();
+		final double xx = v.getX();
+		final double yy = v.getY();
+		final double zz = v.getZ();
 
 		double a = MyList.getCellAsDouble(list, 0, 0);
 		double b = MyList.getCellAsDouble(list, 1, 0);
@@ -527,8 +526,7 @@ final public class Geo3DVec extends ValidExpression
 		double m, n, o, p, xx, yy, zz, ww;
 
 		boolean vector = false;
-		if (rt instanceof GeoPointND) { // 3D point
-			GeoPointND point = (GeoPointND) rt;
+		if (rt instanceof GeoPointND point) { // 3D point
 			// use homogeneous coordinates
 			Coords coords = point.getCoordsInD3();
 			xx = coords.getX();
@@ -595,8 +593,8 @@ final public class Geo3DVec extends ValidExpression
 	 */
 	public void multiplyMatrix3x2(MyList list, VectorNDValue rt) {
 		GeoVecInterface v = rt.getVector();
-		double xx = v.getX();
-		double yy = v.getY();
+		final double xx = v.getX();
+		final double yy = v.getY();
 
 		double a = MyList.getCellAsDouble(list, 0, 0);
 		double b = MyList.getCellAsDouble(list, 1, 0);
@@ -624,9 +622,9 @@ final public class Geo3DVec extends ValidExpression
 			GeoVec2D ret) {
 
 		GeoVecInterface v = rt.getVector();
-		double xx = v.getX();
-		double yy = v.getY();
-		double zz = v.getZ();
+		final double xx = v.getX();
+		final double yy = v.getY();
+		final double zz = v.getZ();
 
 		double a = MyList.getCellAsDouble(list, 0, 0);
 		double b = MyList.getCellAsDouble(list, 1, 0);
@@ -704,6 +702,11 @@ final public class Geo3DVec extends ValidExpression
 	 */
 	public Kernel getKernel() {
 		return kernel;
+	}
+
+	@Override
+	public Localization getLocalization() {
+		return kernel.getLocalization();
 	}
 
 }

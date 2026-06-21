@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.euclidian;
 
 import java.util.ArrayList;
@@ -112,6 +128,7 @@ public class EuclidianStyleBarW extends StyleBarW2
 		setToolTips();
 
 		setOptionType();
+		app.getSettings().getFontSettings().addListener(ignore -> reinit());
 	}
 
 	protected void setOptionType() {
@@ -651,12 +668,11 @@ public class EuclidianStyleBarW extends StyleBarW2
 	}
 
 	private void createAngleIntervalBtn() {
-		String[] angleIntervalString = new String[GeoAngle
-				.getIntervalMinListLength() - 1];
-		for (int i = 0; i < GeoAngle.getIntervalMinListLength() - 1; i++) {
-			angleIntervalString[i] = app.getLocalization().getPlain(
-					"AngleBetweenAB.short", GeoAngle.getIntervalMinList(i),
-					GeoAngle.getIntervalMaxList(i));
+		String[] angleIntervalString = new String[GeoAngle.AngleStyle.values().length - 1];
+		for (int i = 0; i < angleIntervalString.length - 1; i++) {
+			GeoAngle.AngleStyle angleStyle = GeoAngle.AngleStyle.values()[i];
+			angleIntervalString[i] = app.getLocalization()
+					.getPlain("AngleBetweenAB.short", angleStyle.getMin(), angleStyle.getMax());
 		}
 
 		ImageOrText[] angleIntervalArray = ImageOrText
@@ -736,7 +752,7 @@ public class EuclidianStyleBarW extends StyleBarW2
 		if (btnBgColor.getSelectedIndex() >= 0) {
 			GColor color = btnBgColor.getSelectedColor();
 			if (color == null) {
-				openColorChooser(true);
+				openColorChooser(true, targetGeos);
 				return false;
 			}
 			double alpha = btnBgColor.getSliderValue() / 100.0;
@@ -786,7 +802,7 @@ public class EuclidianStyleBarW extends StyleBarW2
 		if (btnTextColor.getSelectedIndex() >= 0) {
 			GColor color = btnTextColor.getSelectedColor();
 			if (color == null) {
-				openColorChooser(false);
+				openColorChooser(false, targetGeos);
 				return false;
 			}
 			return applyColor(targetGeos, color, 1);
@@ -1149,12 +1165,11 @@ public class EuclidianStyleBarW extends StyleBarW2
 								loc.getMenu("Caption") // index 3
 		}));
 
-		String[] angleIntervalArray = new String[GeoAngle
-				.getIntervalMinListLength() - 1];
-		for (int i = 0; i < GeoAngle.getIntervalMinListLength() - 1; i++) {
-			angleIntervalArray[i] = app.getLocalization().getPlain(
-					"AngleBetweenAB.short", GeoAngle.getIntervalMinList(i),
-					GeoAngle.getIntervalMaxList(i));
+		String[] angleIntervalArray = new String[GeoAngle.AngleStyle.values().length - 1];
+		for (int i = 0; i < angleIntervalArray.length; i++) {
+			GeoAngle.AngleStyle angleStyle = GeoAngle.AngleStyle.values()[i];
+			angleIntervalArray[i] = app.getLocalization()
+					.getPlain("AngleBetweenAB.short", angleStyle.getMin(), angleStyle.getMax());
 		}
 
 		this.btnAngleInterval.getMyTable()

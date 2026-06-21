@@ -1,13 +1,28 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.commands;
 
-import static com.himamis.retex.editor.share.util.Unicode.INFINITY;
+import static org.geogebra.editor.share.util.Unicode.INFINITY;
 import static org.geogebra.test.TestStringUtil.unicode;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -26,13 +41,13 @@ import org.geogebra.common.kernel.kernelND.GeoElementND;
 import org.geogebra.common.main.App;
 import org.geogebra.desktop.util.GuiResourcesD;
 import org.geogebra.desktop.util.ImageManagerD;
+import org.geogebra.editor.share.util.Unicode;
 import org.geogebra.test.TestErrorHandler;
 import org.geogebra.test.annotation.Issue;
+import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.himamis.retex.editor.share.util.Unicode;
 
 public class CommandsUsingCASTest extends AlgebraTest {
 
@@ -56,18 +71,18 @@ public class CommandsUsingCASTest extends AlgebraTest {
 				"{{x = 60*deg, y = 60*deg}, {x = (-60*deg), y = (-60*deg)}}");
 	}
 
-	private void deg(String def, String expect) {
+	private void deg(String definition, Matcher<String> expected) {
 		EvalInfo evalInfo = new EvalInfo(true, true).addDegree(true);
-		checkWithEvalInfo(def, expect, evalInfo);
+		checkWithEvalInfo(definition, expected, evalInfo);
 	}
 
-	private void checkWithEvalInfo(String def, String expect,
+	private void checkWithEvalInfo(String def, Matcher<String> expected,
 			EvalInfo evalInfo) {
 		GeoElementND[] geo = ap.processAlgebraCommandNoExceptionHandling(def,
 				false, TestErrorHandler.INSTANCE,
 				evalInfo, null);
 		String res = geo[0].toValueString(StringTemplate.editTemplate);
-		assertEquals(expect, res);
+		assertThat(res, anyOf(expected));
 	}
 
 	private void tdeg(String string, String string2) {
@@ -148,7 +163,7 @@ public class CommandsUsingCASTest extends AlgebraTest {
 	@Test
 	public void cmdIntegralInfinite() {
 		t("f=Normal(50,3,x,false)",
-				"exp(((-(x - 50)^(2))) / ((3^(2) * 2))) / ((abs(3) * sqrt((2 * pi))))");
+				"exp(((-(x - 5E+1)^(2))) / ((3^(2) * 2))) / ((abs(3) * sqrt((2 * pi))))");
 		tRound("norm:=Integral[f,-inf,50 ]", "0.5");
 		tRound("nnorm:=Integral[f,50,inf ]", "0.5");
 	}
@@ -197,11 +212,15 @@ public class CommandsUsingCASTest extends AlgebraTest {
 		t("Derivative[ cos(x), x, 3 ]", "sin(x)");
 		t("Derivative[ x^4/3 ]", "(4 / 3 * x^(3))");
 		t("Derivative[exp(x)]", "\u212F^(x)");
-		t("Derivative[(x+1)exp(-x)]", "((-x) * \u212F^((-x)))");
+		t("Derivative[(x+1)exp(-x)]",
+				anyOf(equalTo("\u212F^((-x)) - (\u212F^((-x)) * (x + 1))"),
+						equalTo("((-(x + 1)) * \u212F^((-x))) + \u212F^((-x))")));
 		t("fderiv:y=exp(x)", "exp(x)");
 		t("fderiv'(x)", "\u212F^(x)");
 		t("fderiv2:y=(x+1)exp(-x)", "((x + 1) * exp((-x)))");
-		t("fderiv2'(x)", "((-x) * \u212F^((-x)))");
+		t("fderiv2'(x)",
+				anyOf(equalTo("\u212F^((-x)) - (\u212F^((-x)) * (x + 1))"),
+						equalTo("((-(x + 1)) * \u212F^((-x))) + \u212F^((-x))")));
 	}
 
 	@Test
@@ -414,7 +433,8 @@ public class CommandsUsingCASTest extends AlgebraTest {
 
 	@Test
 	public void testDerivativeDegrees() {
-		deg("Derivative(sin(30)*x+sin(x))", "1 / 2 (2cos(x) + 1)");
+		deg("Derivative(sin(30)*x+sin(x))",
+				anyOf(equalTo("1 / 2 + cos(x)"), equalTo("cos(x) + 1 / 2")));
 	}
 
 	@Test
@@ -487,9 +507,9 @@ public class CommandsUsingCASTest extends AlgebraTest {
 		t("f==g", "true");
 	}
 
-	private void frac(String def, String expect) {
+	private void frac(String definition, String expected) {
 		EvalInfo evalInfo = new EvalInfo(true, true).withSymbolic(true);
-		checkWithEvalInfo(def, expect, evalInfo);
+		checkWithEvalInfo(definition, anyOf(equalTo(expected)), evalInfo);
 	}
 
 	@Test

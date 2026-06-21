@@ -1,8 +1,23 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+ 
 package org.geogebra.common.kernel.interval.function;
 
 import static org.geogebra.common.kernel.interval.IntervalConstants.one;
 import static org.geogebra.common.kernel.interval.IntervalConstants.pi;
-import static org.geogebra.common.kernel.interval.IntervalConstants.piHalf;
 import static org.geogebra.common.kernel.interval.IntervalConstants.undefined;
 import static org.geogebra.common.kernel.interval.IntervalConstants.whole;
 import static org.geogebra.common.kernel.interval.IntervalConstants.zero;
@@ -38,7 +53,8 @@ public class GeoFunctionConverterTest extends BaseUnitTest {
 	public void testConvertSinXPlus1() {
 		IntervalNodeFunction function = convert("sin(x)+1");
 		assertEquals(one(), function.value(pi()));
-		assertEquals(new Interval(2), function.value(piHalf()));
+		assertEquals(new Interval(2), function.value(
+				new Interval(IntervalConstants.PI_HALF_LOW, IntervalConstants.PI_HALF_HIGH)));
 	}
 
 	@Test
@@ -51,7 +67,8 @@ public class GeoFunctionConverterTest extends BaseUnitTest {
 	@Test
 	public void testConvertSinBracketXPlus1Bracket() {
 		IntervalNodeFunction function = convert("sin(x+pi+pi)");
-		assertEquals(one(), function.value(piHalf()));
+		assertEquals(one(), function.value(
+				new Interval(IntervalConstants.PI_HALF_LOW, IntervalConstants.PI_HALF_HIGH)));
 		assertEquals(zero(), function.value(pi()));
 	}
 
@@ -84,7 +101,7 @@ public class GeoFunctionConverterTest extends BaseUnitTest {
 	@Test
 	public void testConvertTanSquaredXInverse() {
 		IntervalNodeFunction function = convert("1/(tan^(2)(x))");
-		assertEquals(whole(), function.value(around(Math.PI / 2, 1E-7)));
+		assertEquals(zero(), function.value(around(Math.PI / 2, 1E-7)));
 	}
 
 	@Test

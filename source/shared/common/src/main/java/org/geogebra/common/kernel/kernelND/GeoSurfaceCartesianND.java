@@ -1,6 +1,23 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.kernelND;
 
 import org.apache.commons.math3.util.Cloner;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.algos.AlgoMacro;
@@ -24,7 +41,6 @@ import org.geogebra.common.kernel.matrix.Coords;
 import org.geogebra.common.plugin.Operation;
 import org.geogebra.common.util.DoubleUtil;
 import org.geogebra.common.util.ExtendedBoolean;
-import org.geogebra.common.util.StringUtil;
 
 /**
  * Abstract class for cartesian curves in any dimension
@@ -240,7 +256,7 @@ public abstract class GeoSurfaceCartesianND extends GeoElement
 	 * returns all class-specific xml tags for getXML
 	 */
 	@Override
-	protected void getStyleXML(StringBuilder sb) {
+	protected void getStyleXML(XMLStringBuilder sb) {
 		super.getStyleXML(sb);
 		// line thickness and type
 		getLineStyleXML(sb);
@@ -252,14 +268,13 @@ public abstract class GeoSurfaceCartesianND extends GeoElement
 	}
 
 	@Override
-	protected void getExpressionXML(StringBuilder sb) {
+	protected void getExpressionXML(XMLStringBuilder sb) {
 		if (isIndependent() && getDefinition() == null && !isDefined && complexVariable != null) {
-			sb.append("<expression label=\"");
-			StringUtil.encodeXML(sb, label);
-			sb.append("\" exp=\"");
-			StringUtil.encodeXML(sb, getAssignmentLHS(StringTemplate.xmlTemplate));
-			sb.append(" = ?");
-			sb.append("\" type=\"surfacecartesian\"/>\n");
+			sb.startTag("expression", 0);
+			sb.attr("label", label);
+			sb.attr("exp", getAssignmentLHS(StringTemplate.xmlTemplate) + " = ?");
+			sb.attr("type", "surfacecartesian");
+			sb.endTag();
 		} else {
 			super.getExpressionXML(sb);
 		}
@@ -310,7 +325,7 @@ public abstract class GeoSurfaceCartesianND extends GeoElement
 			}
 			StringBuilder sbTemp = new StringBuilder(80);
 			sbTemp.setLength(0);
-			sbTemp.append(tpl.leftBracket());
+			sbTemp.append(tpl.leftBracket(kernel.getLocalization()));
 
 			for (int i = 0; i < fun.length; i++) {
 				sbTemp.append(fun[i].toValueString(tpl));
@@ -319,7 +334,7 @@ public abstract class GeoSurfaceCartesianND extends GeoElement
 				}
 			}
 
-			sbTemp.append(tpl.rightBracket());
+			sbTemp.append(tpl.rightBracket(kernel.getLocalization()));
 			return sbTemp.toString();
 		}
 		return "?";
@@ -538,9 +553,9 @@ public abstract class GeoSurfaceCartesianND extends GeoElement
 			// (xyz[1] - y0) * vz - (xyz[2] - z0) * vy;
 
 			// help values
-			double nx = (xyz[2] - z0) * vx - (xyz[0] - x0) * vz;
-			double ny = (xyz[0] - x0) * vy - (xyz[1] - y0) * vx;
-			double nz = (xyz[1] - y0) * vz - (xyz[2] - z0) * vy;
+			final double nx = (xyz[2] - z0) * vx - (xyz[0] - x0) * vz;
+			final double ny = (xyz[0] - x0) * vy - (xyz[1] - y0) * vx;
+			final double nz = (xyz[1] - y0) * vz - (xyz[2] - z0) * vy;
 			double nxDu = xyzDu[2] * vx - xyzDu[0] * vz;
 			double nyDu = xyzDu[0] * vy - xyzDu[1] * vx;
 			double nzDu = xyzDu[1] * vz - xyzDu[2] * vy;
@@ -656,10 +671,6 @@ public abstract class GeoSurfaceCartesianND extends GeoElement
 			bivariateDelta = new Coords(2);
 		}
 
-		// init to no solution
-		double dist = Double.POSITIVE_INFINITY;
-		xzyzuvOut[0] = Double.NaN;
-
 		// make several tries
 		double uMin = getMinParameter(0);
 		double uMax = getMaxParameter(0);
@@ -667,6 +678,9 @@ public abstract class GeoSurfaceCartesianND extends GeoElement
 		double vMax = getMaxParameter(1);
 		double du = (uMax - uMin) / BIVARIATE_SAMPLES;
 		double dv = (vMax - vMin) / BIVARIATE_SAMPLES;
+		// init to no solution
+		double dist = Double.POSITIVE_INFINITY;
+		xzyzuvOut[0] = Double.NaN;
 		for (int ui = 0; ui <= BIVARIATE_SAMPLES; ui++) {
 			uv[0] = uMin + ui * du;
 			for (int vi = 0; vi <= BIVARIATE_SAMPLES; vi++) {
@@ -799,7 +813,7 @@ public abstract class GeoSurfaceCartesianND extends GeoElement
 	}
 
 	private double getRandomBetween(double a, double b) {
-		return a + (b - a) * cons.getApplication().getRandomNumber();
+		return a + (b - a) * kernel.randomNumberGenerator.getRandomNumber();
 	}
 
 	/**
@@ -982,8 +996,8 @@ public abstract class GeoSurfaceCartesianND extends GeoElement
 	@Override
 	public String getAssignmentLHS(StringTemplate tpl) {
 		if (complexVariable != null) {
-			return tpl.printVariableName(label) + tpl.leftBracket()
-					+ getVarString(tpl) + tpl.rightBracket();
+			return tpl.printVariableName(label) + tpl.leftBracket(kernel.getLocalization())
+					+ getVarString(tpl) + tpl.rightBracket(kernel.getLocalization());
 		}
 		return super.getAssignmentLHS(tpl);
 	}

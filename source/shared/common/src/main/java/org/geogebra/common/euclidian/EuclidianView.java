@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian;
 
 import static org.geogebra.common.main.GeoGebraColorConstants.NEUTRAL_500;
@@ -12,7 +28,9 @@ import java.util.TreeSet;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GAffineTransform;
+import org.geogebra.common.awt.GArea;
 import org.geogebra.common.awt.GBasicStroke;
 import org.geogebra.common.awt.GBufferedImage;
 import org.geogebra.common.awt.GColor;
@@ -27,6 +45,7 @@ import org.geogebra.common.awt.GPoint2D;
 import org.geogebra.common.awt.GRectangle;
 import org.geogebra.common.awt.GShape;
 import org.geogebra.common.awt.MyImage;
+import org.geogebra.common.euclidian.CoordSystemInfo.ScaledAxis;
 import org.geogebra.common.euclidian.background.DrawBackground;
 import org.geogebra.common.euclidian.draw.DrawAngle;
 import org.geogebra.common.euclidian.draw.DrawConic;
@@ -48,15 +67,12 @@ import org.geogebra.common.euclidian.event.PointerEventType;
 import org.geogebra.common.euclidian.plot.GeneralPathClippedForCurvePlotter;
 import org.geogebra.common.euclidian.plot.interval.IntervalPathPlotter;
 import org.geogebra.common.euclidian.plot.interval.IntervalPathPlotterImpl;
-import org.geogebra.common.exam.ExamType;
-import org.geogebra.common.exam.restrictions.ExamFeatureRestriction;
-import org.geogebra.common.exam.restrictions.ExamRestrictable;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.factories.FormatFactory;
 import org.geogebra.common.gui.EdgeInsets;
 import org.geogebra.common.gui.SetLabels;
 import org.geogebra.common.gui.dialog.options.OptionsEuclidian;
 import org.geogebra.common.gui.inputfield.AutoCompleteTextField;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.Kernel;
 import org.geogebra.common.kernel.ModeSetter;
 import org.geogebra.common.kernel.StringTemplate;
@@ -91,13 +107,14 @@ import org.geogebra.common.main.GeoGebraColorConstants;
 import org.geogebra.common.main.GuiManagerInterface;
 import org.geogebra.common.main.ScreenReader;
 import org.geogebra.common.main.SelectionManager;
-import org.geogebra.common.main.settings.AbstractSettings;
 import org.geogebra.common.main.settings.AlgebraStyle;
 import org.geogebra.common.main.settings.EuclidianSettings;
 import org.geogebra.common.plugin.EuclidianStyleConstants;
 import org.geogebra.common.plugin.Event;
 import org.geogebra.common.plugin.EventType;
 import org.geogebra.common.plugin.GeoClass;
+import org.geogebra.common.restrictions.FeatureRestriction;
+import org.geogebra.common.restrictions.Restrictable;
 import org.geogebra.common.util.AsyncOperation;
 import org.geogebra.common.util.DoubleUtil;
 import org.geogebra.common.util.MyMath;
@@ -106,15 +123,15 @@ import org.geogebra.common.util.StringUtil;
 import org.geogebra.common.util.debug.Log;
 import org.geogebra.common.util.debug.crashlytics.CrashlyticsLogger;
 import org.geogebra.common.util.shape.Rectangle;
+import org.geogebra.editor.share.util.Unicode;
 
 import com.google.j2objc.annotations.Weak;
-import com.himamis.retex.editor.share.util.Unicode;
 
 /**
  * View containing graphic representation of construction elements
  */
 public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
-		SetLabels, ExamRestrictable {
+		SetLabels, Restrictable {
 
 	private boolean isCrashlyticsLoggingEnabled;
 
@@ -230,7 +247,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 	/**
 	 * object color of shape (black by default)
 	 */
-	private final GColor shapeObjCol = GColor.BLACK;
+	private final static GColor shapeObjCol = GColor.BLACK;
 	/**
 	 * stroke of shape
 	 */
@@ -523,7 +540,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 	private EdgeInsets safeAreaInsets = new EdgeInsets(MINIMUM_SAFE_AREA);
 
 	/** @return line types */
-	public static final Integer[] getLineTypes() {
+	public static Integer[] getLineTypes() {
 		Integer[] ret = new Integer[lineTypes.length];
 
 		for (int i = 0; i < lineTypes.length; i++) {
@@ -553,7 +570,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 	}
 
 	/** @return point styles */
-	public static final Integer[] getPointStyles() {
+	public static Integer[] getPointStyles() {
 		Integer[] ret = new Integer[pointStyles.length];
 
 		for (int i = 0; i < pointStyles.length; i++) {
@@ -790,7 +807,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 	 * @return True if selection rectangle should be cleared when a certain mode is being
 	 * selected, false else
 	 */
-	final private static boolean shouldClearRectangle(int mode) {
+	private static boolean shouldClearRectangle(int mode) {
 		switch (mode) {
 		case EuclidianConstants.MODE_MIRROR_AT_LINE:
 		case EuclidianConstants.MODE_MIRROR_AT_POINT:
@@ -810,7 +827,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 	 * @param newMode New Mode which is being set
 	 * @return True if the bounding boxes and selected geos should be cleared, false else
 	 */
-	final private boolean shouldClearSelectedGeos(int newMode) {
+	private boolean shouldClearSelectedGeos(int newMode) {
 		return (this.mode == EuclidianConstants.MODE_SELECT_MOW
 				|| this.mode == EuclidianConstants.MODE_SELECT)
 				&& newMode == EuclidianConstants.MODE_MOVE;
@@ -1874,6 +1891,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 	public void endBatchUpdate() {
 		this.batchUpdate = false;
 		if (this.needsAllDrawablesUpdate) {
+			needsAllDrawablesUpdate = false;
 			notifyCoordSystemMoved();
 			allDrawableList.updateAll();
 			repaint();
@@ -2859,7 +2877,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 	 *            mode
 	 * @return true if given mode can use selection rectangle as input
 	 */
-	final public static boolean usesSelectionAsInput(int mode) {
+	public static boolean usesSelectionAsInput(int mode) {
 		switch (mode) {
 		case EuclidianConstants.MODE_TRANSLATE_BY_VECTOR:
 			return false; // changed for new "drag" behaviour
@@ -2880,7 +2898,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 	 *            mode
 	 * @return true if mode can handle selection rectangle as input
 	 */
-	final public static boolean usesSelectionRectangleAsInput(int mode) {
+	public static boolean usesSelectionRectangleAsInput(int mode) {
 		switch (mode) {
 		case EuclidianConstants.MODE_FITLINE:
 		case EuclidianConstants.MODE_CREATE_LIST:
@@ -3577,7 +3595,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 	 * @param g2
 	 *            graphics
 	 */
-	final private void drawGeometricObjects(GGraphics2D g2) {
+	private void drawGeometricObjects(GGraphics2D g2) {
 		// only draw drawables we need
 		allDrawableList.drawAll(g2);
 
@@ -4057,7 +4075,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 			}
 			break;
 		case GRID_DOTS:
-			drawGrid.drawDotsGrid(g2);
+			drawGrid.drawDotsGrid(g2, xCrossPix, yCrossPix);
 			break;
 		}
 
@@ -4070,9 +4088,9 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 	private void drawIsometricGrid(GGraphics2D g2, double xCrossPix,
 			double yCrossPix) {
 		boolean clipX = positiveAxes[1] && yCrossPix < getHeight();
-		int yAxisEnd = clipX ? (int) yCrossPix : getHeight();
+		final int yAxisEnd = clipX ? (int) yCrossPix : getHeight();
 		boolean clipY = positiveAxes[0] && xCrossPix > 0;
-		int xAxisStart = clipY ? (int) xCrossPix : 0;
+		final int xAxisStart = clipY ? (int) xCrossPix : 0;
 
 		// set the clipping region to the region defined by the axes
 
@@ -4172,7 +4190,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 				&& (getXmax() > axisCross[1]);
 	}
 
-	protected int getYOffsetForXAxis(int baseFontSize) {
+	protected double getYOffsetForXAxis(double baseFontSize) {
 		return baseFontSize + 4;
 	}
 
@@ -4250,7 +4268,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 	 * @param g2
 	 *            graphics
 	 */
-	final public static void setAntialiasing(GGraphics2D g2) {
+	public static void setAntialiasing(GGraphics2D g2) {
 		g2.setAntialiasing();
 	}
 
@@ -4321,7 +4339,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 	 *            settings
 	 */
 	@Override
-	public void settingsChanged(AbstractSettings settings) {
+	public void settingsChanged(EuclidianSettings settings) {
 		companion.settingsChanged(settings);
 
 		if (styleBar != null) {
@@ -4381,10 +4399,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 		this.isRounded = isRounded;
 	}
 
-	/**
-	 * @return path along border of this view
-	 */
-	public GeneralPathClipped getBoundingPath() {
+	private GGeneralPath getBoundingPath() {
 		GeneralPathClipped gs = new GeneralPathClipped(this);
 		gs.resetWithThickness(1);
 		gs.moveTo(getMinXScreen(), getMinYScreen());
@@ -4393,7 +4408,14 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 		gs.lineTo(getMinXScreen(), getMaxYScreen());
 		gs.lineTo(getMinXScreen(), getMinYScreen());
 		gs.closePath();
-		return gs;
+		return gs.getGeneralPath();
+	}
+
+	/**
+	 * @return path along border of this view
+	 */
+	public GArea getBoundsArea() {
+		return AwtFactory.getPrototype().newArea(getBoundingPath());
 	}
 
 	/**
@@ -4494,7 +4516,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 
 		g2.setFont(getFontAxes());
 
-		int yAxisHeight = positiveAxes[1] ? (int) getYZero() : getHeight();
+		final int yAxisHeight = positiveAxes[1] ? (int) getYZero() : getHeight();
 		int maxY = positiveAxes[1] ? (int) getYZero() : getHeight()
 				- SCREEN_BORDER;
 
@@ -4615,7 +4637,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 	 *            true for preferences
 	 */
 	@Override
-	public void getXML(StringBuilder sbxml, boolean asPreference) {
+	public void getXML(XMLStringBuilder sbxml, boolean asPreference) {
 		companion.getXML(sbxml, asPreference);
 	}
 
@@ -4627,9 +4649,8 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 	 * @param asPreference
 	 *            true for preferences
 	 */
-	public void startXML(StringBuilder sbxml, boolean asPreference) {
-		StringTemplate tpl = StringTemplate.xmlTemplate;
-		sbxml.append("<euclidianView>\n");
+	public void startXML(XMLStringBuilder sbxml, boolean asPreference) {
+		sbxml.startOpeningTag("euclidianView", 0).endTag();
 
 		companion.getXMLid(sbxml);
 
@@ -4644,155 +4665,113 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 		}
 
 		if ((width > MIN_WIDTH) && (height > MIN_HEIGHT)) {
-			sbxml.append("\t<size ");
-			sbxml.append(" width=\"");
-			sbxml.append(width);
-			sbxml.append("\"");
-			sbxml.append(" height=\"");
-			sbxml.append(height);
-			sbxml.append("\"");
-			sbxml.append("/>\n");
+			sbxml.startTag("size");
+			sbxml.attr("width", width);
+			sbxml.attr("height", height);
+			sbxml.endTag();
 		}
+		sbxml.startTag("coordSystem");
 		if (!isZoomable() && !asPreference) {
-			sbxml.append("\t<coordSystem");
-			sbxml.append(" xMin=\"");
-			StringUtil
-					.encodeXML(sbxml, ((GeoNumeric) xminObject).getLabel(tpl));
-			sbxml.append("\"");
-			sbxml.append(" xMax=\"");
-			StringUtil
-					.encodeXML(sbxml, ((GeoNumeric) xmaxObject).getLabel(tpl));
-			sbxml.append("\"");
-			sbxml.append(" yMin=\"");
-			StringUtil
-					.encodeXML(sbxml, ((GeoNumeric) yminObject).getLabel(tpl));
-			sbxml.append("\"");
-			sbxml.append(" yMax=\"");
-			StringUtil
-					.encodeXML(sbxml, ((GeoNumeric) ymaxObject).getLabel(tpl));
-			sbxml.append("\"");
-			sbxml.append("/>\n");
+			StringTemplate tpl = StringTemplate.xmlTemplate;
+			sbxml.attr("xMin", ((GeoNumeric) xminObject).getLabel(tpl));
+			sbxml.attr("xMax", ((GeoNumeric) xmaxObject).getLabel(tpl));
+			sbxml.attr("yMin", ((GeoNumeric) yminObject).getLabel(tpl));
+			sbxml.attr("yMax", ((GeoNumeric) ymaxObject).getLabel(tpl));
 		} else {
-			sbxml.append("\t<coordSystem");
-			sbxml.append(" xZero=\"");
-			sbxml.append(getXZeroForXml());
-			sbxml.append("\"");
-			sbxml.append(" yZero=\"");
-			sbxml.append(getYZeroForXml());
-			sbxml.append("\"");
-			sbxml.append(" scale=\"");
-			sbxml.append(getXscale());
-			sbxml.append("\"");
-			sbxml.append(" yscale=\"");
-			sbxml.append(getYscale());
-			sbxml.append("\"");
-			sbxml.append("/>\n");
+			sbxml.attr("xZero", getXZeroForXml());
+			sbxml.attr("yZero", getYZeroForXml());
+			sbxml.attr("scale", getXscale());
+			sbxml.attr("yscale", getYscale());
 		}
+		sbxml.endTag();
 		// NOTE: the attribute "axes" for the visibility state of
 		// both axes is no longer needed since V3.0.
 		// Now there are special axis tags, see below.
-		sbxml.append("\t<evSettings axes=\"");
-		sbxml.append(showAxes[0] || showAxes[1]);
-		sbxml.append("\" grid=\"");
-		sbxml.append(showGrid);
-		sbxml.append("\" gridIsBold=\""); //
-		sbxml.append(gridIsBold);
-		sbxml.append("\" pointCapturing=\"");
+		sbxml.startTag("evSettings");
+		sbxml.attr("axes", showAxes[0] || showAxes[1]);
+		sbxml.attr("grid", showGrid);
+		sbxml.attr("gridIsBold", gridIsBold);
 
 		// make sure POINT_CAPTURING_STICKY_POINTS isn't written to XML
-		sbxml.append(
+		sbxml.attr("pointCapturing",
 				getPointCapturingMode() > EuclidianStyleConstants.POINT_CAPTURING_XML_MAX
 						? EuclidianStyleConstants.POINT_CAPTURING_DEFAULT
 				: getPointCapturingMode());
 
-		sbxml.append("\" rightAngleStyle=\"");
-		sbxml.append(getApplication().rightAngleStyle);
+		sbxml.attr("rightAngleStyle", getApplication().rightAngleStyle);
 		if (asPreference) {
-			sbxml.append("\" allowShowMouseCoords=\"");
-			sbxml.append(getAllowShowMouseCoords());
+			sbxml.attr("allowShowMouseCoords", getAllowShowMouseCoords());
 
-			sbxml.append("\" allowToolTips=\"");
-			sbxml.append(getAllowToolTips());
+			sbxml.attr("allowToolTips", getAllowToolTips());
 
-			sbxml.append("\" deleteToolSize=\"");
-			sbxml.append(getEuclidianController().getDeleteToolSize());
+			sbxml.attr("deleteToolSize", getEuclidianController().getDeleteToolSize());
 		}
 
-		// checkbox size 13 deprecated
-		sbxml.append("\" checkboxSize=\"26\" gridType=\"");
-		sbxml.append(getGridType()); // cartesian/isometric/polar
+		sbxml.attr("checkboxSize", 26) // checkbox size 13 deprecated
+				.attr("gridType", getGridType()); // cartesian/isometric/polar
 
 		if (lockedAxesRatio > 0) {
-			sbxml.append("\" lockedAxesRatio=\"");
-			sbxml.append(lockedAxesRatio);
+			sbxml.attr("lockedAxesRatio", lockedAxesRatio);
 		}
 
-		sbxml.append("\"/>\n");
+		sbxml.endTag();
 
 		// background color
-		sbxml.append("\t<bgColor");
+		sbxml.startTag("bgColor");
 		XMLBuilder.appendRGB(sbxml, getBackgroundCommon());
-		sbxml.append("/>\n");
+		sbxml.endTag();
 
 		// axes color
-		sbxml.append("\t<axesColor");
+		sbxml.startTag("axesColor");
 		XMLBuilder.appendRGB(sbxml, axesColor);
-		sbxml.append("/>\n");
+		sbxml.endTag();
 
 		// grid color
-		sbxml.append("\t<gridColor");
+		sbxml.startTag("gridColor");
 		XMLBuilder.appendRGB(sbxml, gridColor);
-		sbxml.append("/>\n");
+		sbxml.endTag();
 
 		int rulerType = settings.getBackgroundType().value();
 		if (app.isWhiteboardActive()) {
-			sbxml.append("\t<rulerType val=\"");
-			sbxml.append(rulerType);
-			sbxml.append("\" bold=\"");
-			sbxml.append(settings.isRulerBold());
-			sbxml.append("\"/>\n");
+			sbxml.startTag("rulerType")
+					.attr("val", rulerType)
+					.attr("bold", settings.isRulerBold())
+					.endTag();
 
 			// ruler color
 			GColor rulerColor = settings.getBgRulerColor();
 			if (!GColor.MOW_RULER.equals(rulerColor)) {
-				sbxml.append("\t<rulerColor");
+				sbxml.startTag("rulerColor");
 				XMLBuilder.appendRGB(sbxml, rulerColor);
-				sbxml.append("/>\n");
+				sbxml.endTag();
 			}
 
 			if (app.getSaveController() != null && app.getSaveController().savedAsTemplate()) {
 				app.getSettings().getPenTools().getXML(sbxml);
-				sbxml.append("\t<language val=\"");
-				sbxml.append(app.getLocalization().getLanguageTag());
-				sbxml.append("\"/>\n");
+				sbxml.startTag("language");
+				sbxml.attr("val", app.getLocalization().getLanguageTag());
+				sbxml.endTag();
 			}
 		}
 		// axes line style
-		sbxml.append("\t<lineStyle axes=\"");
-		sbxml.append(axesLineType);
-		sbxml.append("\" grid=\"");
-		sbxml.append(gridLineStyle);
+		sbxml.startTag("lineStyle");
+		sbxml.attr("axes", axesLineType);
+		sbxml.attr("grid", gridLineStyle);
 		int rulerLineStyle = settings.getRulerLineStyle();
 		if (app.isWhiteboardActive()) {
-			sbxml.append("\" ruler=\"");
-			sbxml.append(rulerLineStyle);
+			sbxml.attr("ruler", rulerLineStyle);
 		}
 
-		sbxml.append("\"/>\n");
+		sbxml.endTag();
 
 		// axes label style
 		int style = getSettings().getAxisFontStyle();
 		boolean serif = getSettings().getAxesLabelsSerif();
 		if (style != GFont.PLAIN || serif) {
-			sbxml.append("\t<labelStyle axes=\"");
-			sbxml.append(style);
-			sbxml.append("\"");
-
-			sbxml.append(" serif=\"");
-			sbxml.append(serif);
-			sbxml.append("\"");
-
-			sbxml.append("/>\n");
+			sbxml.startTag("labelStyle")
+					.attr("axes", style)
+					.attr("serif", serif)
+					.endTag();
 		}
 
 		// axis settings
@@ -4802,14 +4781,11 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 
 		// grid distances
 		if (!automaticGridDistance) {
-			sbxml.append("\t<grid distX=\"");
-			sbxml.append(gridDistances[0]);
-			sbxml.append("\" distY=\"");
-			sbxml.append(gridDistances[1]);
-			sbxml.append("\" distTheta=\"");
-			// polar angle step added in v4.0
-			sbxml.append(gridDistances[2]);
-			sbxml.append("\"/>\n");
+			sbxml.startTag("grid");
+			sbxml.attr("distX", gridDistances[0]);
+			sbxml.attr("distY", gridDistances[1]);
+			sbxml.attr("distTheta", gridDistances[2]);
+			sbxml.endTag();
 		}
 
 	}
@@ -4820,8 +4796,8 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 	 * @param sbxml
 	 *            string builder
 	 */
-	public void endXML(StringBuilder sbxml) {
-		sbxml.append("</euclidianView>\n");
+	public void endXML(XMLStringBuilder sbxml) {
+		sbxml.closeTag("euclidianView");
 	}
 
 	/**
@@ -5270,12 +5246,9 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 		tempArrayList.clear();
 		tempArrayList.add(geo);
 
-		AsyncOperation<Boolean> callback = new AsyncOperation<Boolean>() {
-			@Override
-			public void callback(Boolean arg) {
-				if (arg.equals(true)) {
-					euclidianController.storeUndoInfo();
-				}
+		AsyncOperation<Boolean> callback = arg -> {
+			if (arg.equals(true)) {
+				euclidianController.storeUndoInfo();
 			}
 		};
 		boolean changedKernel = euclidianController.processMode(tempArrayList,
@@ -5336,7 +5309,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 			axesRatioZoomer = newZoomer();
 		}
 
-		coordSystemInfo.setXAxisZoom(true);
+		coordSystemInfo.setScaledAxis(ScaledAxis.BOTH);
 		axesRatioZoomer.initAxes(newRatioX, newRatioY, storeUndo);
 		axesRatioZoomer.startAnimation();
 	}
@@ -5372,7 +5345,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 			}
 			axesRatioZoomer.initAxes(2, 2, false);
 			axesRatioZoomer.setStandardViewAfter(xzero, yzero);
-			coordSystemInfo.setXAxisZoom(true);
+			coordSystemInfo.setScaledAxis(ScaledAxis.BOTH);
 			axesRatioZoomer.startAnimation();
 		} else {
 			setAnimatedCoordSystem(xzero, yzero, STANDARD_VIEW_STEPS, false);
@@ -5827,7 +5800,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 			GRectangle rect = getSelectionRectangle();
 
 			g2d.setClip(0, 0, (int) rect.getWidth(),
-						(int) rect.getHeight());
+						(int) rect.getHeight(), false);
 
 			g2d.translate(-rect.getX(), -rect.getY());
 		} else {
@@ -5841,11 +5814,11 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 				int exportWidth = (int) (x2 - x1 + 2);
 				int exportHeight = (int) (y2 - y1 + 2);
 
-				g2d.setClip(0, 0, exportWidth, exportHeight);
+				g2d.setClip(0, 0, exportWidth, exportHeight, false);
 				g2d.translate(-x1, -y1);
 			} else {
 				// or take full euclidian view
-				g2d.setClip(0, 0, getWidth(), getHeight());
+				g2d.setClip(0, 0, getWidth(), getHeight(), false);
 			}
 		}
 
@@ -6187,7 +6160,7 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 				drawInputBox.setWidgetVisible(true);
 				value = inputBox.getText();
 			}
-			ScreenReader.debug(inputBox.getAuralText() + " [editable] " + value);
+			ScreenReader.debug(inputBox.getAuralText() + "edit multiline is " + value);
 		}
 	}
 
@@ -6646,18 +6619,27 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 	 */
 	public void onResizeX() {
 		setCursor(EuclidianCursor.RESIZE_X);
-		coordSystemInfo.setXAxisZoom(true);
+		coordSystemInfo.setScaledAxis(ScaledAxis.X_AXIS);
 	}
 
 	/**
 	 * Runs when axis zoom is canceled.
 	 */
 	void onAxisZoomCancel() {
+		if (coordSystemInfo.hasScaledAxis()) {
+			notifyCoordSystemAxisZoomStop();
+		}
+
 		coordSystemInfo.setInteractive(false);
-		if (coordSystemInfo.isXAxisZoom()) {
-			coordSystemInfo.setXAxisZoom(false);
+		if (coordSystemInfo.hasScaledAxis()) {
+			coordSystemInfo.cancelScaledAxis();
 			euclidianController.notifyZoomerStopped();
 		}
+	}
+
+	private void notifyCoordSystemAxisZoomStop() {
+		euclidianController.notifyCoordSystemAxisZoomStop();
+		coordSystemInfo.cancelScaledAxis();
 	}
 
 	@Override
@@ -6692,15 +6674,13 @@ public abstract class EuclidianView implements EuclidianViewInterfaceCommon,
 	}
 
 	@Override
-	public void applyRestrictions(@Nonnull Set<ExamFeatureRestriction> featureRestrictions,
-			@Nonnull ExamType examType) {
+	public void applyRestrictions(@Nonnull Set<FeatureRestriction> featureRestrictions) {
 		restrictGraphSelectionForFunctions = featureRestrictions
-				.contains(ExamFeatureRestriction.AUTOMATIC_GRAPH_SELECTION_FOR_FUNCTIONS);
+				.contains(FeatureRestriction.AUTOMATIC_GRAPH_SELECTION_FOR_FUNCTIONS);
 	}
 
 	@Override
-	public void removeRestrictions(@Nonnull Set<ExamFeatureRestriction> featureRestrictions,
-			@Nonnull ExamType examType) {
+	public void removeRestrictions(@Nonnull Set<FeatureRestriction> featureRestrictions) {
 		restrictGraphSelectionForFunctions = false;
 	}
 

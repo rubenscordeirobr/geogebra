@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.app;
 
 import java.util.ArrayList;
@@ -86,7 +102,7 @@ public class GGWToolBar extends Composite
 	/** undo button */
 	StandardButton undoButton;
 	private StandardButton redoButton;
-	private final ExamController examController = GlobalScope.examController;
+	private ExamController examController;
 
 	/**
 	 * Create a new GGWToolBar object
@@ -134,6 +150,7 @@ public class GGWToolBar extends Composite
 
 		this.inited = true;
 		this.app = app1;
+		examController = GlobalScope.getExamController(app);
 		toolbars = new ArrayList<>();
 
 		submenuScrollPanel = new ScrollPanel();
@@ -153,7 +170,7 @@ public class GGWToolBar extends Composite
 
 		toolBarPanel.addStyleName("toolbarPanel");
 
-		if (!examController.isIdle()) {
+		if (examController != null && !examController.isIdle()) {
 			toolBarPanel.addStyleName("toolbarPanelExam");
 		}
 		toolBPanel.setStyleName("toolBPanel");
@@ -772,7 +789,7 @@ public class GGWToolBar extends Composite
 		case EuclidianConstants.MODE_TRANSLATE_BY_VECTOR:
 			return resourceBundle.mode_translatebyvector_32();
 
-		case EuclidianConstants.MODE_TRANSLATEVIEW:
+		case EuclidianConstants.MODE_TRANSLATE_VIEW:
 			return resourceBundle.mode_translateview_32();
 
 		case EuclidianConstants.MODE_SPREADSHEET_TWOVARSTATS:
@@ -1122,7 +1139,7 @@ public class GGWToolBar extends Composite
 	 */
 	public static void set1rstMode(AppW app) {
 		if (app.isWhiteboardActive()) {
-			app.setMode(EuclidianConstants.MODE_PEN, ModeSetter.DOCK_PANEL);
+			app.setMode(EuclidianConstants.MODE_SELECT_MOW, ModeSetter.DOCK_PANEL);
 		} else {
 			if (app.getToolbar() == null
 					|| ((GGWToolBar) app.getToolbar()).getToolBar() == null) {

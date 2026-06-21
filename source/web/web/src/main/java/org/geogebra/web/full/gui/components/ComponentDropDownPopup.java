@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.components;
 
 import org.geogebra.web.full.javax.swing.GPopupMenuW;
@@ -22,6 +38,8 @@ public class ComponentDropDownPopup {
 	private final Widget anchor;
 	private final int itemHeight;
 	private final AppW app;
+	private String popupID;
+	private boolean autoFocus;
 
 	/**
 	 * Popup constructor for dropdown and combo-box
@@ -37,6 +55,7 @@ public class ComponentDropDownPopup {
 		this.anchor = anchor;
 		menu = new GPopupMenuW(app);
 		menu.getPopupPanel().addStyleName("dropDownPopup");
+		menu.getPopupPanel().addStyleName("keyboardFocus");
 		menu.getPopupPanel().addCloseHandler(event -> {
 			menu.getPopupPanel().removeStyleName("show");
 			if (onClose != null) {
@@ -184,9 +203,12 @@ public class ComponentDropDownPopup {
 	 */
 	private void showAtPoint(int x, int  y) {
 		menu.showAtPoint(x, y);
+		menu.getPopupPanel().getElement().setId(popupID);
 		Scheduler.get().scheduleDeferred(() -> {
 			menu.getPopupPanel().addStyleName("show");
-			menu.getPopupMenu().focus();
+			if (this.autoFocus) {
+				menu.getPopupMenu().focus();
+			}
 		});
 	}
 
@@ -202,5 +224,37 @@ public class ComponentDropDownPopup {
 		AriaHelper.setRole(menu.getPopupPanel(), "listbox");
 		AriaHelper.setLabel(menu.getPopupPanel(), app.getLocalization().getMenu(labelKey));
 		menu.getPopupPanel().setMayMoveFocus(true);
+	}
+
+	public void setPopupID(String popupID) {
+		this.popupID = popupID;
+	}
+
+	/**
+	 * @param inputElement element to which this should return focus on close
+	 */
+	public void setFocusAnchor(Element inputElement) {
+		menu.setAnchor(inputElement);
+	}
+
+	/**
+	 * Allows overriding focus styling so that selected element can be highlighted while
+	 * actual keyboard focus is in input element.
+	 * @param force whether keyboard focus style should be forced
+	 */
+	public void forceKeyboardFocus(boolean force) {
+		menu.getPopupPanel().setStyleName("forceKeyboardFocus", force);
+	}
+
+	public void setAutoFocus(boolean autoFocus) {
+		this.autoFocus = autoFocus;
+	}
+
+	/**
+	 * @param index index
+	 * @return DOM ID of given item
+	 */
+	public String getSelectedId(int index) {
+		return menu.getPopupMenu().getItemAt(index).getElement().getId();
 	}
 }

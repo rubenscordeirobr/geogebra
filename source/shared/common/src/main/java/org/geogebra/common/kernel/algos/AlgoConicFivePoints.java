@@ -1,19 +1,17 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
- */
-
 /*
- * AlgoConicFivePoints.java
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
  *
- * Created on 15. November 2001, 21:37
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.algos;
@@ -288,7 +286,7 @@ public class AlgoConicFivePoints extends AlgoElement
 
 	// compute degenerate conic from lines a, b
 	// the result is written into A as a NON-SYMMETRIC Matrix
-	final private static void degCone(GeoVec3D a, GeoVec3D b, double[][] A) {
+	private static void degCone(GeoVec3D a, GeoVec3D b, double[][] A) {
 		// A = a . b^t
 		A[0][0] = a.x * b.x;
 		A[0][1] = a.x * b.y;
@@ -302,7 +300,7 @@ public class AlgoConicFivePoints extends AlgoElement
 	}
 
 	// computes P.A.P, where A is a (possibly not symmetric) 3x3 matrix
-	final private static double evalMatrix(double[][] A, GeoPoint P) {
+	private static double evalMatrix(double[][] A, GeoPoint P) {
 		return A[0][0] * P.x * P.x + A[1][1] * P.y * P.y + A[2][2] * P.z * P.z
 				+ (A[0][1] + A[1][0]) * P.x * P.y
 				+ (A[0][2] + A[2][0]) * P.x * P.z
@@ -310,7 +308,7 @@ public class AlgoConicFivePoints extends AlgoElement
 	}
 
 	// computes the linear combination C = l * A + m * B
-	final private static void linComb(double[][] A, double[][] B, double l,
+	private static void linComb(double[][] A, double[][] B, double l,
 			double m, double[][] C) {
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
@@ -354,12 +352,7 @@ public class AlgoConicFivePoints extends AlgoElement
 		}
 		PVariable x = botanaVars[0];
 		PVariable y = botanaVars[1];
-		PVariable a = botanaVars[2];
-		PVariable b = botanaVars[3];
-		PVariable c = botanaVars[4];
-		PVariable d = botanaVars[5];
-		PVariable e = botanaVars[6];
-		PVariable f = botanaVars[7];
+
 		botanaPolynomials = new PPolynomial[6];
 		/* one for the curve and 5 for the constraints */
 		PPolynomial xp = new PPolynomial(x);
@@ -367,6 +360,12 @@ public class AlgoConicFivePoints extends AlgoElement
 		PPolynomial xx = PPolynomial.sqr(xp);
 		PPolynomial yy = PPolynomial.sqr(yp);
 		PPolynomial xy = xp.multiply(yp);
+		PVariable a = botanaVars[2];
+		PVariable b = botanaVars[3];
+		PVariable c = botanaVars[4];
+		PVariable d = botanaVars[5];
+		PVariable e = botanaVars[6];
+		PVariable f = botanaVars[7];
 		PPolynomial ap = new PPolynomial(a);
 		PPolynomial bp = new PPolynomial(b);
 		PPolynomial cp = new PPolynomial(c);

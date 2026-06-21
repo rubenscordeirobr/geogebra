@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.plugin;
 
 import java.util.ArrayList;
@@ -7,6 +23,7 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 
+import org.geogebra.common.awt.annotations.HasNativeSubclass;
 import org.geogebra.common.kernel.StringTemplate;
 import org.geogebra.common.kernel.geos.GeoElement;
 import org.geogebra.common.main.App;
@@ -14,6 +31,7 @@ import org.geogebra.common.util.debug.Log;
 
 import com.google.j2objc.annotations.Weak;
 
+@HasNativeSubclass
 public abstract class ScriptManager implements EventListener {
 
 	@Weak
@@ -87,7 +105,9 @@ public abstract class ScriptManager implements EventListener {
 			callListeners(clearListeners, evt);
 			break;
 		default:
-			callClientListeners(clientListeners, evt);
+			if (!clientListeners.isEmpty()) {
+				callClientListeners(clientListeners, evt);
+			}
 		}
 	}
 
@@ -137,6 +157,10 @@ public abstract class ScriptManager implements EventListener {
 		// implemented in web and desktop
 	}
 
+	/**
+	 * @param listeners non-empty list of listeners
+	 * @param evt event
+	 */
 	protected void callClientListeners(List<JsReference> listeners, Event evt) {
 		// implemented in web and desktop
 	}
@@ -592,9 +616,15 @@ public abstract class ScriptManager implements EventListener {
 				return ref;
 			}
 		}
-		JsReference alias = fromName((nameToScript.size() + 1) + "");
+		JsReference alias = fromName(String.valueOf(nameToScript.size() + 1));
 		alias.setNativeRunnable(nativeRunnable);
 		return alias;
 	}
 
+	/**
+	 * Discard objects created by running global JS.
+	 */
+	public void clearGlobalObjects() {
+		// only in JRE
+	}
 }

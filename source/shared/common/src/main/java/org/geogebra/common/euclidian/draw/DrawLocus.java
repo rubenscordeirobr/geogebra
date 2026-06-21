@@ -1,21 +1,27 @@
-/* 
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.euclidian.draw;
 
 import java.util.ArrayList;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GBufferedImage;
 import org.geogebra.common.awt.GGraphics2D;
+import org.geogebra.common.awt.GPathIterator;
 import org.geogebra.common.awt.GPoint2D;
 import org.geogebra.common.awt.GRectangle;
 import org.geogebra.common.awt.GRectangle2D;
@@ -24,7 +30,6 @@ import org.geogebra.common.euclidian.Drawable;
 import org.geogebra.common.euclidian.EuclidianView;
 import org.geogebra.common.euclidian.plot.CurvePlotterUtils;
 import org.geogebra.common.euclidian.plot.GeneralPathClippedForCurvePlotter;
-import org.geogebra.common.factories.AwtFactory;
 import org.geogebra.common.kernel.MyPoint;
 import org.geogebra.common.kernel.algos.AlgoElement;
 import org.geogebra.common.kernel.geos.GeoLocusND;
@@ -82,13 +87,6 @@ public class DrawLocus extends Drawable {
 		updateAlgos();
 
 		buildGeneralPath(locus.getPoints());
-
-		// line on screen?
-		if (!geo.isInverseFill() && !view.intersects(gp)) {
-			//isVisible = false;
-			// don't return here to make sure that getBounds() works for
-			// offscreen points too
-		}
 		updateStrokes(geo);
 
 		labelVisible = geo.isLabelVisible();
@@ -96,13 +94,13 @@ public class DrawLocus extends Drawable {
 			labelDesc = geo.getLabelDescription();
 			double xmin = view.getXmin();
 			double xmax = view.getXmax();
-			double ymin = view.getYmin();
-			double ymax = view.getYmax();
 			double x = labelPosition[0];
-			double y = labelPosition[1];
 			double width = view.getWidth();
 			double height = view.getHeight();
 			xLabel = (int) ((x - xmin) / (xmax - xmin) * width) + 5;
+			double ymin = view.getYmin();
+			double ymax = view.getYmax();
+			double y = labelPosition[1];
 			yLabel = (int) (height - (y - ymin) / (ymax - ymin) * height) + 4 + view.getFontSize();
 			/*
 			 * Adding (5,4) will hopefully move the label out of the curve's
@@ -114,8 +112,8 @@ public class DrawLocus extends Drawable {
 		drawAndUpdateTraceIfNeeded(geo.isTraceable()
 				&& (geo instanceof Traceable) && ((Traceable) geo).getTrace());
 		if (geo.isInverseFill()) {
-			setShape(AwtFactory.getPrototype().newArea(view.getBoundingPath()));
-			getShape().subtract(AwtFactory.getPrototype().newArea(gp));
+			setShape(view.getBoundsArea());
+			getShape().subtract(AwtFactory.getPrototype().newArea(gp.getGeneralPath()));
 		}
 	}
 
@@ -169,14 +167,14 @@ public class DrawLocus extends Drawable {
 
 		if (geo.isFillable() && geo.isFilled()) {
 			// fill using default/hatching/image as appropriate
-			fill(g2, geo.isInverseFill() ? getShape() : gp);
+			fill(g2, geo.isInverseFill() ? getShape() : getGeneralPath());
 		}
 	}
 
 	protected void drawPath(GGraphics2D g2, GeneralPathClippedForCurvePlotter gp) {
 		g2.setPaint(getObjectColor());
 		g2.setStroke(objStroke);
-		g2.draw(gp);
+		gp.draw(g2);
 	}
 
 	private GBufferedImage makeImage(GGraphics2D g2p, GRectangle bounds) {
@@ -226,7 +224,7 @@ public class DrawLocus extends Drawable {
 	}
 
 	protected GeneralPathClippedForCurvePlotter newGeneralPath() {
-		return new GeneralPathClippedForCurvePlotter(view);
+		return new GeneralPathClippedForCurvePlotter(view, GPathIterator.WIND_NON_ZERO);
 	}
 
 	@Override
@@ -255,11 +253,11 @@ public class DrawLocus extends Drawable {
 
 	void drawStrokedPath(GGraphics2D g2, GeneralPathClippedForCurvePlotter gp) {
 		if (partialHitClip != null) {
-			g2.setClip(partialHitClip, true);
-			g2.draw(gp);
+			g2.setClip(partialHitClip);
+			gp.draw(g2);
 			g2.resetClip();
 		} else {
-			g2.draw(gp);
+			gp.draw(g2);
 		}
 	}
 
@@ -275,7 +273,7 @@ public class DrawLocus extends Drawable {
 	 */
 	@Override
 	public boolean hit(int x, int y, int hitThreshold) {
-		GShape t = geo.isInverseFill() ? getShape() : gp;
+		GShape t = geo.isInverseFill() ? getShape() : getGeneralPath();
 		if (t == null) {
 			return false; // hasn't been drawn yet (hidden)
 		}
@@ -292,11 +290,15 @@ public class DrawLocus extends Drawable {
 				2 * hitThreshold, 2 * hitThreshold);
 	}
 
+	private GShape getGeneralPath() {
+		return gp == null ? null : gp.getGeneralPath();
+	}
+
 	private void updateStrokedShape() {
 		if (strokedShape == null) {
 			// AND-547, initial buffer size
 			try {
-				strokedShape = objStroke.createStrokedShape(gp, 2500);
+				strokedShape = objStroke.createStrokedShape(getGeneralPath(), 2500);
 			} catch (Exception e) {
 				Log.error("problem creating Locus shape: " + e.getMessage());
 			}

@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ * 
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * 
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.desktop.gui.layout;
 
 import java.awt.BorderLayout;
@@ -8,6 +24,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -111,11 +128,11 @@ public class DockBar extends JPanel implements SetLabels, DockBarInterface {
 	public void setSidebarTriangle(boolean popupIsVisible) {
 
 		if (popupIsVisible ^ !isEastOrientation()) {
-			lblIcon.setIcon(
-					app.getImageIcon(GuiResourcesD.DOCKBAR_TRIANGLE_RIGHT));
+			lblIcon.setIcon(new ImageIcon(
+					app.getImage(GuiResourcesD.DOCKBAR_TRIANGLE_RIGHT)));
 		} else {
 			lblIcon.setIcon(
-					app.getImageIcon(GuiResourcesD.DOCKBAR_TRIANGLE_LEFT));
+					new ImageIcon(app.getImage(GuiResourcesD.DOCKBAR_TRIANGLE_LEFT)));
 		}
 
 		slimSidebarPanel.repaint();

@@ -1,13 +1,17 @@
 /*
-GeoGebra - Dynamic Mathematics for Everyone
-http://www.geogebra.org
-
-This file is part of GeoGebra.
-
-This program is free software; you can redistribute it and/or modify it 
-under the terms of the GNU General Public License as published by 
-the Free Software Foundation.
-
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
  */
 
 package org.geogebra.common.kernel.geos;
@@ -17,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.geogebra.common.awt.AwtFactory;
 import org.geogebra.common.awt.GPoint2D;
 import org.geogebra.common.awt.GRectangle2D;
 import org.geogebra.common.awt.MyImage;
@@ -24,7 +29,7 @@ import org.geogebra.common.euclidian.EuclidianConstants;
 import org.geogebra.common.euclidian.EuclidianView;
 import org.geogebra.common.euclidian.EuclidianViewInterfaceCommon;
 import org.geogebra.common.euclidian.EuclidianViewInterfaceSlim;
-import org.geogebra.common.factories.AwtFactory;
+import org.geogebra.common.io.XMLStringBuilder;
 import org.geogebra.common.kernel.CircularDefinitionException;
 import org.geogebra.common.kernel.Construction;
 import org.geogebra.common.kernel.MatrixTransformable;
@@ -39,7 +44,6 @@ import org.geogebra.common.kernel.matrix.Coords;
 import org.geogebra.common.main.App;
 import org.geogebra.common.plugin.GeoClass;
 import org.geogebra.common.util.ExtendedBoolean;
-import org.geogebra.common.util.StringUtil;
 
 /**
  * Image with given filename and corners
@@ -585,31 +589,29 @@ public class GeoImage extends GeoElement implements
 	 * returns all class-specific xml tags for getXML
 	 */
 	@Override
-	protected void getStyleXML(StringBuilder sb) {
+	protected void getStyleXML(XMLStringBuilder sb) {
 		// name of image file
-		sb.append("\t<file name=\"");
-		StringUtil.encodeXML(sb, this.getGraphicsAdapter().getImageFileName());
-		sb.append("\"/>\n");
+		sb.startTag("file")
+				.attr("name", this.getGraphicsAdapter().getImageFileName())
+				.endTag();
 
 		// name of image file
-		sb.append("\t<inBackground val=\"");
-		sb.append(inBackground);
-		sb.append("\"/>\n");
+		sb.startTag("inBackground").attr("val", inBackground).endTag();
 
 		// image has to be interpolated
 		if (!isInterpolate()) {
-			sb.append("\t<interpolate val=\"false\"/>\n");
+			sb.startTag("interpolate").attr("val", false).endTag();
 		}
 
-		// locateion of image
+		// location of image
 
 		if (isCentered()) {
-			sb.append("\t<centered val=\"true\"/>\n");
+			sb.startTag("centered").attr("val", true).endTag();
 		}
 
 		if (hasAbsoluteScreenLocation
 				&& (corners[0] == null || corners[0].isAbsoluteStartPoint())) {
-			getXMLabsScreenLoc(sb);
+			getXMLAbsScreenLoc(sb);
 		} else {
 			// store location of corners
 			for (int i = 0; i < corners.length; i++) {
@@ -620,31 +622,23 @@ public class GeoImage extends GeoElement implements
 		if (cropBox != null) {
 			getCropBoxXML(sb);
 		}
-		// sb.append(getXMLvisualTags());
-		// sb.append(getBreakpointXML());
 		super.getStyleXML(sb);
 	}
 
-	private void getXMLabsScreenLoc(StringBuilder sb) {
-		sb.append("\t<absoluteScreenLocation x=\"");
-		sb.append(getAbsoluteScreenLocX());
-		sb.append("\" y=\"");
-		sb.append(getAbsoluteScreenLocY());
-		sb.append("\"/>");
+	private void getXMLAbsScreenLoc(XMLStringBuilder sb) {
+		sb.startTag("absoluteScreenLocation")
+				.attr("x", getAbsoluteScreenLocX())
+				.attr("y", getAbsoluteScreenLocY()).endTag();
 	}
 
-	private void getCropBoxXML(StringBuilder sb) {
-		sb.append("\t<cropBox x=\"");
-		sb.append(cropBox.getX());
-		sb.append("\" y=\"");
-		sb.append(cropBox.getY());
-		sb.append("\" width=\"");
-		sb.append(cropBox.getWidth());
-		sb.append("\" height=\"");
-		sb.append(cropBox.getHeight());
-		sb.append("\" cropped=\"");
-		sb.append(isCropped());
-		sb.append("\"/>");
+	private void getCropBoxXML(XMLStringBuilder sb) {
+		sb.startTag("cropBox")
+				.attr("x", cropBox.getX())
+				.attr("y", cropBox.getY())
+				.attr("width", cropBox.getWidth())
+				.attr("height", cropBox.getHeight())
+				.attr("cropped", isCropped())
+				.endTag();
 	}
 
 	@Override
@@ -854,8 +848,8 @@ public class GeoImage extends GeoElement implements
 		GeoPoint B = corners[1];
 		GeoPoint D = corners[2];
 
-		double xscale = kernel.getXscale();
-		double yscale = kernel.getYscale();
+		double xScale = kernel.getXscale();
+		double yScale = kernel.getYscale();
 		final double width = pixelWidth;
 
 		switch (n) {
@@ -871,7 +865,7 @@ public class GeoImage extends GeoElement implements
 			} else { // B is not defined
 				if (D == null) {
 					// B and D are not defined
-					coords[0] = ax + width / xscale;
+					coords[0] = ax + width / xScale;
 					coords[1] = ay;
 				} else {
 					// D is defined, B isn't
@@ -892,7 +886,7 @@ public class GeoImage extends GeoElement implements
 				if (B == null) {
 					// B and D are not defined
 					coords[0] = ax;
-					coords[1] = ay + pixelHeight / yscale;
+					coords[1] = ay + pixelHeight / yScale;
 				} else {
 					// B is defined, D isn't
 					double nx = ay - B.inhomY;

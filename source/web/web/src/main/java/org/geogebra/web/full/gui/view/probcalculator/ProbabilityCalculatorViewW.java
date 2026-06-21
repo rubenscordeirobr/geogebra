@@ -1,5 +1,24 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.web.full.gui.view.probcalculator;
 
+import javax.annotation.CheckForNull;
+
+import org.geogebra.common.gui.AccessibilityGroup;
 import org.geogebra.common.gui.view.data.PlotSettings;
 import org.geogebra.common.gui.view.probcalculator.ProbabilityCalculatorView;
 import org.geogebra.common.gui.view.probcalculator.ProbabilityManager;
@@ -8,11 +27,12 @@ import org.geogebra.common.gui.view.probcalculator.StatisticsCalculator;
 import org.geogebra.common.main.App;
 import org.geogebra.ggbjdk.java.awt.geom.Dimension;
 import org.geogebra.web.full.css.GuiResources;
+import org.geogebra.web.full.gui.toolbar.mow.toolbox.components.IconButton;
 import org.geogebra.web.full.gui.view.data.PlotPanelEuclidianViewW;
-import org.geogebra.web.html5.euclidian.EuclidianViewW;
-import org.geogebra.web.html5.gui.util.AriaHelper;
 import org.geogebra.web.html5.gui.util.Dom;
 import org.geogebra.web.html5.gui.util.ToggleButton;
+import org.geogebra.web.html5.gui.view.ImageIconSpec;
+import org.geogebra.web.html5.gui.zoompanel.FocusableWidget;
 import org.geogebra.web.html5.main.AppW;
 import org.geogebra.web.html5.main.AsyncManager;
 import org.geogebra.web.html5.main.GlobalKeyDispatcherW;
@@ -33,7 +53,8 @@ public class ProbabilityCalculatorViewW extends ProbabilityCalculatorView {
 	FlowPanel plotPanelPlus;
 
 	protected FlowPanel probCalcPanel;
-	private ToggleButton btnNormalOverlay;
+	private @CheckForNull IconButton overlayIconButton;
+	private @CheckForNull ToggleButton btnNormalOverlay;
 	private ToggleButton btnLineGraph;
 	private ToggleButton btnStepGraph;
 	private ToggleButton btnBarGraph;
@@ -42,7 +63,7 @@ public class ProbabilityCalculatorViewW extends ProbabilityCalculatorView {
 	protected FlowPanel plotPanelOptions;
 
 	/**
-	 * @param app creates new probabilitycalculatorView
+	 * @param app creates new probability calculator view
 	 */
 	protected ProbabilityCalculatorViewW(AppW app) {
 		super(app);
@@ -83,12 +104,12 @@ public class ProbabilityCalculatorViewW extends ProbabilityCalculatorView {
 		btnLineGraph.setTitle(loc.getMenu("LineGraph"));
 		btnStepGraph.setTitle(loc.getMenu("StepGraph"));
 		btnBarGraph.setTitle(loc.getMenu("BarChart"));
-		if (app.getConfig().hasDistributionView()) {
-			AriaHelper.setTitle(btnNormalOverlay, loc.getMenu("OverlayNormalCurve"));
-		} else {
+		if (overlayIconButton != null) {
+			overlayIconButton.setLabels();
+		} else if (btnNormalOverlay != null) {
 			btnNormalOverlay.setTitle(loc.getMenu("OverlayNormalCurve"));
+			btnNormalOverlay.getElement().setAttribute("tooltip-position", "right");
 		}
-		btnNormalOverlay.getElement().setAttribute("tooltip-position", "right");
 	}
 
 	/**
@@ -96,9 +117,9 @@ public class ProbabilityCalculatorViewW extends ProbabilityCalculatorView {
 	 * panel to a EuclidianView. The viewID for the target EuclidianView is
 	 * stored as a property with key "euclidianViewID".
 	 *
-	 * This action is passed as a parameter to plotPanel where it is used in the
+	 * <p>This action is passed as a parameter to plotPanel where it is used in the
 	 * plotPanel context menu and the EuclidianView transfer handler when the
-	 * plot panel is dragged into an EV.
+	 * plot panel is dragged into an EV.</p>
 	 */
 	private void createExportToEvAction() {
 		exportToEVAction = () -> {
@@ -119,12 +140,14 @@ public class ProbabilityCalculatorViewW extends ProbabilityCalculatorView {
 		plotPanelOptions = new FlowPanel();
 		plotPanelOptions.setStyleName("plotPanelOptions");
 
-		plotPanelOptions.add(btnNormalOverlay);
 		if (!app.getConfig().hasDistributionView()) {
+			plotPanelOptions.add(btnNormalOverlay);
 			plotPanelOptions.add(btnBarGraph);
 			plotPanelOptions.add(btnStepGraph);
 			plotPanelOptions.add(btnLineGraph);
 			updateGraphButtons();
+		} else {
+			plotPanelOptions.add(overlayIconButton);
 		}
 
 		plotPanelPlus = new FlowPanel();
@@ -142,18 +165,23 @@ public class ProbabilityCalculatorViewW extends ProbabilityCalculatorView {
 	private void createGUIElements() {
 		setLabelArrays();
 
-		btnNormalOverlay = new ToggleButton(app.getConfig().hasDistributionView()
-				? GuiResources.INSTANCE.normal_overlay_black()
-				: GuiResources.INSTANCE.normal_overlay());
-		btnNormalOverlay.addStyleName("probCalcStylbarBtn");
 		if (app.getConfig().hasDistributionView()) {
-			btnNormalOverlay.removeStyleName("ToggleButton");
-			btnNormalOverlay.addStyleName("suite");
+			overlayIconButton = new IconButton((AppW) app, null,
+					new ImageIconSpec(GuiResources.INSTANCE.normal_overlay_black()),
+					"OverlayNormalCurve");
+			overlayIconButton.addStyleName("probCalcStylbarBtn");
+			overlayIconButton.setTooltipPositionRight();
+			overlayIconButton.addFastClickHandler(source -> onOverlayClicked());
+			new FocusableWidget(AccessibilityGroup.PROBABILITY_OVERLAY, null, overlayIconButton)
+					.attachTo((AppW) app);
+		} else {
+			btnNormalOverlay = new ToggleButton(GuiResources.INSTANCE.normal_overlay());
+			btnNormalOverlay.addStyleName("probCalcStylbarBtn");
+			btnNormalOverlay.addFastClickHandler(event -> {
+				Dom.toggleClass(btnNormalOverlay, "selected", btnNormalOverlay.isSelected());
+				onOverlayClicked();
+			});
 		}
-		btnNormalOverlay.addFastClickHandler(event -> {
-			Dom.toggleClass(btnNormalOverlay, "selected", btnNormalOverlay.isSelected());
-			onOverlayClicked();
-		});
 
 		btnLineGraph = new ToggleButton(GuiResources.INSTANCE.line_graph());
 		btnLineGraph.addStyleName("probCalcStylbarBtn");
@@ -172,7 +200,7 @@ public class ProbabilityCalculatorViewW extends ProbabilityCalculatorView {
 	 * Overlay button action
 	 */
 	protected void onOverlayClicked() {
-		setShowNormalOverlay(btnNormalOverlay.isSelected());
+		setShowNormalOverlay(!isShowNormalOverlay());
 		updateAll(false);
 	}
 
@@ -218,7 +246,11 @@ public class ProbabilityCalculatorViewW extends ProbabilityCalculatorView {
 
 	@Override
 	protected void onDistributionUpdate() {
-		btnNormalOverlay.setVisible(isOverlayDefined());
+		if (overlayIconButton != null) {
+			overlayIconButton.setVisible(isOverlayDefined());
+		} else if (btnNormalOverlay != null) {
+			btnNormalOverlay.setVisible(isOverlayDefined());
+		}
 		getPlotPanel().repaintView();
 	}
 
@@ -257,7 +289,11 @@ public class ProbabilityCalculatorViewW extends ProbabilityCalculatorView {
 			distrPanel.updateGUI();
 		}
 		updateGraphButtons();
-		btnNormalOverlay.setSelected(isShowNormalOverlay());
+		if (btnNormalOverlay != null) {
+			btnNormalOverlay.setSelected(isShowNormalOverlay());
+		} else if (overlayIconButton != null) {
+			overlayIconButton.setActive(isShowNormalOverlay());
+		}
 	}
 
 	private void updateGraphButtons() {
@@ -291,26 +327,18 @@ public class ProbabilityCalculatorViewW extends ProbabilityCalculatorView {
 		return true;
 	}
 
-	/**
-	 * @return ProbabilitiManager
-	 */
 	@Override
 	public ProbabilityManager getProbManager() {
 		return probManager;
-	}
-
-	/**
-	 * @return plot panel view
-	 */
-	public EuclidianViewW getPlotPanelEuclidianView() {
-		return getPlotPanel();
 	}
 
 	@Override
 	public void setInterval(double low, double high) {
 		setLow(low);
 		setHigh(high);
-		getResultPanel().updateLowHigh("" + low, "" + high);
+		if (getResultPanel() != null) {
+			getResultPanel().updateLowHigh("" + low, "" + high);
+		}
 		setXAxisPoints();
 		updateIntervalProbability();
 		updateGUI();

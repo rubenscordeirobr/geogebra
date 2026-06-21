@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.kernel.statistics;
 
 import org.geogebra.common.kernel.Kernel;
@@ -201,7 +217,7 @@ public class CmdFrequencyTable extends CommandProcessor {
 	/**
 	 * FrequencyTable[dataList]
 	 */
-	final private GeoText frequencyTable(String label, GeoList dataList) {
+	private GeoText frequencyTable(String label, GeoList dataList) {
 		AlgoFrequencyTable algo = new AlgoFrequencyTable(cons, null,
 				null, dataList);
 		return output(algo, label);
@@ -210,7 +226,7 @@ public class CmdFrequencyTable extends CommandProcessor {
 	/**
 	 * FrequencyTable[isCumulative, dataList]
 	 */
-	final private GeoText frequencyTable(String label, GeoBoolean isCumulative,
+	private GeoText frequencyTable(String label, GeoBoolean isCumulative,
 			GeoList dataList) {
 		AlgoFrequencyTable algo = new AlgoFrequencyTable(cons,
 				isCumulative, null, dataList);
@@ -220,7 +236,7 @@ public class CmdFrequencyTable extends CommandProcessor {
 	/**
 	 * FrequencyTable[dataList, scale factor]
 	 */
-	final private GeoText frequencyTable(String label, GeoList dataList,
+	private GeoText frequencyTable(String label, GeoList dataList,
 			GeoNumeric scale) {
 		AlgoFrequencyTable algo = new AlgoFrequencyTable(cons, null,
 				null, dataList, scale);
@@ -230,7 +246,7 @@ public class CmdFrequencyTable extends CommandProcessor {
 	/**
 	 * FrequencyTable[isCumulative, dataList, scale factor]
 	 */
-	final private GeoText frequencyTable(String label, GeoBoolean isCumulative,
+	private GeoText frequencyTable(String label, GeoBoolean isCumulative,
 			GeoList dataList, GeoNumeric scale) {
 		AlgoFrequencyTable algo = new AlgoFrequencyTable(cons,
 				isCumulative, null, dataList, scale);
@@ -240,7 +256,7 @@ public class CmdFrequencyTable extends CommandProcessor {
 	/**
 	 * FrequencyTable[classList, dataList]
 	 */
-	final private GeoText frequencyTable(String label, GeoList classList,
+	private GeoText frequencyTable(String label, GeoList classList,
 			GeoList dataList) {
 		AlgoFrequencyTable algo = new AlgoFrequencyTable(cons, null,
 				classList, dataList);
@@ -250,7 +266,7 @@ public class CmdFrequencyTable extends CommandProcessor {
 	/**
 	 * FrequencyTable[classList, dataList, useDensity]
 	 */
-	final private GeoText frequencyTable(String label, GeoList classList,
+	private GeoText frequencyTable(String label, GeoList classList,
 			GeoList dataList, GeoBoolean useDensity) {
 		AlgoFrequencyTable algo = new AlgoFrequencyTable(cons, null,
 				classList, dataList, useDensity, null);
@@ -260,7 +276,7 @@ public class CmdFrequencyTable extends CommandProcessor {
 	/**
 	 * FrequencyTable[classList, dataList, useDensity, scaleFactor]
 	 */
-	final private GeoText frequencyTable(String label, GeoList classList,
+	private GeoText frequencyTable(String label, GeoList classList,
 			GeoList dataList, GeoBoolean useDensity, GeoNumeric scaleFactor) {
 		AlgoFrequencyTable algo = new AlgoFrequencyTable(cons, null,
 				classList, dataList, useDensity, scaleFactor);
@@ -270,7 +286,7 @@ public class CmdFrequencyTable extends CommandProcessor {
 	/**
 	 * FrequencyTable[isCumulative, classList, dataList]
 	 */
-	final private GeoText frequencyTable(String label, GeoBoolean isCumulative,
+	private GeoText frequencyTable(String label, GeoBoolean isCumulative,
 			GeoList classList, GeoList dataList) {
 		AlgoFrequencyTable algo = new AlgoFrequencyTable(cons,
 				isCumulative, classList, dataList, null, null);
@@ -280,7 +296,7 @@ public class CmdFrequencyTable extends CommandProcessor {
 	/**
 	 * FrequencyTable[isCumulative, classList, dataList, useDensity]
 	 */
-	final private GeoText frequencyTable(String label, GeoBoolean isCumulative,
+	private GeoText frequencyTable(String label, GeoBoolean isCumulative,
 			GeoList classList, GeoList dataList, GeoBoolean useDensity) {
 		AlgoFrequencyTable algo = new AlgoFrequencyTable(cons,
 				isCumulative, classList, dataList, useDensity, null);
@@ -291,7 +307,7 @@ public class CmdFrequencyTable extends CommandProcessor {
 	 * FrequencyTable[isCumulative, classList, dataList, useDensity,
 	 * scaleFactor]
 	 */
-	final private GeoText frequencyTable(String label, GeoBoolean isCumulative,
+	private GeoText frequencyTable(String label, GeoBoolean isCumulative,
 			GeoList classList, GeoList dataList, GeoBoolean useDensity,
 			GeoNumeric scaleFactor) {
 		AlgoFrequencyTable algo = new AlgoFrequencyTable(cons,
@@ -302,7 +318,7 @@ public class CmdFrequencyTable extends CommandProcessor {
 	/**
 	 * FrequencyTable[chart (Histogram or BarChart)]
 	 */
-	final private GeoText frequencyTable(String label, GeoNumeric chart) {
+	private GeoText frequencyTable(String label, GeoNumeric chart) {
 		AlgoFrequencyTable algo = new AlgoFrequencyTable(cons, chart);
 		return output(algo, label);
 	}

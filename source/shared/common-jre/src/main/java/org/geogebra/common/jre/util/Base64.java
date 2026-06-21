@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.jre.util;
 
 import java.util.Arrays;
@@ -111,7 +127,7 @@ public class Base64 {
 	 *            specifies max 76 per line but will be a little faster.
 	 * @return A BASE64 encoded array. Never <code>null</code>.
 	 */
-	public final static char[] encodeToChar(byte[] sArr, boolean lineSep) {
+	public static char[] encodeToChar(byte[] sArr, boolean lineSep) {
 		// Check special case
 		int sLen = sArr != null ? sArr.length : 0;
 		if (sLen == 0) {
@@ -173,7 +189,7 @@ public class Base64 {
 	 *         <code>null</code> if the legal characters (including '=') isn't
 	 *         divideable by 4. (I.e. definitely corrupted).
 	 */
-	public final static byte[] decode(char[] sArr) {
+	public static byte[] decode(char[] sArr) {
 		// Check special case
 		int sLen = sArr != null ? sArr.length : 0;
 		if (sLen == 0) {
@@ -250,7 +266,7 @@ public class Base64 {
 	 *            <code>null</code> will throw an exception.
 	 * @return The decoded array of bytes. May be of length 0.
 	 */
-	public final static byte[] decodeFast(char[] sArr) {
+	public static byte[] decodeFast(char[] sArr) {
 		// Check special case
 		int sLen = sArr.length;
 		if (sLen == 0) {
@@ -332,7 +348,7 @@ public class Base64 {
 	 *            specifies max 76 per line but will be a little faster.
 	 * @return A BASE64 encoded array. Never <code>null</code>.
 	 */
-	public final static byte[] encodeToByte(byte[] sArr, boolean lineSep) {
+	public static byte[] encodeToByte(byte[] sArr, boolean lineSep) {
 		// Check special case
 		int sLen = sArr != null ? sArr.length : 0;
 		if (sLen == 0) {
@@ -394,7 +410,7 @@ public class Base64 {
 	 *         <code>null</code> if the legal characters (including '=') isn't
 	 *         divideable by 4. (I.e. definitely corrupted).
 	 */
-	public final static byte[] decode(byte[] sArr) {
+	public static byte[] decode(byte[] sArr) {
 		// Check special case
 		int sLen = sArr.length;
 
@@ -470,7 +486,7 @@ public class Base64 {
 	 *            <code>null</code> will throw an exception.
 	 * @return The decoded array of bytes. May be of length 0.
 	 */
-	public final static byte[] decodeFast(byte[] sArr) {
+	public static byte[] decodeFast(byte[] sArr) {
 		// Check special case
 		int sLen = sArr.length;
 		if (sLen == 0) {
@@ -552,7 +568,7 @@ public class Base64 {
 	 *            specifies max 76 per line but will be a little faster.
 	 * @return A BASE64 encoded array. Never <code>null</code>.
 	 */
-	public final static String encodeToString(byte[] sArr, boolean lineSep) {
+	public static String encodeToString(byte[] sArr, boolean lineSep) {
 		// Reuse char[] since we can't create a String incrementally anyway and
 		// StringBuffer/Builder would be slower.
 		return new String(encodeToChar(sArr, lineSep));
@@ -574,7 +590,7 @@ public class Base64 {
 	 *         <code>null</code> if the legal characters (including '=') isn't
 	 *         divideable by 4. (I.e. definitely corrupted).
 	 */
-	public final static byte[] decode(String str) {
+	public static byte[] decode(String str) {
 		// Check special case
 		int sLen = str != null ? str.length() : 0;
 		if (sLen == 0) {
@@ -652,7 +668,7 @@ public class Base64 {
 	 *            <code>null</code> will throw an exception.
 	 * @return The decoded array of bytes. May be of length 0.
 	 */
-	public final static byte[] decodeFast(String s) {
+	public static byte[] decodeFast(String s) {
 		// Check special case
 		int sLen = s.length();
 		if (sLen == 0) {

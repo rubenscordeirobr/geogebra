@@ -1,3 +1,19 @@
+/*
+ * GeoGebra - Dynamic Mathematics for Everyone
+ * Copyright (c) GeoGebra GmbH, Altenbergerstr. 69, 4040 Linz, Austria
+ * https://www.geogebra.org
+ *
+ * This file is licensed by GeoGebra GmbH under the EUPL 1.2 licence and
+ * may be used under the EUPL 1.2 in compatible projects (see Article 5
+ * and the Appendix of EUPL 1.2 for details).
+ * You may obtain a copy of the licence at:
+ * https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Note: The overall GeoGebra software package is free to use for
+ * non-commercial purposes only.
+ * See https://www.geogebra.org/license for full licensing details
+ */
+
 package org.geogebra.common.euclidian;
 
 import org.geogebra.common.awt.GColor;
@@ -536,7 +552,7 @@ public class TextDispatcher {
 	 * Creates Midpoint M = (P + Q)/2 without label (for use as e.g. start
 	 * point)
 	 */
-	private final GeoPointND midpointForDistance(GeoPointND P, GeoPointND Q) {
+	private GeoPointND midpointForDistance(GeoPointND P, GeoPointND Q) {
 		return (GeoPointND) view.getEuclidianController().getCompanion()
 				.midpoint(P, Q);
 	}
@@ -561,7 +577,7 @@ public class TextDispatcher {
 	/**
 	 * Returns the projected point of P on line g (or nearest for a Segment)
 	 */
-	final private GeoPointND closestPoint(GeoPointND P, Path g) {
+	private GeoPointND closestPoint(GeoPointND P, Path g) {
 		Construction cons = kernel.getConstruction();
 
 		boolean oldMacroMode = cons.isSuppressLabelsActive();
